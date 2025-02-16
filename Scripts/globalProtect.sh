@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+# git update-index --assume-unchanged Scripts/globalProtect.sh
 # Variables de usuario
 USER="user"
 PASS="user"
