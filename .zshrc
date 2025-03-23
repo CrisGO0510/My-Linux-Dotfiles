@@ -95,3 +95,5 @@ alias mkdir='mkdir -p'
 # Display Pokemon
 pokemon-colorscripts --no-title -r 3,4
 source ~/.powerlevel10k/powerlevel10k.zsh-theme
+
+export PATH=$PATH:/home/cris/.spicetify
