@@ -35,7 +35,7 @@
         "states": {
             "c": 90, // critical
             "h": 60, // high
-            "m": 30, // medium
+            "m": 30 // medium
         },
         "interval": 30,
         "format": "󰾆 {used}GB",
@@ -55,7 +55,6 @@
         "all-outputs": true,
         "active-only": false,
         "on-click": "activate",
-        "disable-scroll": false,
         "on-scroll-up": "hyprctl dispatch workspace -1",
         "on-scroll-down": "hyprctl dispatch workspace +1",
         "persistent-workspaces": {
@@ -78,9 +77,10 @@
         "tooltip-format-deactivated":"Caffeine Mode Inactive"
     },
     "clock": {
-        "format": "{:%I:%M %p}",
+        "format": "{:%H:%M}",
         "rotate": 0,
         "format-alt": "{:%R 󰃭 %d·%m·%y}",
+        "tooltip": true, 
         "tooltip-format": "<span>{calendar}</span>",
         "calendar": {
             "mode": "month",
@@ -123,7 +123,7 @@
         "format-disconnected": "󰖪 ",
         "tooltip-format-disconnected": "Disconnected",
         "format-alt": "<span foreground='#99ffdd'> {bandwidthDownBytes}</span> <span foreground='#ffcc66'> {bandwidthUpBytes}</span>",
-        "interval": 2,
+        "interval": 2
     },
 
 "pulseaudio": {
@@ -169,7 +169,7 @@
         "on-click": "hyprctl dispatch exec 'systemupdate.sh up'",
         "interval": 86400, // once every day
         "tooltip": true,
-        "signal": 20,
+        "signal": 20
     },
     "custom/keybindhint": {
         "format": " ",
