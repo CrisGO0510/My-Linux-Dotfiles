@@ -33,7 +33,7 @@ esac
 
 wind_border=$(( hypr_border * 3 ))
 [ "${hypr_border}" -eq 0 ] && elem_border="10" || elem_border=$(( hypr_border * 2 ))
-r_override="window {border: ${hypr_width}px; border-radius: ${wind_border}px;} element {border-radius: ${elem_border}px;}"
+r_override="window {border: 1px; border-radius: 10px;} element {border-radius: 100px;}"
 r_scale="configuration {font: \"JetBrainsMono Nerd Font ${rofiScale}\";}"
 i_override="$(gsettings get org.gnome.desktop.interface icon-theme | sed "s/'//g")"
 i_override="configuration {icon-theme: \"${i_override}\";}"
