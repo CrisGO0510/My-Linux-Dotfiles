@@ -1,4 +1,5 @@
 ./scripts/globalProtect.sh
+.env
 
 # custom files
 custom/
