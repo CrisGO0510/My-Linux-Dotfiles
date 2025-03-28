@@ -4,16 +4,15 @@
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
 # Oh-my-zsh installation path
 ZSH=/usr/share/oh-my-zsh/
 
 # Powerlevel10k theme path
-source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+# source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme   # Warning error
 
 # List of plugins used
 plugins=()
-source $ZSH/oh-my-zsh.sh
+# source $ZSH/oh-my-zsh.sh  # Warning error
 
 # In case a command is not found, try to find the package that has it
 function command_not_found_handler {
@@ -97,3 +96,6 @@ pokemon-colorscripts --no-title -r 3,4
 source ~/.powerlevel10k/powerlevel10k.zsh-theme
 
 export PATH=$PATH:/home/cris/.spicetify
+
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=off

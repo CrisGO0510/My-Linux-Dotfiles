@@ -1,4 +1,5 @@
 return {
+
   -- Configurar Lualine
   {
     "nvim-lualine/lualine.nvim",
@@ -30,5 +31,10 @@ return {
   },
 
   -- Usar mini.starter en lugar de alpha
-  { import = "lazyvim.plugins.extras.ui.mini-starter" },
+  {
+    import = "lazyvim.plugins.extras.ui.mini-starter",
+
+    enabled = false,
+  },
+
 }
