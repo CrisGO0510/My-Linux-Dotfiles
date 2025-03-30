@@ -4,10 +4,10 @@ return {
     opts = {
       pickers = {
         explorer = {
-          hidden = true,             -- Mostrar archivos ocultos
+          hidden = true, -- Mostrar archivos ocultos
           respect_gitignore = false, -- Ignorar .gitignore para ver más archivos
         },
       },
     },
-  }
+  },
 }
