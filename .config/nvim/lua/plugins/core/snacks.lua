@@ -9,7 +9,7 @@ return {
           {
             section = "terminal",
             cmd = "chafa ~/.config/nvim/img/crab-icon.png --format symbols --symbols braille --size $(tput cols)x$(tput lines); sleep .1",
-            -- cmd = "kitten icat --place 60x17@0x0 ~/.config/nvim/img/crab-icon.png",
+            -- cmd = "export KITTY_WINDOW_ID=$WINDOWID && kitten icat --place 60x17@0x0 ~/.config/nvim/img/crab-icon.png",
             height = 17,
             padding = 1,
           },

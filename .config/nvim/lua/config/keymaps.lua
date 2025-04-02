@@ -14,7 +14,6 @@ wk.add({
 	{ "<C-Space>", [[cmp#complete()]], desc = "Abrir autocompletado manualmente" },
 	{ "<C-n>", [[cmp#select_next_item()]], desc = "Seleccionar el siguiente ítem en el autocompletado" },
 	{ "<C-p>", [[cmp#select_prev_item()]], desc = "Seleccionar el ítem anterior" },
-	{ "<C-e>", [[cmp#close()]], desc = "Cerrar el menú de autocompletado" },
 	{ "<Tab>", [[cmp#confirm({select = true})]], desc = "Confirmar selección de ítem" },
 }, { mode = "i" })
 
@@ -110,35 +109,35 @@ wk.add({
 		desc = "Toggle Terminal",
 	},
 })
-
--- avante.lua
-wk.add({
-	{ "<M-l>", [[require('avante').accept_suggestion()]], desc = "Aceptar sugerencia" },
-	{ "<M-]>", [[require('avante').next_suggestion()]], desc = "Ir a la siguiente sugerencia" },
-	{ "<M-[>", [[require('avante').prev_suggestion()]], desc = "Ir a la sugerencia anterior" },
-	{ "<C-]>", [[require('avante').dismiss_suggestion()]], desc = "Descartar sugerencia" },
-	{ "]]", [[require('avante').next_jump()]], desc = "Ir al siguiente punto de salto" },
-	{ "[[", [[require('avante').prev_jump()]], desc = "Ir al punto de salto anterior" },
-	{ "<CR>", [[require('avante').submit_normal()]], desc = "Enviar en modo normal (Enter)" },
-	{ "<C-s>", [[require('avante').submit_insert()]], desc = "Enviar en modo inserción (Ctrl + s)" },
-	{ "A", [[require('avante').apply_all_sidebar()]], desc = "Aplicar todos los cambios en la barra lateral" },
-	{
-		"a",
-		[[require('avante').apply_cursor_sidebar()]],
-		desc = "Aplicar el cambio en el cursor en la barra lateral",
-	},
-	{
-		"<Tab>",
-		[[require('avante').switch_sidebar_windows()]],
-		desc = "Cambiar entre las ventanas de la barra lateral",
-	},
-	{
-		"<S-Tab>",
-		[[require('avante').reverse_switch_sidebar_windows()]],
-		desc = "Cambiar entre las ventanas de la barra lateral (al revés)",
-	},
-}, { mode = "i" })
-
+--
+-- -- avante.lua
+-- wk.add({
+-- 	{ "<M-l>", [[require('avante').accept_suggestion()]], desc = "Aceptar sugerencia" },
+-- 	{ "<M-]>", [[require('avante').next_suggestion()]], desc = "Ir a la siguiente sugerencia" },
+-- 	{ "<M-[>", [[require('avante').prev_suggestion()]], desc = "Ir a la sugerencia anterior" },
+-- 	{ "<C-]>", [[require('avante').dismiss_suggestion()]], desc = "Descartar sugerencia" },
+-- 	{ "]]", [[require('avante').next_jump()]], desc = "Ir al siguiente punto de salto" },
+-- 	{ "[[", [[require('avante').prev_jump()]], desc = "Ir al punto de salto anterior" },
+-- 	{ "<CR>", [[require('avante').submit_normal()]], desc = "Enviar en modo normal (Enter)" },
+-- 	{ "<C-s>", [[require('avante').submit_insert()]], desc = "Enviar en modo inserción (Ctrl + s)" },
+-- 	{ "A", [[require('avante').apply_all_sidebar()]], desc = "Aplicar todos los cambios en la barra lateral" },
+-- 	{
+-- 		"a",
+-- 		[[require('avante').apply_cursor_sidebar()]],
+-- 		desc = "Aplicar el cambio en el cursor en la barra lateral",
+-- 	},
+-- 	{
+-- 		"<Tab>",
+-- 		[[require('avante').switch_sidebar_windows()]],
+-- 		desc = "Cambiar entre las ventanas de la barra lateral",
+-- 	},
+-- 	{
+-- 		"<S-Tab>",
+-- 		[[require('avante').reverse_switch_sidebar_windows()]],
+-- 		desc = "Cambiar entre las ventanas de la barra lateral (al revés)",
+-- 	},
+-- }, { mode = "i" })
+--
 wk.add({
 	{
 		"<C-s>",
@@ -546,9 +545,10 @@ wk.add({
 	{
 		"gr",
 		function()
-			require("snacks").picker.lsp_references()
+            require("telescope.builtin").lsp_references({
+            })
 		end,
-		desc = "References",
+		desc = "References Telescope",
 	},
 	{
 		"gI",
