@@ -8,6 +8,7 @@ map("n", "<Space>", "<NOP>", opts)
 vim.g.mapleader = " " -- Define <Space> como tecla líder
 
 map("t", "<C-Esc>", "<C-\\><C-n>", opts)
+map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Quitar resaltado de búsqueda" })
 
 -- cmp.lua
 wk.add({
@@ -63,6 +64,7 @@ wk.add({
 	{ "<C-S-j>", ":resize -5<CR>", desc = "Reducir split horizontalmente" },
 	{ "<C-S-k>", ":resize +5<CR>", desc = "Expandir split horizontalmente" },
 })
+
 wk.add({
 	{ "<leader>f", group = "find" },
 
@@ -109,35 +111,104 @@ wk.add({
 		desc = "Toggle Terminal",
 	},
 })
---
--- -- avante.lua
--- wk.add({
--- 	{ "<M-l>", [[require('avante').accept_suggestion()]], desc = "Aceptar sugerencia" },
--- 	{ "<M-]>", [[require('avante').next_suggestion()]], desc = "Ir a la siguiente sugerencia" },
--- 	{ "<M-[>", [[require('avante').prev_suggestion()]], desc = "Ir a la sugerencia anterior" },
--- 	{ "<C-]>", [[require('avante').dismiss_suggestion()]], desc = "Descartar sugerencia" },
--- 	{ "]]", [[require('avante').next_jump()]], desc = "Ir al siguiente punto de salto" },
--- 	{ "[[", [[require('avante').prev_jump()]], desc = "Ir al punto de salto anterior" },
--- 	{ "<CR>", [[require('avante').submit_normal()]], desc = "Enviar en modo normal (Enter)" },
--- 	{ "<C-s>", [[require('avante').submit_insert()]], desc = "Enviar en modo inserción (Ctrl + s)" },
--- 	{ "A", [[require('avante').apply_all_sidebar()]], desc = "Aplicar todos los cambios en la barra lateral" },
--- 	{
--- 		"a",
--- 		[[require('avante').apply_cursor_sidebar()]],
--- 		desc = "Aplicar el cambio en el cursor en la barra lateral",
--- 	},
--- 	{
--- 		"<Tab>",
--- 		[[require('avante').switch_sidebar_windows()]],
--- 		desc = "Cambiar entre las ventanas de la barra lateral",
--- 	},
--- 	{
--- 		"<S-Tab>",
--- 		[[require('avante').reverse_switch_sidebar_windows()]],
--- 		desc = "Cambiar entre las ventanas de la barra lateral (al revés)",
--- 	},
--- }, { mode = "i" })
---
+-- copilot.lua
+
+wk.add({
+	{
+		"<Tab>",
+		function()
+			return require("copilot.suggestion").accept()
+		end,
+		desc = "Aceptar sugerencia",
+		mode = "i",
+		expr = true,
+		silent = true,
+	},
+	{
+		"<C-n>",
+		function()
+			require("copilot.suggestion").next()
+		end,
+		desc = "Siguiente sugerencia",
+		mode = "i",
+	},
+	{
+		"<C-p>",
+		function()
+			require("copilot.suggestion").prev()
+		end,
+		desc = "Sugerencia anterior",
+		mode = "i",
+	},
+	{
+		"<C-x>",
+		function()
+			require("copilot.suggestion").dismiss()
+		end,
+		desc = "Cerrar sugerencia",
+		mode = "i",
+	},
+})
+
+wk.add({
+	{ "<leader>a", group = "AI" },
+
+	-- Chat general
+	{
+		"<leader>aa",
+		"<cmd>AvanteAsk<CR>",
+		desc = "Abrir Chat de Avante",
+		mode = { "n", "v" },
+	},
+
+	-- Refactorizar
+	{
+		"<leader>ar",
+		"<cmd>AvanteAsk refactoriza<CR>",
+		desc = "Refactorizar código",
+		mode = { "n", "v" },
+	},
+
+	-- Anotaciones de tipo
+	{
+		"<leader>ad",
+		"<cmd>AvanteAsk agrega tipos<CR>",
+		desc = "Agregar anotaciones de tipo",
+		mode = { "n", "v" },
+	},
+
+	-- Sugerir nombre
+	{
+		"<leader>an",
+		"<cmd>AvanteAsk nombra esta función<CR>",
+		desc = "Sugerir nombre para función",
+		mode = { "n", "v" },
+	},
+
+	-- Explicar
+	{
+		"<leader>ae",
+		"<cmd>AvanteAsk explica<CR>",
+		desc = "Explicar código",
+		mode = { "n", "v" },
+	},
+
+	-- Traducir
+	{
+		"<leader>at",
+		"<cmd>AvanteAsk traduce al español<CR>",
+		desc = "Traducir al español",
+		mode = { "n", "v" },
+	},
+
+	-- Documentar
+	{
+		"<leader>ac",
+		"<cmd>AvanteAsk documenta<CR>",
+		desc = "Documentar código",
+		mode = { "n", "v" },
+	},
+})
 wk.add({
 	{
 		"<C-s>",
@@ -545,8 +616,7 @@ wk.add({
 	{
 		"gr",
 		function()
-            require("telescope.builtin").lsp_references({
-            })
+			require("telescope.builtin").lsp_references({})
 		end,
 		desc = "References Telescope",
 	},
@@ -580,35 +650,19 @@ wk.add({
 	{
 		"<leader>bd",
 		function()
-			require("telescope.builtin").buffers({
-				show_all_buffers = true,
-				attach_mappings = function(prompt_bufnr, map)
-					local actions = require("telescope.actions")
-					actions.select_default:enhance({
-						post = function()
-							local selection = require("telescope.actions.state").get_selected_entry()
-							vim.api.nvim_buf_delete(selection.bufnr, { force = true })
-						end,
-					})
-					return true
-				end,
-			})
+			vim.api.nvim_buf_delete(0, { force = true })
 		end,
-		desc = "Delete Buffer",
+		desc = "Cerrar buffer actual",
 	},
 	{
 		"<leader>bn",
-		function()
-			require("telescope.builtin").buffers({ sort_lastused = true })
-		end,
-		desc = "Next Buffer",
+		"<cmd>bnext<CR>",
+		desc = "Buffer siguiente",
 	},
 	{
 		"<leader>bp",
-		function()
-			require("telescope.builtin").buffers({ sort_lastused = true })
-		end,
-		desc = "Previous Buffer",
+		"<cmd>bprevious<CR>",
+		desc = "Buffer anterior",
 	},
 	{
 		"<leader>bo",
