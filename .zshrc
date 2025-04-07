@@ -99,3 +99,6 @@ export PATH=$PATH:/home/cris/.spicetify
 
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
+
+
+eval "$(direnv hook zsh)"
