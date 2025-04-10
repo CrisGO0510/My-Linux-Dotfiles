@@ -102,3 +102,7 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
 
 
 eval "$(direnv hook zsh)"
+
+
+# Load Angular CLI autocompletion.
+source <(ng completion script)
