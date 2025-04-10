@@ -1,4 +1,4 @@
--- Definir una configuración común
+
 local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
@@ -10,6 +10,18 @@ vim.g.mapleader = " " -- Define <Space> como tecla líder
 map("t", "<C-Esc>", "<C-\\><C-n>", opts)
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Quitar resaltado de búsqueda" })
 
+wk.add({
+	{ "<leader>c", group = "Code" },
+
+	{
+		"<leader>ce",
+		function()
+			vim.diagnostic.open_float()
+		end,
+		desc = "Mostrar error en línea",
+		mode = "n",
+	},
+})
 -- cmp.lua
 wk.add({
 	{ "<C-Space>", [[cmp#complete()]], desc = "Abrir autocompletado manualmente" },
