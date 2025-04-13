@@ -7,12 +7,8 @@ fi
 # Oh-my-zsh installation path
 ZSH=/usr/share/oh-my-zsh/
 
-# Powerlevel10k theme path
-# source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme   # Warning error
-
 # List of plugins used
 plugins=()
-# source $ZSH/oh-my-zsh.sh  # Warning error
 
 # In case a command is not found, try to find the package that has it
 function command_not_found_handler {
@@ -76,7 +72,6 @@ alias pl='$aurhelper -Qs' # list installed package
 alias pa='$aurhelper -Ss' # list available package
 alias pc='$aurhelper -Sc' # remove unused cache
 alias po='$aurhelper -Qtdq | $aurhelper -Rns -' # remove unused packages, also try > $aurhelper -Qqd | $aurhelper -Rsu --print -
-alias vc='code' # gui code editor
 
 # Directory navigation shortcuts
 alias ..='cd ..'
@@ -97,12 +92,7 @@ source ~/.powerlevel10k/powerlevel10k.zsh-theme
 
 export PATH=$PATH:/home/cris/.spicetify
 
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
-
-
 eval "$(direnv hook zsh)"
-
 
 # Load Angular CLI autocompletion.
 source <(ng completion script)

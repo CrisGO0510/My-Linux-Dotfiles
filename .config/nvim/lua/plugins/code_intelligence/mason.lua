@@ -5,7 +5,7 @@ return {
 	config = function()
 		require("mason").setup()
 		require("mason-lspconfig").setup({
-			ensure_installed = { "lua_ls", "ts_ls", "rust_analyzer", "jdtls", "lemminx" },
+			ensure_installed = { "lua_ls", "ts_ls", "rust_analyzer", "jdtls" },
 			automatic_installation = true, -- Instala automáticamente los LSPs requeridos
 		})
 
