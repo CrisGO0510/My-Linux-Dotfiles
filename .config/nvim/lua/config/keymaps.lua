@@ -1,4 +1,3 @@
-
 local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
@@ -9,6 +8,8 @@ vim.g.mapleader = " " -- Define <Space> como tecla líder
 
 map("t", "<C-Esc>", "<C-\\><C-n>", opts)
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Quitar resaltado de búsqueda" })
+map("n", "zl", "10zl", { desc = "Desplazar vista → 5 cols" })
+map("n", "zh", "10zh", { desc = "Desplazar vista ← 5 cols" })
 
 wk.add({
 	{ "<leader>c", group = "Code" },
@@ -19,6 +20,31 @@ wk.add({
 			vim.diagnostic.open_float()
 		end,
 		desc = "Mostrar error en línea",
+		mode = "n",
+	},
+	{
+		"<leader>cw",
+		function()
+			vim.wo.wrap = not vim.wo.wrap
+			print("Wrap " .. (vim.wo.wrap and "activado" or "desactivado"))
+		end,
+		desc = "Toggle wrap",
+		mode = "n",
+	},
+	{
+		"<leader>ci",
+		function()
+			vim.lsp.buf.hover()
+		end,
+		desc = "Mostrar información de la variable",
+		mode = "n",
+	},
+	{
+		"<leader>cm", -- Este es el nuevo atajo para :MarkdownPreviewToggle
+		function()
+			vim.cmd("MarkdownPreview")
+		end,
+		desc = "Alternar vista previa de Markdown",
 		mode = "n",
 	},
 })
