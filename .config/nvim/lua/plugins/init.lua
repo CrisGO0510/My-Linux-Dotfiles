@@ -23,8 +23,7 @@ require("lazy").setup({
 	require("plugins.languages.conform"),
 	require("plugins.languages.mason"),
 	require("plugins.languages.treesitter"),
-	-- require("plugins.languages.rust"),
-  require("plugins.languages.lsp"),
+	require("plugins.languages.rust"),
 
 	-- code_intelligence
 	require("plugins.code_intelligence.auto-safe"),

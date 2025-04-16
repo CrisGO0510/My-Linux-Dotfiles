@@ -6,11 +6,11 @@ return {
 		require("mason").setup()
 		require("mason-lspconfig").setup({
 			ensure_installed = { "lua_ls", "ts_ls", "rust_analyzer", "jdtls" },
-			automatic_installation = true, -- Instala automáticamente los LSPs requeridos
+			automatic_installation = true,
 		})
 
 		require("mason-lspconfig").setup_handlers({
-			function(server_name) -- Esta función se ejecuta para cada servidor instalado
+			function(server_name)
 				require("lspconfig")[server_name].setup({})
 			end,
 		})
