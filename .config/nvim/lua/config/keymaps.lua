@@ -57,6 +57,18 @@ wk.add({
 		desc = "Alternar Inlay Hints (global)",
 		mode = "n",
 	},
+	{
+		"<leader>cs",
+		":SSSelected<CR>",
+		desc = "Capturar selección (CodeShot)",
+		mode = "v",
+	},
+	{
+		"<leader>cx",
+		":SSFocused<CR>",
+		desc = "Capturar vista con selección resaltada",
+		mode = "v",
+	},
 })
 -- cmp.lua
 wk.add({
