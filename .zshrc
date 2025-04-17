@@ -96,3 +96,5 @@ eval "$(direnv hook zsh)"
 
 # Load Angular CLI autocompletion.
 source <(ng completion script)
+
+. "$HOME/.cargo/env"
