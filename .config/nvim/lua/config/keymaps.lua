@@ -13,7 +13,14 @@ map("n", "zh", "10zh", { desc = "Desplazar vista ← 5 cols" })
 
 wk.add({
 	{ "<leader>c", group = "Code" },
-
+	{
+		"<leader>ca",
+		function()
+			vim.lsp.buf.code_action()
+		end,
+		desc = "Acciones de código (Code Action)",
+		mode = { "n", "v" }, -- puede ser normal y visual mode
+	},
 	{
 		"<leader>ce",
 		function()
