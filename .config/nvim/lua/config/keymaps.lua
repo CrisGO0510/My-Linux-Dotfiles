@@ -215,6 +215,14 @@ wk.add({
 		desc = "Cerrar sugerencia",
 		mode = "i",
 	},
+	{
+		"<C-l>",
+		function()
+			require("copilot.suggestion").accept_word()
+		end,
+		desc = "Aceptar palabra",
+		mode = "i",
+	},
 })
 
 wk.add({

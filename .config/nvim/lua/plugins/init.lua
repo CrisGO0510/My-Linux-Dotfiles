@@ -24,6 +24,7 @@ require("lazy").setup({
 	require("plugins.languages.mason"),
 	require("plugins.languages.treesitter"),
 	require("plugins.languages.rust"),
+  require("plugins.languages.typescript"),
 
 	-- code_intelligence
 	require("plugins.code_intelligence.auto-safe"),
