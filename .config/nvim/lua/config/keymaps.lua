@@ -10,6 +10,7 @@ map("t", "<C-Esc>", "<C-\\><C-n>", opts)
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Quitar resaltado de búsqueda" })
 map("n", "zl", "10zl", { desc = "Desplazar vista → 5 cols" })
 map("n", "zh", "10zh", { desc = "Desplazar vista ← 5 cols" })
+map("n", "<leader>q", "<cmd>:qall!<CR>", { desc = "Cerrar nvim" })
 
 wk.add({
 	{ "<leader>c", group = "Code" },
@@ -130,6 +131,36 @@ wk.add({
 	-- Redimensionar splits horizontalmente con Ctrl-Shift
 	{ "<C-S-j>", ":resize -5<CR>", desc = "Reducir split horizontalmente" },
 	{ "<C-S-k>", ":resize +5<CR>", desc = "Expandir split horizontalmente" },
+
+	-- Mover ventanas a diferentes posiciones
+	{
+		"<leader>wH",
+		function()
+			vim.cmd("wincmd H")
+		end,
+		desc = "Mover ventana a la izquierda",
+	},
+	{
+		"<leader>wL",
+		function()
+			vim.cmd("wincmd L")
+		end,
+		desc = "Mover ventana a la derecha",
+	},
+	{
+		"<leader>wK",
+		function()
+			vim.cmd("wincmd K")
+		end,
+		desc = "Mover ventana arriba",
+	},
+	{
+		"<leader>wJ",
+		function()
+			vim.cmd("wincmd J")
+		end,
+		desc = "Mover ventana abajo",
+	},
 })
 
 wk.add({
@@ -725,9 +756,11 @@ wk.add({
 	{
 		"<leader>bd",
 		function()
-			vim.api.nvim_buf_delete(0, { force = true })
+			local curr_buf = vim.api.nvim_get_current_buf()
+			vim.cmd("bprevious") -- Ir al buffer anterior
+			vim.api.nvim_buf_delete(curr_buf, { force = true })
 		end,
-		desc = "Cerrar buffer actual",
+		desc = "Cerrar buffer actual sin cerrar ventana",
 	},
 	{
 		"<leader>bn",

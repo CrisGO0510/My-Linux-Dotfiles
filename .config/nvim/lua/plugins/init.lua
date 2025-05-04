@@ -60,4 +60,5 @@ require("lazy").setup({
 	require("plugins.ui.which-key"),
 	require("plugins.ui.markdown-preview"),
 	require("plugins.ui.code-shot"),
+  require("plugins.ui.colorizer"),
 })
