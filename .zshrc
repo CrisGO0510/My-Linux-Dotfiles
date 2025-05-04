@@ -1,100 +1,115 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# Enable Powerlevel10k instant prompt (keep this at the top)
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-# Oh-my-zsh installation path
-ZSH=/usr/share/oh-my-zsh/
 
-# List of plugins used
+# Oh-my-zsh path
+export ZSH="/usr/share/oh-my-zsh"
+
+# Use plugins if needed (currently empty)
 plugins=()
 
-# In case a command is not found, try to find the package that has it
+# Use oh-my-zsh if installed
+[ -f "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+
+# --- Command not found handler (safe + optimized) ---
 function command_not_found_handler {
-    local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
-    printf 'zsh: command not found: %s\n' "$1"
-    local entries=( ${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"} )
-    if (( ${#entries[@]} )) ; then
-        printf "${bright}$1${reset} may be found in the following packages:\n"
-        local pkg
-        for entry in "${entries[@]}" ; do
-            local fields=( ${(0)entry} )
-            if [[ "$pkg" != "${fields[2]}" ]]; then
-                printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
-            fi
-            printf '    /%s\n' "${fields[4]}"
-            pkg="${fields[2]}"
-        done
+  local cmd="$1"
+  echo "zsh: command not found: $cmd" >&2
+
+  # Use absolute path to avoid recursion
+  if command -v /usr/bin/pacman &>/dev/null; then
+    local entries=("${(@f)$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$cmd")}")
+    if (( ${#entries[@]} )); then
+      echo "$cmd may be found in the following packages:"
+      local pkg=""
+      for entry in "${entries[@]}"; do
+        local fields=("${(@s: :)entry}")
+        if [[ "$pkg" != "${fields[2]}" ]]; then
+          printf "  %s/%s %s\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
+        fi
+        echo "    /${fields[4]}"
+        pkg="${fields[2]}"
+      done
     fi
-    return 127
+  fi
+  return 127
 }
 
-# Detect AUR wrapper
-if pacman -Qi yay &>/dev/null; then
-   aurhelper="yay"
-elif pacman -Qi paru &>/dev/null; then
-   aurhelper="paru"
+# --- Detect AUR helper ---
+if command -v yay &>/dev/null; then
+  aurhelper="yay"
+elif command -v paru &>/dev/null; then
+  aurhelper="paru"
+else
+  aurhelper=""
 fi
 
+# --- AUR/package installer helper ---
 function in {
-    local -a inPkg=("$@")
-    local -a arch=()
-    local -a aur=()
-
-    for pkg in "${inPkg[@]}"; do
-        if pacman -Si "${pkg}" &>/dev/null; then
-            arch+=("${pkg}")
-        else
-            aur+=("${pkg}")
-        fi
-    done
-
-    if [[ ${#arch[@]} -gt 0 ]]; then
-        sudo pacman -S "${arch[@]}"
+  local -a arch=() aur=()
+  for pkg in "$@"; do
+    if pacman -Si "$pkg" &>/dev/null; then
+      arch+=("$pkg")
+    else
+      aur+=("$pkg")
     fi
+  done
 
-    if [[ ${#aur[@]} -gt 0 ]]; then
-        ${aurhelper} -S "${aur[@]}"
-    fi
+  (( ${#arch[@]} )) && sudo pacman -S "${arch[@]}"
+  if [[ -n "$aurhelper" && ${#aur[@]} -gt 0 ]]; then
+    "$aurhelper" -S "${aur[@]}"
+  fi
 }
 
-# Helpful aliases
-alias c='clear' # clear terminal
-alias l='eza -lh --icons=auto' # long list
-alias ls='eza -1 --icons=auto' # short list
-alias ll='eza -lha --icons=auto --sort=name --group-directories-first' # long list all
-alias ld='eza -lhD --icons=auto' # long list dirs
-alias lt='eza --icons=auto --tree' # list folder as tree
-alias un='$aurhelper -Rns' # uninstall package
-alias up='$aurhelper -Syu' # update system/package/aur
-alias pl='$aurhelper -Qs' # list installed package
-alias pa='$aurhelper -Ss' # list available package
-alias pc='$aurhelper -Sc' # remove unused cache
-alias po='$aurhelper -Qtdq | $aurhelper -Rns -' # remove unused packages, also try > $aurhelper -Qqd | $aurhelper -Rsu --print -
+# --- Aliases ---
+alias c='clear'
+alias ls='eza -1 --icons=auto'
+alias l='eza -lh --icons=auto'
+alias ll='eza -lha --icons=auto --sort=name --group-directories-first'
+alias ld='eza -lhD --icons=auto'
+alias lt='eza --icons=auto --tree'
+alias mkdir='/usr/bin/mkdir -p'
 
-# Directory navigation shortcuts
+# Pacman/AUR helpers
+alias un='$aurhelper -Rns'
+alias up='$aurhelper -Syu'
+alias pl='$aurhelper -Qs'
+alias pa='$aurhelper -Ss'
+alias pc='$aurhelper -Sc'
+alias po='$aurhelper -Qtdq | $aurhelper -Rns -'
+
+# Directory navigation
 alias ..='cd ..'
 alias ...='cd ../..'
 alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
-# Always mkdir a path (this doesn't inhibit functionality to make a single dir)
-alias mkdir='mkdir -p'
+# --- Prompt config ---
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# --- Nice visual touch ---
+if command -v pokemon-colorscripts &>/dev/null; then
+  pokemon-colorscripts --no-title -r 3,4
+fi
 
-# Display Pokemon
-pokemon-colorscripts --no-title -r 3,4
-source ~/.powerlevel10k/powerlevel10k.zsh-theme
+# --- Themes ---
+[[ -f ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
 
-export PATH=$PATH:/home/cris/.spicetify
+# --- Paths and Env ---
+export PATH="$PATH:$HOME/.spicetify"
 
+# Direnv
 eval "$(direnv hook zsh)"
 
-# Load Angular CLI autocompletion.
-source <(ng completion script)
+# Angular CLI autocompletion
+command -v ng &>/dev/null && source <(ng completion script)
 
-. "$HOME/.cargo/env"
+# Rust
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# Node
+export NVM_DIR="$HOME/.config/nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"

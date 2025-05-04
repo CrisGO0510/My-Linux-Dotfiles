@@ -1,18 +1,3 @@
-#!          ░▒▓         
-#!        ░▒▒░▓▓         
-#!      ░▒▒▒░░░▓▓           ___________
-#!    ░░▒▒▒░░░░░▓▓        //___________/
-#!   ░░▒▒▒░░░░░▓▓     _   _ _    _ _____
-#!   ░░▒▒░░░░░▓▓▓▓▓▓ | | | | |  | |  __/
-#!    ░▒▒░░░░▓▓   ▓▓ | |_| | |_/ /| |___
-#!     ░▒▒░░▓▓   ▓▓   \__  |____/ |____/    ▀█ █▀ █░█
-#!       ░▒▓▓   ▓▓  //____/                █▄ ▄█ █▀█
-
-# HyDE's ZSH env configuration
-# This file is sourced by ZSH on startup
-# And ensures that we have an obstruction free ~/.zshrc file
-# This also ensures that the proper HyDE $ENVs are loaded
-
 # Command not found handler
 function command_not_found_handler {
     local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
@@ -34,22 +19,22 @@ function command_not_found_handler {
 }
 
 function load_zsh_plugins {
-# Oh-my-zsh installation path
-zsh_paths=(
-    "$HOME/.oh-my-zsh"
-    "/usr/local/share/oh-my-zsh"
-    "/usr/share/oh-my-zsh"
-)
-for zsh_path in "${zsh_paths[@]}"; do [[ -d $zsh_path ]] && export ZSH=$zsh_path && break; done
-# Load Plugins
-hyde_plugins=( git zsh-256color zsh-autosuggestions zsh-syntax-highlighting )
-plugins+=( "${plugins[@]}" "${hyde_plugins[@]}" git zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
-# Deduplicate plugins
-plugins=("${plugins[@]}")
-plugins=($(printf "%s\n" "${plugins[@]}" | sort -u))
+  # Oh-my-zsh installation path
+  zsh_paths=(
+      "$HOME/.oh-my-zsh"
+      "/usr/local/share/oh-my-zsh"
+      "/usr/share/oh-my-zsh"
+  )
+  for zsh_path in "${zsh_paths[@]}"; do [[ -d $zsh_path ]] && export ZSH=$zsh_path && break; done
+  # Load Plugins
+  hyde_plugins=( git zsh-256color zsh-autosuggestions zsh-syntax-highlighting )
+  plugins+=( "${plugins[@]}" "${hyde_plugins[@]}" git zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
+  # Deduplicate plugins
+  plugins=("${plugins[@]}")
+  plugins=($(printf "%s\n" "${plugins[@]}" | sort -u))
 
-# Loads om-my-zsh
-[[ -r $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
+  # Loads om-my-zsh
+  [[ -r $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
 }
 
 # Install packages from both Arch and AUR
@@ -99,8 +84,7 @@ function slow_load_warning {
                 configurations from your .zshrc file as HyDE will handle it for you.
             - Check the '.zshrc' file from the repo for a clean configuration.
                 https://github.com/HyDE-Project/HyDE/blob/master/Configs/.zshrc
-        3. Check the '~/.hyde.zshrc' file for any slow initialization scripts.
-        4. Check the '~/.p10k.zsh' file for any slow initialization scripts.
+        3. Check the '~/.p10k.zsh' file for any slow initialization scripts.
 
     For more information, on the possible causes of slow shell startup, see:
         🌐 https://github.com/HyDE-Project/HyDE/wiki
@@ -148,10 +132,6 @@ else
     fi
     echo "$aurhelper" > "$aur_cache_file"
 fi
-
-
-# Optionally load user configuration // usefull for customizing the shell without modifying the main file
-[[ -f ~/.hyde.zshrc ]] && source ~/.hyde.zshrc
 
 # export env vars here
 
