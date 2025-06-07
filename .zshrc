@@ -3,21 +3,30 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# Oh-my-zsh path
-export ZSH="/usr/share/oh-my-zsh"
+# Oh My Zsh path (corrected)
+export ZSH="$HOME/.oh-my-zsh"
 
-# Use plugins if needed (currently empty)
-plugins=()
+# --- Prompt config ---
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# Use oh-my-zsh if installed
+# Enable common plugins
+plugins=(
+  git
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+  zsh-256color
+)
+
+# Load Oh My Zsh
 [ -f "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
 
-# --- Command not found handler (safe + optimized) ---
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# --- Command not found handler ---
 function command_not_found_handler {
   local cmd="$1"
   echo "zsh: command not found: $cmd" >&2
-
-  # Use absolute path to avoid recursion
   if command -v /usr/bin/pacman &>/dev/null; then
     local entries=("${(@f)$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$cmd")}")
     if (( ${#entries[@]} )); then
@@ -86,16 +95,11 @@ alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
-# --- Prompt config ---
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # --- Nice visual touch ---
 if command -v pokemon-colorscripts &>/dev/null; then
   pokemon-colorscripts --no-title -r 3,4
 fi
-
-# --- Themes ---
-[[ -f ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
 
 # --- Paths and Env ---
 export PATH="$PATH:$HOME/.spicetify"
@@ -108,8 +112,3 @@ command -v ng &>/dev/null && source <(ng completion script)
 
 # Rust
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-
-# Node
-export NVM_DIR="$HOME/.config/nvm"
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
