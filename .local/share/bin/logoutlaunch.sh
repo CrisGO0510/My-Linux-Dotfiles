@@ -1,85 +1,58 @@
 #!/usr/bin/env sh
 
+# Chequear si jq está instalado
+if ! command -v jq &> /dev/null; then
+    echo "ERROR: jq no está instalado. Instalalo con: sudo pacman -S jq"
+    exit 1
+fi
 
-#// Check if wlogout is already running
-
-if pgrep -x "wlogout" > /dev/null
-then
+# Si wlogout está corriendo, matarlo
+if pgrep -x "wlogout" > /dev/null; then
     pkill -x "wlogout"
     exit 0
 fi
 
+# Definir variables
+confDir="${XDG_CONFIG_HOME:-$HOME/.config}"
+[ -z "${1}" ] && wlogoutStyle="1" || wlogoutStyle="${1}"
 
-#// set file variables
-
-scrDir=`dirname "$(realpath "$0")"`
-source $scrDir/globalcontrol.sh
-[ -z "${1}" ] || wlogoutStyle="${1}"
 wLayout="${confDir}/wlogout/layout_${wlogoutStyle}"
 wlTmplt="${confDir}/wlogout/style_${wlogoutStyle}.css"
 
-if [ ! -f "${wLayout}" ] || [ ! -f "${wlTmplt}" ] ; then
+if [ ! -f "${wLayout}" ] || [ ! -f "${wlTmplt}" ]; then
     echo "ERROR: Config ${wlogoutStyle} not found..."
-    wlogoutStyle=1
-    wLayout="${confDir}/wlogout/layout_${wlogoutStyle}"
-    wlTmplt="${confDir}/wlogout/style_${wlogoutStyle}.css"
+    exit 1
 fi
 
-
-#// detect monitor res
-
+# Detectar resolución y escala
 x_mon=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .width')
 y_mon=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .height')
-hypr_scale=$(hyprctl -j monitors | jq '.[] | select (.focused == true) | .scale' | sed 's/\.//')
+hypr_scale=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .scale' | sed 's/\.//')
 
+[ -z "$hypr_scale" ] && echo "ERROR: No se pudo obtener hypr_scale" && exit 1
 
-#// scale config layout and style
-
+# Calcular márgenes y radios
 case "${wlogoutStyle}" in
     1)  wlColms=6
-        export mgn=$(( y_mon * 28 / hypr_scale ))
-        export hvr=$(( y_mon * 23 / hypr_scale )) ;;
+        mgn=$(( y_mon * 28 / hypr_scale ))
+        hvr=$(( y_mon * 23 / hypr_scale )) ;;
     2)  wlColms=2
-        export x_mgn=$(( x_mon * 35 / hypr_scale ))
-        export y_mgn=$(( y_mon * 25 / hypr_scale ))
-        export x_hvr=$(( x_mon * 32 / hypr_scale ))
-        export y_hvr=$(( y_mon * 20 / hypr_scale )) ;;
+        x_mgn=$(( x_mon * 35 / hypr_scale ))
+        y_mgn=$(( y_mon * 25 / hypr_scale ))
+        x_hvr=$(( x_mon * 32 / hypr_scale ))
+        y_hvr=$(( y_mon * 20 / hypr_scale )) ;;
 esac
 
+fntSize=$(( y_mon * 2 / 100 ))
+BtnCol="white"
+active_rad=20
+button_rad=32
 
-#// scale font size
+# Exportar variables para el CSS
+export fntSize BtnCol active_rad button_rad mgn hvr x_mgn y_mgn x_hvr y_hvr
 
-export fntSize=$(( y_mon * 2 / 100 ))
-
-
-#// detect wallpaper brightness
-
-[ -f "${cacheDir}/wall.dcol" ] && source "${cacheDir}/wall.dcol"
-#  Theme mode: detects the color-scheme set in hypr.theme and falls back if nothing is parsed.
-if [ "${enableWallDcol}" -eq 0 ]; then
-    colorScheme="$({ grep -q "^[[:space:]]*\$COLOR[-_]SCHEME\s*=" "${hydeThemeDir}/hypr.theme" && grep "^[[:space:]]*\$COLOR[-_]SCHEME\s*=" "${hydeThemeDir}/hypr.theme" | cut -d '=' -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' ;} || 
-                        grep 'gsettings set org.gnome.desktop.interface color-scheme' "${hydeThemeDir}/hypr.theme" | awk -F "'" '{print $((NF - 1))}')"
-    colorScheme=${colorScheme:-$(gsettings get org.gnome.desktop.interface color-scheme)} 
-    # should be declared explicitly so we can easily debug
-    grep -q "dark" <<< "${colorScheme}" && dcol_mode="dark"
-    grep -q "light" <<< "${colorScheme}" && dcol_mode="light"
-[ -f "${hydeThemeDir}/theme.dcol" ] && source "${hydeThemeDir}/theme.dcol"
-fi
-[ "${dcol_mode}" == "dark" ] && export BtnCol="white" || export BtnCol="black"
-
-
-#// eval hypr border radius
-
-export active_rad=$(( hypr_border * 5 ))
-export button_rad=$(( hypr_border * 8 ))
-
-
-#// eval config files
-
+# Renderizar el CSS
 wlStyle="$(envsubst < $wlTmplt)"
 
-
-#// launch wlogout
-
+# Lanzar wlogout
 wlogout -b "${wlColms}" -c 0 -r 0 -m 0 --layout "${wLayout}" --css <(echo "${wlStyle}") --protocol layer-shell
-
