@@ -95,6 +95,8 @@ alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
+# --- Silenciar advertencia de instant prompt ---
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
 # --- Nice visual touch ---
 if command -v pokemon-colorscripts &>/dev/null; then
@@ -107,8 +109,13 @@ export PATH="$PATH:$HOME/.spicetify"
 # Direnv
 eval "$(direnv hook zsh)"
 
-# Angular CLI autocompletion
-command -v ng &>/dev/null && source <(ng completion script)
+# --- Angular CLI autocompletion (safe) ---
+if command -v ng &>/dev/null; then
+  source <(ng completion script)
+fi
 
-# Rust
-[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+# --- Rust (safe) ---
+if [[ -f "$HOME/.cargo/env" ]]; then
+  source "$HOME/.cargo/env" || echo "Error loading Rust environment"
+fi
+
