@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091
-# Separated wallpaper script for swww backend
-# We will handle swww specific configurations here
-# [wallpaper.swww] in ~/.config/hyde/config.toml
 
-selected_wall="${1:-"$$HYDE_CACHE_HOME/wall.set"}"
-lockFile="$HYDE_RUNTIME_DIR/$(basename "${0}").lock"
+selected_wall="${1:-}"
+lockFile="/tmp/$(basename "${0}").lock"
+
 if [ -e "${lockFile}" ]; then
     cat <<EOF
 
@@ -15,29 +12,43 @@ If you are sure that no other instance is running, remove the lock file:
 EOF
     exit 1
 fi
+
 touch "${lockFile}"
-trap 'rm -f ${lockFile}' EXIT
+trap 'rm -f "${lockFile}"' EXIT
 
-scrDir="$(dirname "$(realpath "$0")")"
-# shellcheck disable=SC1091
-source "${scrDir}/globalcontrol.sh"
+# Configuración local
+WALLPAPER_SWWW_TRANSITION_DEFAULT="grow"
+wallFramerate=60
+wallTransDuration=0.4
 
-selected_wall="$1"
-[ -z "${selected_wall}" ] && echo "No input wallpaper" && exit 1
+# Verifica wallpaper
+if [ -z "${selected_wall}" ] || [ ! -f "${selected_wall}" ]; then
+    echo "[ERROR] No valid wallpaper provided."
+    exit 1
+fi
 
+# Iniciar swww si no está activo
 if ! swww query &>/dev/null; then
     swww-daemon --format xrgb &
     disown
-    swww query && swww restore
+    sleep 0.5 # Le damos un pequeño tiempo para iniciar
 fi
 
-#// set defaults
-xtrans=${WALLPAPER_SWWW_TRANSITION_DEFAULT}
-[ -z "${xtrans}" ] && xtrans="grow"
-[ -z "${wallFramerate}" ] && wallFramerate=60
-[ -z "${wallTransDuration}" ] && wallTransDuration=0.4
+# Obtener posición del cursor si hyprctl está disponible
+if command -v hyprctl &>/dev/null; then
+    cursorPos="$(hyprctl cursorpos | grep -E '^[0-9]' || echo "0,0")"
+else
+    cursorPos="0,0"
+fi
 
-#// apply wallpaper
-# TODO: add support for other backends
-print_log -sec "wallpaper" -stat "apply" "$(readlink -f "$selected_wall")"
-swww img "$(readlink -f "$selected_wall")" --transition-bezier .43,1.19,1,.4 --transition-type "${xtrans}" --transition-duration "${wallTransDuration}" --transition-fps "${wallFramerate}" --invert-y --transition-pos "$(hyprctl cursorpos | grep -E '^[0-9]' || echo "0,0")" &
+# Aplicar wallpaper
+echo "[INFO] Applying wallpaper: $(readlink -f "${selected_wall}")"
+swww img "$(readlink -f "${selected_wall}")" \
+    --transition-bezier .43,1.19,1,.4 \
+    --transition-type "${WALLPAPER_SWWW_TRANSITION_DEFAULT}" \
+    --transition-duration "${wallTransDuration}" \
+    --transition-fps "${wallFramerate}" \
+    --invert-y \
+    --transition-pos "${cursorPos}" &
+
+exit 0

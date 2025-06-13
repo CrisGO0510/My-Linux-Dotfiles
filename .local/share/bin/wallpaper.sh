@@ -1,61 +1,84 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2154
 
+# Configuración local
 scrDir="$(dirname "$(realpath "$0")")"
-# shellcheck disable=SC1091
-source "${scrDir}/globalcontrol.sh"
+wallSet="$scrDir/wall.set"
+wallCur="$scrDir/wall.cur"
+thmbDir="$scrDir/thumbs"
+dcolDir="$scrDir/dcols"
+ROFI_FONT="JetBrainsMono Nerd Font"
+ROFI_SCALE=10
 
-# // Help message
+# Ruta de wallpapers
+wallpaper_dir="$HOME/dotfiles/assets"
+
+wallList=()
+wallHash=()
+
+print_log() {
+    echo "[LOG] $*"
+}
+
+set_hash() {
+    basename "$1"
+}
+
+get_hashmap() {
+    local paths=("$@")
+    wallList=()
+    wallHash=()
+
+    for path in "${paths[@]}"; do
+        if [ -d "$path" ]; then
+            while IFS= read -r -d '' file; do
+                wallList+=("$file")
+                wallHash+=("$(basename "$file" | md5sum | awk '{print $1}')")
+            done < <(find "$path" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" \) -print0)
+        fi
+    done
+}
+
 show_help() {
     cat <<EOF
 Usage: $(basename "$0") --[options|flags] [parameters]
-options:
+
+Options:
     -j, --json                List wallpapers in JSON format to STDOUT
     -S, --select              Select wallpaper using rofi
     -n, --next                Set next wallpaper
     -p, --previous            Set previous wallpaper
     -r, --random              Set random wallpaper
     -s, --set <file>          Set specified wallpaper
-    -g, --get                 Get current wallpaper of specified backend
     -o, --output <file>       Copy current wallpaper to specified file
-        --link                Resolved the linked wallpaper according to the theme
     -h, --help                Display this help message
-
-flags:
-    -b, --backend <backend>   Set wallpaper backend to use (swww, hyprpaper, etc.)
-    -G, --global              Set wallpaper as global
-
-
-notes: 
-       --backend <backend> is also use to cache wallpapers/background images e.g. hyprlock
-           when '--backend hyprlock' is used, the wallpaper will be cached in
-           ~/.cache/hyde/wallpapers/hyprlock.png
-
-       --global flag is used to set the wallpaper as global, this means all
-         thumbnails will be updated to reflect the new wallpaper
-
-       --output <path> is used to copy the current wallpaper to the specified path
-            We can use this to have a copy of the wallpaper to '/var/tmp' where sddm or
-            any systemwide application can access it  
 EOF
     exit 0
 }
-#// Set and Cache Wallpaper
+
+Wall_Apply() {
+    local selected_wall="$1"
+
+    # Iniciar swww si no está activo
+    if ! swww query &>/dev/null; then
+        swww-daemon --format xrgb &
+        disown
+        swww query && swww restore
+    fi
+
+    # Aplicar wallpaper
+    echo "[INFO] Applying wallpaper: $(readlink -f "$selected_wall")"
+    swww img "$(readlink -f "$selected_wall")" \
+        --transition-bezier .43,1.19,1,.4 \
+        --transition-type "grow" \
+        --transition-duration "0.4" \
+        --transition-fps "60" \
+        --invert-y &
+}
 
 Wall_Cache() {
     ln -fs "${wallList[setIndex]}" "${wallSet}"
     ln -fs "${wallList[setIndex]}" "${wallCur}"
-    if [ "${set_as_global}" == "true" ]; then
-        print_log -sec "wallpaper" "Setting Wallpaper as global"
-        "${scrDir}/swwwallcache.sh" -w "${wallList[setIndex]}" &>/dev/null
-        "${scrDir}/swwwallbash.sh" "${wallList[setIndex]}" &
-        ln -fs "${thmbDir}/${wallHash[setIndex]}.sqre" "${wallSqr}"
-        ln -fs "${thmbDir}/${wallHash[setIndex]}.thmb" "${wallTmb}"
-        ln -fs "${thmbDir}/${wallHash[setIndex]}.blur" "${wallBlr}"
-        ln -fs "${thmbDir}/${wallHash[setIndex]}.quad" "${wallQad}"
-        ln -fs "${dcolDir}/${wallHash[setIndex]}.dcol" "${wallDcl}"
-    fi
-
+    Wall_Apply "${wallList[setIndex]}"
 }
 
 Wall_Change() {
@@ -65,248 +88,118 @@ Wall_Change() {
             if [ "${1}" == "n" ]; then
                 setIndex=$(((i + 1) % ${#wallList[@]}))
             elif [ "${1}" == "p" ]; then
-                setIndex=$((i - 1))
+                setIndex=$(( (i - 1 + ${#wallList[@]}) % ${#wallList[@]} ))
             fi
             break
         fi
     done
-    Wall_Cache "${wallList[setIndex]}"
+    Wall_Cache
 }
 
-# * Method to list wallpapers from hashmaps into json
 Wall_Json() {
-    setIndex=0
-    [ ! -d "${HYDE_THEME_DIR}" ] && echo "ERROR: \"${HYDE_THEME_DIR}\" does not exist" && exit 0
-    wallPathArray=("${HYDE_THEME_DIR}")
-    wallPathArray+=("${WALLPAPER_CUSTOM_PATHS[@]}")
+    wallPathArray=("$wallpaper_dir")
+    get_hashmap "${wallPathArray[@]}"
 
-    get_hashmap "${wallPathArray[@]}" # get the hashmap provides wallList and wallHash
-
-    # Prepare data for jq
     wallListJson=$(printf '%s\n' "${wallList[@]}" | jq -R . | jq -s .)
     wallHashJson=$(printf '%s\n' "${wallHash[@]}" | jq -R . | jq -s .)
 
-    # Create JSON using jq
-    jq -n --argjson wallList "$wallListJson" --argjson wallHash "$wallHashJson" --arg cacheHome "${HYDE_CACHE_HOME:-$HOME/.cache/hyde}" '
+    jq -n --argjson wallList "$wallListJson" --argjson wallHash "$wallHashJson" --arg cacheHome "$scrDir" '
         [range(0; $wallList | length) as $i | 
             {
                 path: $wallList[$i], 
                 hash: $wallHash[$i], 
-                basename: ($wallList[$i] | split("/") | last),
-                thmb: "\($cacheHome)/thumbs/\($wallHash[$i]).thmb",
-                sqre: "\($cacheHome)/thumbs/\($wallHash[$i]).sqre",
-                blur: "\($cacheHome)/thumbs/\($wallHash[$i]).blur",
-                quad: "\($cacheHome)/thumbs/\($wallHash[$i]).quad",
-                dcol: "\($cacheHome)/dcols/\($wallHash[$i]).dcol",
-                rofi_sqre: "\($wallList[$i] | split("/") | last):::\($wallList[$i]):::\($cacheHome)/thumbs/\($wallHash[$i]).sqre\u0000icon\u001f\($cacheHome)/thumbs/\($wallHash[$i]).sqre",
-                rofi_thmb: "\($wallList[$i] | split("/") | last):::\($wallList[$i]):::\($cacheHome)/thumbs/\($wallHash[$i]).thmb\u0000icon\u001f\($cacheHome)/thumbs/\($wallHash[$i]).thmb",
-                rofi_blur: "\($wallList[$i] | split("/") | last):::\($wallList[$i]):::\($cacheHome)/thumbs/\($wallHash[$i]).blur\u0000icon\u001f\($cacheHome)/thumbs/\($wallHash[$i]).blur",
-                rofi_quad: "\($wallList[$i] | split("/") | last):::\($wallList[$i]):::\($cacheHome)/thumbs/\($wallHash[$i]).quad\u0000icon\u001f\($cacheHome)/thumbs/\($wallHash[$i]).quad",
-
+                basename: ($wallList[$i] | split("/") | last)
             }
         ]
     '
 }
 
 Wall_Select() {
-    font_scale="${ROFI_WALLPAPER_SCALE}"
-    [[ "${font_scale}" =~ ^[0-9]+$ ]] || font_scale=${ROFI_SCALE:-10}
+    font_scale=${ROFI_SCALE}
+    font_name=${ROFI_FONT}
+    font_override="* {font: \"${font_name} ${font_scale}\";}"
 
-    # set font name
-    font_name=${ROFI_WALLPAPER_FONT:-$ROFI_FONT}
-    font_name=${font_name:-$(get_hyprConf "MENU_FONT")}
-    font_name=${font_name:-$(get_hyprConf "FONT")}
+    elem_border=5
+    r_override="window{width:100%;} listview{columns:5;spacing:5em;} element{border-radius:${elem_border}px; orientation:vertical;} element-icon{size:28em;} element-text{padding:1em;}"
 
-    # set rofi font override
-    font_override="* {font: \"${font_name:-"JetBrainsMono Nerd Font"} ${font_scale}\";}"
+    entry=$(Wall_Json | jq -r '.[] | "\(.basename):::\(.path)"' | rofi -dmenu \
+        -display-column-separator ":::" \
+        -display-columns 1 \
+        -theme-str "${font_override}" \
+        -theme-str "${r_override}" \
+        -theme selector \
+        -select "$(basename "$(readlink "$wallSet")")")
 
-    # shellcheck disable=SC2154
-    elem_border=$((hypr_border * 3))
-
-    #// scale for monitor
-
-    mon_x_res=$(hyprctl -j monitors | jq '.[] | select(.focused == true) | (.width / .scale | round)')
-
-    #// generate config
-
-    elm_width=$(((28 + 8 + 5) * font_scale))
-    max_avail=$((mon_x_res - (4 * font_scale)))
-    col_count=$((max_avail / elm_width))
-
-    r_override="window{width:100%;}
-    listview{columns:${col_count};spacing:5em;}
-    element{border-radius:${elem_border}px;
-    orientation:vertical;} 
-    element-icon{size:28em;border-radius:0em;}
-    element-text{padding:1em;}"
-
-    #// launch rofi menu
-    local entry
-    entry=$(
-
-        Wall_Json | jq -r '.[].rofi_sqre' | rofi -dmenu \
-            -display-column-separator ":::" \
-            -display-columns 1 \
-            -theme-str "${font_override}" \
-            -theme-str "${r_override}" \
-            -theme "${ROFI_WALLPAPER_STYLE:-selector}" \
-            -select "$(basename "$(readlink "$wallSet")")"
-    )
-    selected_thumbnail="$(awk -F ':::' '{print $3}' <<<"${entry}")"
-    selected_wallpaper_path="$(awk -F ':::' '{print $2}' <<<"${entry}")"
-    selected_wallpaper="$(awk -F ':::' '{print $1}' <<<"${entry}")"
-    export selected_wallpaper selected_wallpaper_path selected_thumbnail
+    selected_wallpaper="$(awk -F ':::' '{print $2}' <<< "${entry}")"
     if [ -z "${selected_wallpaper}" ]; then
-        print_log -err "wallpaper" " No wallpaper selected"
+        echo "No wallpaper selected"
         exit 0
     fi
+    get_hashmap "$(dirname "$selected_wallpaper")"
+    for i in "${!wallList[@]}"; do
+        if [ "${wallList[i]}" == "${selected_wallpaper}" ]; then
+            setIndex=$i
+            break
+        fi
+    done
+    Wall_Cache
 }
 
 Wall_Hash() {
-    # * Method to load wallpapers in hashmaps and fix broken links per theme
-    setIndex=0
-    [ ! -d "${HYDE_THEME_DIR}" ] && echo "ERROR: \"${HYDE_THEME_DIR}\" does not exist" && exit 0
-    wallPathArray=("${HYDE_THEME_DIR}")
-    wallPathArray+=("${WALLPAPER_CUSTOM_PATHS[@]}")
+    wallPathArray=("$wallpaper_dir")
     get_hashmap "${wallPathArray[@]}"
-    [ ! -e "$(readlink -f "${wallSet}")" ] && echo "fixing link :: ${wallSet}" && ln -fs "${wallList[setIndex]}" "${wallSet}"
+    [ ! -e "$(readlink -f "${wallSet}")" ] && echo "Fixing link: ${wallSet}" && ln -fs "${wallList[0]}" "${wallSet}"
 }
 
 main() {
-    #// set full cache variables
-    if [ -z "$wallpaper_backend" ] &&
-        [ "$wallpaper_setter_flag" != "o" ] &&
-        [ "$wallpaper_setter_flag" != "g" ] &&
-        [ "$wallpaper_setter_flag" != "select" ]; then
-        print_log -sec "wallpaper" -err "No backend specified"
-        print_log -sec "wallpaper" " Please specify a backend, try '--backend swww'"
-        print_log -sec "wallpaper" " See available commands: '--help | -h'"
-        exit 1
-    fi
-
-    # * --global flag is used to set the wallpaper as global, this means caching the wallpaper to thumbnails
-    #  If wallpaper is used for thumbnails, set the following variables
-    if [ "$set_as_global" == "true" ]; then
-        wallSet="${HYDE_THEME_DIR}/wall.set"
-        wallCur="${HYDE_CACHE_HOME}/wall.set"
-        wallSqr="${HYDE_CACHE_HOME}/wall.sqre"
-        wallTmb="${HYDE_CACHE_HOME}/wall.thmb"
-        wallBlr="${HYDE_CACHE_HOME}/wall.blur"
-        wallQad="${HYDE_CACHE_HOME}/wall.quad"
-        wallDcl="${HYDE_CACHE_HOME}/wall.dcol"
-    elif [ -n "${wallpaper_backend}" ]; then
-        mkdir -p "${HYDE_CACHE_HOME}/wallpapers"
-        wallCur="${HYDE_CACHE_HOME}/wallpapers/${wallpaper_backend}.png"
-        wallSet="${HYDE_THEME_DIR}/wall.${wallpaper_backend}.png"
-    else
-        wallSet="${HYDE_THEME_DIR}/wall.set"
-    fi
-
     if [ -n "${wallpaper_setter_flag}" ]; then
         case "${wallpaper_setter_flag}" in
         n)
             Wall_Hash
-            xtrans=${WALLPAPER_SWWW_TRANSITION_NEXT}
-            xtrans="${xtrans:-"grow"}"
             Wall_Change n
             ;;
         p)
             Wall_Hash
-            xtrans=${WALLPAPER_SWWW_TRANSITION_PREV}
-            xtrans="${xtrans:-"outer"}"}
-            wallpaper_setter_flag=p
             Wall_Change p
             ;;
         r)
             Wall_Hash
             setIndex=$((RANDOM % ${#wallList[@]}))
-            Wall_Cache "${wallList[setIndex]}"
+            Wall_Cache
             ;;
         s)
-            if [ -n "${wallpaper_path}" ] && [ -f "${wallpaper_path}" ]; then
-                get_hashmap "${wallpaper_path}"
-            fi
-            Wall_Cache "${wallList[setIndex]}"
-            ;;
-        g)
-            if [ ! -e "${wallSet}" ]; then
-                print_log -err "wallpaper" "Wallpaper not found: ${wallSet}"
+            if [ -z "${wallpaper_path}" ] || [ ! -f "${wallpaper_path}" ]; then
+                echo "Wallpaper not found: ${wallpaper_path}"
                 exit 1
             fi
-            realpath "${wallSet}"
-            exit 0
+            wallList=("${wallpaper_path}")
+            wallHash=("$(basename "${wallpaper_path}" | md5sum | awk '{print $1}')")
+            setIndex=0
+            Wall_Cache
             ;;
         o)
-            if [ -n "${walllpaper_output}" ]; then
-                print_log -sec "wallpaper" "Current wallpaper copied to: ${walllpaper_output}"
-                cp -f "${wallSet}" "${walllpaper_output}"
+            if [ -n "${wallpaper_output}" ]; then
+                echo "Current wallpaper copied to: ${wallpaper_output}"
+                cp -f "${wallSet}" "${wallpaper_output}"
             fi
             ;;
         select)
             Wall_Select
-            get_hashmap "${selected_wallpaper_path}"
-            Wall_Cache
-            ;;
-        link)
-            Wall_Hash
-            Wall_Cache
-            exit 0
             ;;
         esac
     fi
-
-    # TODO Add more backends. backend functions are used to e,g apply wallpaper or just a post processing like we do with swww
-    # Apply wallpaper to  backend
-    if [ -f "${scrDir}/wallpaper.${wallpaper_backend}.sh" ] && [ -n "${wallpaper_backend}" ]; then
-        print_log -sec "wallpaper" "Using backend: ${wallpaper_backend}"
-        "${scrDir}/wallpaper.${wallpaper_backend}.sh" "${wallSet}"
-    else
-        print_log -err "wallpaper" "Backend not found: ${wallpaper_backend}"
-    fi
-
-    if [ "${wallpaper_setter_flag}" == "select" ]; then
-        if [ -e "$(readlink -f "${wallSet}")" ]; then
-            if [ "${set_as_global}" == "true" ]; then
-                notify-send -a "HyDE Alert" -i "${selected_thumbnail}" "${selected_wallpaper}"
-            else
-                notify-send -a "HyDE Alert" -i "${selected_thumbnail}" "${selected_wallpaper} set for ${wallpaper_backend}"
-            fi
-        else
-            notify-send -a "HyDE Alert" "Wallpaper not found"
-        fi
-    fi
 }
-
-#// evaluate options
 
 if [ -z "${*}" ]; then
     echo "No arguments provided"
     show_help
 fi
 
-# Define long options
-LONGOPTS="link,global,select,json,next,previous,random,set:,backend:,get,output,help"
+PARSED=$(getopt --options Sjnpro:s:h --longoptions select,json,next,previous,random,set:,output:,help --name "$0" -- "$@")
 
-# Parse options
-PARSED=$(
-    if getopt --options GSjnprb:s:go:h --longoptions $LONGOPTS --name "$0" -- "$@"; then
-        exit 2
-    fi
-)
-
-wallpaper_setter_flag=
-# Apply parsed options
 eval set -- "$PARSED"
 while true; do
     case "$1" in
-    -G | --global)
-        set_as_global=true
-        shift
-        ;;
-    --link)
-        wallpaper_setter_flag="link"
-        shift
-        ;;
     -j | --json)
         Wall_Json
         exit 0
@@ -332,19 +225,9 @@ while true; do
         wallpaper_path="${2}"
         shift 2
         ;;
-    -g | --get)
-        wallpaper_setter_flag=g
-        shift
-        ;;
-    -b | --backend)
-        # Set wallpaper backend to use (swww, hyprpaper, etc.)
-        wallpaper_backend="${2:-"$WALLPAPER_BACKEND"}"
-        shift 2
-        ;;
     -o | --output)
-        # Accepts wallpaper output path
         wallpaper_setter_flag=o
-        walllpaper_output="${2}"
+        wallpaper_output="${2}"
         shift 2
         ;;
     -h | --help)
