@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 
-# Source global control script
-scrDir=$(dirname "$(realpath "$0")")
-source "$scrDir/globalcontrol.sh"
+# Set local configuration variables
+confDir="$HOME/.config"
+icodir="${confDir}/dunst/icons/vol"
+step=5
 
 # Check if SwayOSD is installed
 use_swayosd=false
@@ -49,9 +50,9 @@ notify_vol() {
 }
 
 notify_mute() {
-    mute=$(pamixer "${srce}" --get-mute | cat)
-    [ "${srce}" == "--default-source" ] && dvce="mic" || dvce="speaker"
-    if [ "${mute}" == "true" ]; then
+    mute=$(pamixer "${srce}" --get-mute)
+    [ "${srce}" = "--default-source" ] && dvce="mic" || dvce="speaker"
+    if [ "${mute}" = "true" ]; then
         notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/muted-${dvce}.svg" "muted" "${nsink}"
     else
         notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/unmuted-${dvce}.svg" "unmuted" "${nsink}"
@@ -67,9 +68,10 @@ change_volume() {
 
     [ "${action}" = "i" ] && delta="+"
     [ "${srce}" = "--default-source" ] && mode="--input-volume"
+
     case $device in
-        "pamixer")            
-            $use_swayosd && swayosd-client ${mode} "${delta}${step}"  && exit 0
+        "pamixer")
+            $use_swayosd && swayosd-client ${mode} "${delta}${step}" && exit 0
             pamixer $srce -"$action" "$step"
             vol=$(pamixer $srce --get-volume)
             ;;
@@ -78,7 +80,7 @@ change_volume() {
             vol=$(playerctl --player="$srce" volume | awk '{ printf "%.0f\n", $0 * 100 }')
             ;;
     esac
-    
+
     notify_vol
 }
 
@@ -86,8 +88,9 @@ toggle_mute() {
     local device=$1
     local mode="--output-volume"
     [ "${srce}" = "--default-source" ] && mode="--input-volume"
+
     case $device in
-        "pamixer") 
+        "pamixer")
             $use_swayosd && swayosd-client "${mode}" mute-toggle && exit 0
             pamixer $srce -t
             notify_mute
@@ -102,7 +105,7 @@ toggle_mute() {
                     last_volume=$(cat "$volume_file")
                     playerctl --player="$srce" volume "$last_volume"
                 else
-                    playerctl --player="$srce" volume 0.5  # Default to 50% if no saved volume
+                    playerctl --player="$srce" volume 0.5
                 fi
             fi
             notify_mute
@@ -135,18 +138,35 @@ toggle_output() {
 
 # Main script logic
 
-# Set default variables
-icodir="${confDir}/dunst/icons/vol"
-step=5
 # Parse options
 while getopts "iop:st" opt; do
     case $opt in
-        i) device="pamixer"; srce="--default-source"; nsink=$(pamixer --list-sources | awk -F '"' 'END {print $(NF - 1)}') ;;
-        o) device="pamixer"; srce=""; nsink=$(pamixer --get-default-sink | awk -F '"' 'END{print $(NF - 1)}') ;;
-        p) device="playerctl"; srce="${OPTARG}"; nsink=$(playerctl --list-all | grep -w "$srce") ;;
-        s) select_output "$(select_output | rofi -dmenu -config "${confDir}/rofi/notification.rasi")"; exit ;;
-        t) toggle_output; exit ;;
-        *) print_usage ;;
+        i)
+            device="pamixer"
+            srce="--default-source"
+            nsink=$(pamixer --list-sources | awk -F '"' 'END {print $(NF - 1)}')
+            ;;
+        o)
+            device="pamixer"
+            srce=""
+            nsink=$(pamixer --get-default-sink | awk -F '"' 'END{print $(NF - 1)}')
+            ;;
+        p)
+            device="playerctl"
+            srce="${OPTARG}"
+            nsink=$(playerctl --list-all | grep -w "$srce")
+            ;;
+        s)
+            select_output "$(select_output | rofi -dmenu -config "${confDir}/rofi/notification.rasi")"
+            exit
+            ;;
+        t)
+            toggle_output
+            exit
+            ;;
+        *)
+            print_usage
+            ;;
     esac
 done
 
