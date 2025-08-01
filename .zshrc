@@ -105,6 +105,7 @@ fi
 
 # --- Paths and Env ---
 export PATH="$PATH:$HOME/.spicetify"
+export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_8:$LD_LIBRARY_PATH
 
 # Direnv
 eval "$(direnv hook zsh)"
