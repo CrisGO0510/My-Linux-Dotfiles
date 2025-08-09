@@ -713,19 +713,35 @@
     "./scripts/getvol.sh"
 )
 
+
+;; CPU
+(defpoll cpu-temp :interval "2s" :initial "0"
+    "sensors | awk '/Tctl:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+
+(defpoll cpu-core0 :interval "2s" :initial "0"
+    "sensors | awk '/Tccd1:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+
+;; GPU
+(defpoll gpu-temp :interval "2s" :initial "0"
+    "sensors | awk '/edge:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+
 (defwidget cpu-panel []
-    (box :class "cpu-container"
-         :orientation "v"
-         :space-evenly false
-         (box :orientation "h"
-              :class "cpu-header"
-              :space-evenly false
-              (label :text "Core Temperature" :style "color:#cdd6f4;font-size:20px;")
-         )
-         (box :class "graph-container"
-              :orientation "v"
-              :space-evenly false
-              (overlay
+  (box :class "cpu-container"
+       :orientation "v"
+       :space-evenly false
+       
+       ;; Título
+       (box :orientation "h"
+            :class "cpu-header"
+            :space-evenly false
+            (label :text "Core Temperature" :style "color:#cdd6f4;font-size:20px;")
+       )
+
+       ;; Gráfica CPU
+       (box :class "graph-container"
+            :orientation "v"
+            :space-evenly false
+            (overlay
               (graph :thickness 2
                      :dynamic true
                      :height "100"
@@ -734,29 +750,27 @@
                      :time-range "300s"
                      :min 0
                      :max 101
-                     :value {EWW_TEMPS.CORETEMP_PACKAGE_ID_0}
+                     :value {cpu-temp}
               )
               (box :class "main-temp"
                    :halign "start"
                    :valign "end"
-                   (label :class "main-temp-text" :text "${EWW_TEMPS.CORETEMP_PACKAGE_ID_0} °C")
+                   (label :class "main-temp-text" :text "${cpu-temp} °C")
               )
-              )
-         )
-         (box :class "minicore-container"
-              :orientation "v"
-              :space-evenly false
-              (box :class "minicores"
-                   (label :class "C0" :text "Core 0: ${EWW_TEMPS.CORETEMP_CORE_0} °C")
-                   (label :class "C1" :text "Core 1: ${EWW_TEMPS.CORETEMP_CORE_1} °C")
-              )
-              (box :class "minicores"
-                   (label :class "C2" :text "Core 2: ${EWW_TEMPS.CORETEMP_CORE_2} °C")
-                   (label :class "C3" :text "Core 3: ${EWW_TEMPS.CORETEMP_CORE_3} °C")
-              )
-         )
+            )
+       )
 
-    )
+       ;; Cores y GPU
+       (box :class "minicore-container"
+            :orientation "v"
+            :space-evenly false
+
+            (box :class "minicores"
+                 (label :class "C0" :text "CPU: ${cpu-core0} °C")
+                 (label :class "GPU" :text "GPU: ${gpu-temp} °C")
+            )
+       )
+  )
 )
 
 (defwidget music-player []
