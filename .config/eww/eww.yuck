@@ -749,9 +749,9 @@
             (for row in cpu-cores-usage
                 ;; 'box' para la fila, orientada horizontalmente
                 (box :orientation "h"
-                     :class "cores-grid-row"
-                     :space-evenly "false" ; <-- Usamos space-evenly false
-                     :spacing 15          ; Espacio entre columnas
+                     :class "core-label"
+                     :space-evenly "false"
+                     :spacing 15
                      
                      ;; Bucle interior: crea una columna por cada núcleo en la fila
                      (for core in row
