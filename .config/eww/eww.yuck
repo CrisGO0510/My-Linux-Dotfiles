@@ -718,12 +718,14 @@
 (defpoll cpu-temp :interval "2s" :initial "0"
     "sensors | awk '/Tctl:/ {gsub(\"+\", \"\", $2); print int($2)}'")
 
-(defpoll cpu-core0 :interval "2s" :initial "0"
-    "sensors | awk '/Tccd1:/ {gsub(\"+\", \"\", $2); print int($2)}'")
-
 ;; GPU
 (defpoll gpu-temp :interval "2s" :initial "0"
     "sensors | awk '/edge:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+
+(defpoll cpu-cores-usage
+    :interval "2s" 
+    :initial "[]"
+    "~/.config/eww/scripts/cpu_usage_json.sh")
 
 (defwidget cpu-panel []
   (box :class "cpu-container"
@@ -734,29 +736,25 @@
        (box :orientation "h"
             :class "cpu-header"
             :space-evenly false
-            (label :text "Core Temperature" :style "color:#cdd6f4;font-size:20px;")
+            (label :text "Core Detail" :style "color:#cdd6f4;font-size:20px;")
        )
 
-       ;; Gráfica CPU
-       (box :class "graph-container"
+       ;; Uso CPU por core sin gráfico, iterando la lista
+       (box :class "graph-container"  ; Puedes seguir usando esta clase para los estilos
             :orientation "v"
             :space-evenly false
-            (overlay
-              (graph :thickness 2
-                     :dynamic true
-                     :height "100"
-                     :width "350"
-                     :class "graph-display"
-                     :time-range "300s"
-                     :min 0
-                     :max 101
-                     :value {cpu-temp}
-              )
-              (box :class "main-temp"
-                   :halign "start"
-                   :valign "end"
-                   (label :class "main-temp-text" :text "${cpu-temp} °C")
-              )
+            :spacing 8  ; Añade un poco de espacio vertical entre cada línea
+            
+            ;; Bucle corregido para mostrar texto
+            (label :class "core-label" 
+                   :halign "start" ; Para alinear el texto a la izquierda
+                   :text "CPU Usage ${cpu-cores-usage}%"
+            )
+
+            (for core in cpu-cores-usage
+                (label :class "core-label" 
+                       :halign "start" ; Para alinear el texto a la izquierda
+                       :text "Core ${core}%")
             )
        )
 
@@ -766,7 +764,7 @@
             :space-evenly false
 
             (box :class "minicores"
-                 (label :class "C0" :text "CPU: ${cpu-core0} °C")
+                 (label :class "C0" :text "CPU: ${cpu-temp} °C")
                  (label :class "GPU" :text "GPU: ${gpu-temp} °C")
             )
        )
