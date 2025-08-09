@@ -38,10 +38,15 @@ for ((i=0; i<$CPU_COUNT; i++)); do
     USAGES+=($USAGE)
 done
 
-# El primero (USAGES[0]) es el uso total, el resto son núcleos
-TOTAL=${USAGES[0]}
-CORES_JSON=$(printf "%s," "${USAGES[@]:1}")
-CORES_JSON="[${CORES_JSON%,}]"
+# --- SECCIÓN FINAL MODIFICADA ---
+CORE_USAGES=("${USAGES[@]:1}")
+COLUMNS=3 
 
-# echo "{\"total\": $TOTAL, \"cores\": $CORES_JSON}"
-echo $CORES_JSON
+JSON_OUTPUT=$(jq -n --argjson cores "$(printf '%s\n' "${CORE_USAGES[@]}" | jq -s .)" '
+  $cores | to_entries | map({id: .key, usage: .value})
+' | jq --argjson cols "$COLUMNS" '
+  . as $items | [range(0; ($items | length); $cols) | $items[.:. + $cols]]
+')
+
+# Imprime el resultado final CON un salto de línea para evitar el '%' del shell
+printf "%s\n" "$JSON_OUTPUT"

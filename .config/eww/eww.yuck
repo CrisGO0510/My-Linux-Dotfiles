@@ -739,25 +739,30 @@
             (label :text "Core Detail" :style "color:#cdd6f4;font-size:20px;")
        )
 
-       ;; Uso CPU por core sin gráfico, iterando la lista
-       (box :class "graph-container"  ; Puedes seguir usando esta clase para los estilos
+       ;; Uso CPU por core
+       (box :class "graph-container"
             :orientation "v"
             :space-evenly false
-            :spacing 8  ; Añade un poco de espacio vertical entre cada línea
+            :spacing 8
             
-            ;; Bucle corregido para mostrar texto
-            (label :class "core-label" 
-                   :halign "start" ; Para alinear el texto a la izquierda
-                   :text "CPU Usage ${cpu-cores-usage}%"
-            )
-
-            (for core in cpu-cores-usage
-                (label :class "core-label" 
-                       :halign "start" ; Para alinear el texto a la izquierda
-                       :text "Core ${core}%")
+            ;; Bucle exterior: crea una fila por cada grupo de núcleos
+            (for row in cpu-cores-usage
+                ;; 'box' para la fila, orientada horizontalmente
+                (box :orientation "h"
+                     :class "cores-grid-row"
+                     :space-evenly "false" ; <-- Usamos space-evenly false
+                     :spacing 15          ; Espacio entre columnas
+                     
+                     ;; Bucle interior: crea una columna por cada núcleo en la fila
+                     (for core in row
+                         (box :class "core-item-column" :hexpand "true" :halign "fill"
+                              (label :halign "start"
+                                     :text "Core ${core.id}: ${core.usage}%")
+                         )
+                     )
+                )
             )
        )
-
        ;; Cores y GPU
        (box :class "minicore-container"
             :orientation "v"
@@ -765,7 +770,7 @@
 
             (box :class "minicores"
                  (label :class "C0" :text "CPU: ${cpu-temp} °C")
-                 (label :class "GPU" :text "GPU: ${gpu-temp} °C")
+                 (label :class "C0" :text "GPU: ${gpu-temp} °C")
             )
        )
   )
