@@ -247,7 +247,7 @@
 (defwindow wifictl
     :monitor 0
     :stacking "overlay"
-    :focusable "ondemand"
+    :focusable true
     :geometry (geometry :anchor "top right"
                         :x "5px"
                         :y "-14px"
