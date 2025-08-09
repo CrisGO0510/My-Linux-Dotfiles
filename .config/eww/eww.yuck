@@ -102,7 +102,7 @@
 (defvar wifihov false)
 (defvar wifictlrev false)
 
-(defpoll wifistatus :interval "1s" :initial "{\"icon\": \"睊\", \"ssid\": \"Disconnected\", \"strength\": 0}"
+(defpoll wifistatus :interval "1s" :initial "{\"icon\": \"󰤨\", \"ssid\": \"Disconnected\", \"strength\": 0}"
     "./scripts/current-wifi.sh"
 )
 
@@ -116,7 +116,7 @@
                        :space-evenly false
                        (label :text "${wifistatus.icon}")
                        (label :class "space-wifi" :text "\\u00A0")
-                       (revealer :reveal {wifirev||wifictlrev?true:false}
+                       (revealer :reveal {wifirev || wifictlrev ? true : false}
                                  :transition "slideright"
                                  :duration "350ms"
                                  (box :class "wifi-type" :space-evenly false
@@ -513,7 +513,7 @@
                              :space-evenly false
                              (box :class "username"
                                   :space-evenly false
-                                  (label :text "Monasm")
+                                  (label :text "CrisGO")
                              )
                              (box :class "uptime"
                                   :space-evenly false
