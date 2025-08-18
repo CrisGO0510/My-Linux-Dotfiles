@@ -194,8 +194,6 @@ This repo is generated on-demand from packages we use on our personal computers.
 For more information, visit: https://aur.chaotic.cx/
 $vertL
 
-HyDE is not affiliated with Chaotic AUR.
-
 CHAOS
 
     read -p "Type 'yes' to continue [default] No : " add_chaotic
