@@ -1,45 +1,34 @@
 #!/bin/bash
 
-ws() {
-    local workspaces=6
-    local workspace_icon=()
-    local workspace_class=()
-    local output=""
+update_ws() {
+    local monitor=$1
+    local workspaces=($(hyprctl workspaces -j | jq -r "[.[] | select(.monitorID == $monitor) | .id] | sort | .[]"))
+    local current=$(hyprctl monitors -j | jq -r ".[] | select(.id == $monitor) | .activeWorkspace.id")
 
-    workspace_data=$(hyprctl workspaces -j)
-    current_workspace=$(hyprctl activeworkspace -j | jq -r '.id')
-
-    for ((i=1; i<=workspaces; i++)); do
-        windows=$(echo "$workspace_data" | jq -r "[.[] | select(.id == ${i})] | .[0]?.windows // 0")
-        workspace_icon+=(" ")
-        if [[ "$current_workspace" == "$i" ]]; then
-            workspace_class+=("visiting")
-        elif [[ "$windows" -gt 0 ]]; then
-            workspace_class+=("occupied")
+    output="(box :class \"ws\" :orientation \"h\" :spacing 5 :space-evenly \"false\""
+    for ws in "${workspaces[@]}"; do
+        if [[ "$ws" == "$current" ]]; then
+            output+=" (eventbox :onclick \"hyprctl dispatch workspace $ws\" :cursor \"pointer\" :class \"visiting\" (label :text \"$ws\"))"
         else
-            workspace_class+=("free")
+            output+=" (eventbox :onclick \"hyprctl dispatch workspace $ws\" :cursor \"pointer\" :class \"free\" (label :text \"$ws\"))"
         fi
-        if [[ "$current_workspace" == "$i" ]]; then
-            workspace_icon[$((i-1))]=" "
-        fi
-    done
-
-    output="(box :class \"ws\" :halign \"end\" :orientation \"h\" :spacing 5 :space-evenly \"false\""
-    for i in {1..6}; do
-        idx=$((i-1))
-        output+=" (eventbox :onclick \"hyprctl dispatch workspace $i\" :cursor \"pointer\" :class \"${workspace_class[$idx]}\" (label :text \"${workspace_icon[$idx]}\"))"
     done
     output+=")"
-    /usr/bin/eww update workspaces-output="$output"
+    echo "$output"
 }
 
-HYPRLAND_SIGNATURE_ACTUAL=$(ls -td /run/user/1000/hypr/*/ | head -n1 | xargs basename)
-SOCKET="/run/user/1000/hypr/${HYPRLAND_SIGNATURE_ACTUAL}/.socket2.sock"
+# --- Inicialización al arrancar ---
+eww update workspaces-output-0="$(update_ws 0)"
+eww update workspaces-output-1="$(update_ws 1)"
 
-stdbuf -oL socat -U - UNIX-CONNECT:"$SOCKET" | while read -r line; do
+# --- Suscripción a eventos de Hyprland ---
+while read -r line; do
     case $line in
         "workspace>>"*|"createworkspace>>"*|"destroyworkspace>>"*)
-            ws
+            eww update workspaces-output-0="$(update_ws 0)"
+            eww update workspaces-output-1="$(update_ws 1)"
             ;;
     esac
-done
+done < <(
+    socat -U - UNIX-CONNECT:"/run/user/1000/hypr/$(ls -td /run/user/1000/hypr/*/ | head -n1 | xargs basename)/.socket2.sock"
+)

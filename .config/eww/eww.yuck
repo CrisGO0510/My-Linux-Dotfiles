@@ -1,43 +1,41 @@
-(defwidget bar []
-    (box :class "bar"
-         :orientation "h"
-         (box :halign "start"
-              :valign "center"
-              :spacing 10
-              :hexpand true
-              :space-evenly false
-              (menu)
-              (workspaces)
-         )
-         (box :halign "center"
-              :valign "center"
-              :spacing 10
-              :hexpand true
-              :orientation "h"
-              (time :time get_time)
-         )
-         (box :halign "end"
-              :valign "center"
-              :hexpand true
-              :space-evenly false
-              :spacing 10
-              (box :space-evenly false
-                        :spacing 7
-                        (tray)
-                        (volume)
-                        (ram)
-                        (battery)
-                        (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
-                                  (wifi)
-                        )
-                        (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
-                                  (keyboard)
-                        )
-              )
-              (divider)
-              (power)
-         )
-    )
+(defwidget bar [workspace_widget]
+  (box :class "bar"
+       :orientation "h"
+       (box :halign "start"
+            :valign "center"
+            :spacing 10
+            :hexpand true
+            :space-evenly false
+            (menu)
+            (literal :content workspace_widget)
+       )
+       (box :halign "center"
+            :valign "center"
+            :spacing 10
+            :hexpand true
+            :orientation "h"
+            (time :time get_time)
+       )
+       (box :halign "end"
+            :valign "center"
+            :hexpand true
+            :space-evenly false
+            :spacing 10
+            (box :space-evenly false
+                  :spacing 7
+                  (tray)
+                  (volume)
+                  (ram)
+                  (battery)
+                  (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                            (wifi))
+                  (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                            (keyboard))
+            )
+            (divider)
+            (power)
+       )
+  )
 )
 
 (defvar trayrev false)
@@ -386,12 +384,6 @@
          )
     )
 )
-
-(defwidget workspaces []
-    (literal :content workspaces-output)
-)
-
-(defvar workspaces-output "(box :class \"ws\" :halign \"end\" :orientation \"h\" :spacing 5 :space-evenly \"false\" (eventbox :onclick \"hyprctl dispatch workspace 1\" :cursor \"pointer\" :class \"visiting\" (label :text \" \")) (eventbox :onclick \"hyprctl dispatch workspace 2\" :cursor \"pointer\" :class \"free\" (label :text \" \")) (eventbox :onclick \"hyprctl dispatch workspace 3\" :cursor \"pointer\" :class \"free\" (label :text \" \")) (eventbox :onclick \"hyprctl dispatch workspace 4\" :cursor \"pointer\" :class \"free\" (label :text \" \")) (eventbox :onclick \"hyprctl dispatch workspace 5\" :cursor \"pointer\" :class \"free\" (label :text \" \")) (eventbox :onclick \"hyprctl dispatch workspace 6\" :cursor \"pointer\" :class \"free\" (label :text \" \")))")
 
 (defwidget divider []
     (label :class "div" :text "|")
@@ -818,7 +810,10 @@
 
 )
 
-(defwindow bar_widget
+(defvar workspaces-output-0 "")
+(defvar workspaces-output-1 "")
+
+(defwindow bar_widget_0
     :monitor 0
     :stacking "bg"
     :geometry (geometry :anchor "top center"
@@ -826,5 +821,17 @@
                         :height "37px"
     )
     :exclusive true
-    (bar)
+    (bar :workspace_widget workspaces-output-0)
+)
+
+
+(defwindow bar_widget_1
+    :monitor 1
+    :stacking "bg"
+    :geometry (geometry :anchor "top center"
+                        :width "99.5%"
+                        :height "37px"
+    )
+    :exclusive true
+    (bar :workspace_widget workspaces-output-1)
 )

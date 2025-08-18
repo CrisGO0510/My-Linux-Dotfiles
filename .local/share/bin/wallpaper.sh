@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 
-# Obtener nombre del primer monitor
-MONITOR=$(hyprctl monitors | grep "Monitor" | head -n 1 | awk '{print $2}')
-
-# Ruta base de los dotfiles (usa $HOME para que no dependa del usuario)
+# Ruta base de los dotfiles
 DOTFILES="$HOME/dotfiles/assets"
+
+# Wallpaper a usar en todos los monitores
+WALL="$DOTFILES/eyes.png"
 
 # Generar hyprpaper.conf temporal
 cat > /tmp/hyprpaper.conf <<EOF
-preload = $DOTFILES/cyan_magenta.png
-preload = $DOTFILES/eyes.png
-wallpaper = $MONITOR,$DOTFILES/eyes.png
+preload = $WALL
 EOF
+
+# Detectar todos los monitores y asignarles el wallpaper
+for MON in $(hyprctl monitors -j | jq -r '.[].name'); do
+    echo "wallpaper = $MON,$WALL" >> /tmp/hyprpaper.conf
+done
 
 # Matar cualquier instancia previa
 killall hyprpaper 2>/dev/null
