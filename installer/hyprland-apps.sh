@@ -30,7 +30,7 @@ PACKAGES=(
     bitwarden
     pipewire
     rofi
-    waybar
+    eww
     firefox
 )
 
