@@ -120,3 +120,6 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   source "$HOME/.cargo/env" || echo "Error loading Rust environment"
 fi
 
+export ORACLE_HOME=/opt/oracle/instantclient_23_9
+export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_9:$LD_LIBRARY_PATH
+export PATH=/opt/oracle/instantclient_23_9:$PATH
