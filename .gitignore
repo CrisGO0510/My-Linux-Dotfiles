@@ -19,6 +19,7 @@ log/
 
 #nvim
 
+**/lazy-lock.json
 tt.*
 .tests
 doc/tags
