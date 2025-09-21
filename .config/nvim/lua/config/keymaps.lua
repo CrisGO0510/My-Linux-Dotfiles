@@ -1,6 +1,7 @@
 local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
+local cmp = require("cmp")
 
 -- Evita que <Space> haga algo
 map("n", "<Space>", "<NOP>", opts)
@@ -78,13 +79,155 @@ wk.add({
 		mode = "v",
 	},
 })
--- cmp.lua
+
+-- lua/keymaps/cmp_keys.lua
+local ok_wk, wk = pcall(require, "which-key")
+if not ok_wk then
+	return
+end
+
+local ok_cmp, cmp = pcall(require, "cmp")
+if not ok_cmp then
+	return
+end
+
+local function has_words_before()
+	local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+	if col == 0 then
+		return false
+	end
+	local prev = vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col)
+	return not prev:match("%s")
+end
+
+local function t(keys)
+	return vim.api.nvim_replace_termcodes(keys, true, true, true)
+end
+
+local function feed(keys)
+	vim.api.nvim_feedkeys(t(keys), "", true)
+end
+
 wk.add({
-	{ "<C-Space>", [[cmp#complete()]], desc = "Abrir autocompletado manualmente" },
-	{ "<C-n>", [[cmp#select_next_item()]], desc = "Seleccionar el siguiente ítem en el autocompletado" },
-	{ "<C-p>", [[cmp#select_prev_item()]], desc = "Seleccionar el ítem anterior" },
-	{ "<Tab>", [[cmp#confirm({select = true})]], desc = "Confirmar selección de ítem" },
-}, { mode = "i" })
+	{
+		"<C-Space>",
+		function()
+			local cmp = require("cmp")
+			if cmp.visible() then
+				cmp.close()
+			else
+				cmp.complete()
+			end
+		end,
+		desc = "Abrir/cerrar autocompletado",
+		mode = "i",
+	},
+	-- Navegación por ítems
+	{
+		"<C-n>",
+		function()
+			cmp.select_next_item()
+		end,
+		desc = "Siguiente ítem",
+		mode = "i",
+	},
+	{
+		"<C-p>",
+		function()
+			cmp.select_prev_item()
+		end,
+		desc = "Ítem anterior",
+		mode = "i",
+	},
+	{
+		"<C-y>",
+		function()
+			cmp.confirm({ select = true })
+		end,
+		desc = "Aceptar sugerencia",
+		mode = "i",
+	},
+
+	-- Scroll docs
+	{
+		"<C-b>",
+		function()
+			cmp.scroll_docs(-4)
+		end,
+		desc = "Docs atrás",
+		mode = "i",
+	},
+	{
+		"<C-f>",
+		function()
+			cmp.scroll_docs(4)
+		end,
+		desc = "Docs adelante",
+		mode = "i",
+	},
+
+	{
+		"<CR>",
+		function()
+			if cmp.visible() then
+				cmp.confirm({ select = true })
+			else
+				feed("\n") -- salto de línea normal (arregla tu problema #2)
+			end
+		end,
+		desc = "Confirmar si visible / nueva línea",
+		mode = "i",
+	},
+})
+
+-- copilot.lua
+
+wk.add({
+	{
+		"<Tab>",
+		function()
+			if cmp.visible() then
+				cmp.confirm({ select = true })
+			else
+				return require("copilot.suggestion").accept()
+			end
+		end,
+		desc = "Confirmar CMP o aceptar Copilot",
+		mode = "i",
+	},
+	{
+		"<M-n>",
+		function()
+			require("copilot.suggestion").next()
+		end,
+		desc = "Siguiente sugerencia",
+		mode = "i",
+	},
+	{
+		"<M-p>",
+		function()
+			require("copilot.suggestion").prev()
+		end,
+		desc = "Sugerencia anterior",
+		mode = "i",
+	},
+	{
+		"<M-x>",
+		function()
+			require("copilot.suggestion").dismiss()
+		end,
+		desc = "Cerrar sugerencia",
+		mode = "i",
+	},
+	{
+		"<M-l>",
+		function()
+			require("copilot.suggestion").accept_word()
+		end,
+		desc = "Aceptar palabra",
+		mode = "i",
+	},
+})
 
 -- window
 wk.add({
@@ -207,52 +350,6 @@ wk.add({
 			require("snacks").terminal()
 		end,
 		desc = "Toggle Terminal",
-	},
-})
--- copilot.lua
-
-wk.add({
-	{
-		"<Tab>",
-		function()
-			return require("copilot.suggestion").accept()
-		end,
-		desc = "Aceptar sugerencia",
-		mode = "i",
-		expr = true,
-		silent = true,
-	},
-	{
-		"<C-n>",
-		function()
-			require("copilot.suggestion").next()
-		end,
-		desc = "Siguiente sugerencia",
-		mode = "i",
-	},
-	{
-		"<C-p>",
-		function()
-			require("copilot.suggestion").prev()
-		end,
-		desc = "Sugerencia anterior",
-		mode = "i",
-	},
-	{
-		"<C-x>",
-		function()
-			require("copilot.suggestion").dismiss()
-		end,
-		desc = "Cerrar sugerencia",
-		mode = "i",
-	},
-	{
-		"<C-l>",
-		function()
-			require("copilot.suggestion").accept_word()
-		end,
-		desc = "Aceptar palabra",
-		mode = "i",
 	},
 })
 

@@ -23,7 +23,7 @@ require("lazy").setup({
 	require("plugins.languages.conform"),
 	require("plugins.languages.mason"),
 	require("plugins.languages.treesitter"),
-  require("plugins.languages.typescript"),
+	require("plugins.languages.typescript"),
 
 	-- code_intelligence
 	require("plugins.code_intelligence.auto-safe"),
@@ -32,6 +32,7 @@ require("lazy").setup({
 	require("plugins.code_intelligence.friendly-snippets"),
 	require("plugins.code_intelligence.copilot"),
 	require("plugins.code_intelligence.nvim-ts-autotag"),
+	require("plugins.code_intelligence.lua-snip"),
 
 	-- colorschemes
 	require("plugins.colorschemes.catppuccin"),
@@ -59,5 +60,5 @@ require("lazy").setup({
 	require("plugins.ui.which-key"),
 	require("plugins.ui.markdown-preview"),
 	require("plugins.ui.code-shot"),
-  require("plugins.ui.colorizer"),
+	require("plugins.ui.colorizer"),
 })
