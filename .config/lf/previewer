@@ -18,6 +18,16 @@ video() {
   draw "$thumb"
 }
 
+pdf() {
+  thumb="/tmp/lf-pdf-thumb-$(stat -c %i "$1").jpg"
+  
+  if [ ! -f "$thumb" ]; then
+      pdftoppm -f 1 -l 1 -scale-to-x 1920 -jpeg -singlefile "$1" "${thumb%.jpg}" 2>/dev/null
+  fi
+  
+  draw "$thumb"
+}
+
 archive() {
   case "$1" in
     *.tar*) tar tf "$1" 2>&1 ;;
@@ -37,6 +47,9 @@ case "$mime" in
     ;;
   video/*)
     video "$file"
+    ;;
+  application/pdf)
+    pdf "$file"
     ;;
 esac
 
