@@ -1,24 +1,30 @@
 #!/bin/sh
-draw() {
-  kitten icat --stdin no --transfer-mode memory --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
-  exit 1
-}
-
 file="$1"
 w="$2"
 h="$3"
 x="$4"
 y="$5"
 
+draw() {
+  kitten icat --stdin no --transfer-mode memory --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
+  exit 1
+}
+
+video() {
+  thumb="/tmp/lf-video-thumb-$(stat -c %i "$1").jpg"
+  if [ ! -f "$thumb" ]; then
+      ffmpegthumbnailer -i "$1" -o "$thumb" -s 0 2>/dev/null
+  fi
+  draw "$thumb"
+}
+
 case "$(file -Lb --mime-type "$file")" in 
   image/*)
     draw "$file"
     ;;
   video/*)
-    # vidthumb is from here:
-    # https://raw.githubusercontent.com/duganchen/kitty-pistol-previewer/main/vidthumb
-    draw "$(vidthumb "$file")"
+    video "$file"
     ;;
 esac
 
-pistol "$file"
+COLORTERM=truecolor bat --color=always --style=numbers --wrap=character --terminal-width="$((w - 2))" --paging=never "$file"
