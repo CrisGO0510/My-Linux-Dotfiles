@@ -18,12 +18,43 @@ video() {
   draw "$thumb"
 }
 
-case "$(file -Lb --mime-type "$file")" in 
+archive() {
+  case "$1" in
+    *.tar*) tar tf "$1" 2>&1 ;;
+    *.zip) unzip -l "$1" 2>&1 ;;
+    *.rar) unrar l "$1" 2>&1 ;;
+    *.7z) 7z l "$1" 2>&1 ;;
+    *.iso) bsdtar --list --file "$1" 2>&1 ;;
+    *) echo "Extensión no soportada." ;;
+  esac
+  exit 1
+}
+
+mime="$(file -Lb --mime-type "$file")"
+case "$mime" in 
   image/*)
     draw "$file"
     ;;
   video/*)
     video "$file"
+    ;;
+esac
+
+case "$file" in
+  *.zip|*.jar|*.war|*.ear|*.oxt)
+    archive "$file"
+    ;;
+  *.tar|*.tar.*|*.tgz|*.tbz2)
+    archive "$file"
+    ;;
+  *.rar)
+    archive "$file"
+    ;;
+  *.7z)
+    archive "$file"
+    ;;
+  *.iso)
+    archive "$file"
     ;;
 esac
 
