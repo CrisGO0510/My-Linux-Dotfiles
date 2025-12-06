@@ -12,6 +12,7 @@ set truncatechar "…"
 map t &kitty
 map T $zsh
 
+map a push :create<space>
 map x zip_menu
 map w drag_files
 map D delete
@@ -80,7 +81,7 @@ cmd open ${{
     mime=$(file --mime-type -bL "$f")
 
     case "$mime" in
-        text/*|application/json) 
+        text/*|application/json|inode/x-empty) 
             nvim "$f" 
             ;;
         
@@ -141,4 +142,20 @@ cmd extract_handler ${{
         lf -remote "send $id unselect"
         lf -remote "send $id select \"$dest\""
     fi
+}}
+
+cmd create ${{
+    target="$1"
+    [ -z "$target" ] && exit 1
+
+    case "$target" in
+        */)
+            mkdir -p "$target"
+            ;;
+        *)
+            mkdir -p "$(dirname "$target")"
+            touch "$target"
+            ;;
+    esac
+    lf -remote "send $id select \"$target\""
 }}

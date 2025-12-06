@@ -59,6 +59,7 @@
 | Tecla | Acción |
 | :--- | :--- |
 | `x` | Comprimir archivos (Menú) |
+| `a` | Crear directorio/archivo |
 | `D` | Borrar archivos |
 | `w` | Drag & Drop inteligente |
 
