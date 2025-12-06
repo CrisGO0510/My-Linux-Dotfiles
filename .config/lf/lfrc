@@ -5,3 +5,5 @@ set promptfmt "\033[35;1m %u\033[0m \033[90m\033[0m \033[36;1m %w\033[0
 set drawbox
 set ratios 1:2:3
 set truncatechar "…"
+
+map ? ${{ glow -p ~/.config/lf/maps.md }}
