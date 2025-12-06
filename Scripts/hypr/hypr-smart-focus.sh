@@ -4,10 +4,10 @@ is_full=$(hyprctl -j activewindow | jq -r '.fullscreen' 2>/dev/null)
 
 if [[ "$is_full" == "2" ]]; then
   case "$dir" in
-    h) hyprctl dispatch cyclenext prev ;;
-    l) hyprctl dispatch cyclenext prev ;;
-    k) hyprctl dispatch cyclenext ;;
-    j) hyprctl dispatch cyclenext ;;
+    h) hyprctl dispatch cyclenext ;;
+    l) hyprctl dispatch cyclenext ;;
+    k) hyprctl dispatch cyclenext prev;;
+    j) hyprctl dispatch cyclenext prev;;
   esac
 else
   # No fullscreen: usa direcciones reales
