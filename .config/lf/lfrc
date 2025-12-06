@@ -13,12 +13,18 @@ map t &kitty
 map T $zsh
 
 map x zip_menu
+map w drag_files
 map D delete
 
 map ? ${{ glow -p ~/.config/lf/maps.md }}
 
 
 # --- Funciones ---
+cmd drag_files ${{
+    OPTIONS="-x -n -a -b -H 400 -W 400"
+    setsid -f ripdrag $OPTIONS ./* >/dev/null 2>&1
+}}
+
 cmd zip_menu ${{
     set -f
     base=$(basename "$f")
@@ -127,7 +133,6 @@ cmd extract_handler ${{
     case "$f" in
         *.zip) unzip "$f" -d "$dest" >/dev/null ;;
         *.tar.gz|*.tgz|*.tar.bz2|*.tar.xz|*.tar) tar -xf "$f" -C "$dest" ;;
-        # Nota: 7z requiere que -o vaya pegado al nombre (-oDIR)
         *.7z) 7z x "$f" -o"$dest" >/dev/null ;;
         *.rar) unrar x "$f" "$dest/" >/dev/null ;;
     esac

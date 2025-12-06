@@ -1,52 +1,69 @@
 # GUÍA DE ATAJOS
 
-──────────────────────────────────────────
-## Atajos default
+# Atajos default
 
-──────────────────────────────────────────
-### Navegación
-  k / j             Subir / Bajar
-  h / l             Atrás / Entrar
-  gg / G            Inicio / Final
-  Ctrl+u / d        Scroll rápido
+# Navegación
 
-──────────────────────────────────────────
-### Selección
-  Espacio           Seleccionar
-  v                 Invertir selección
-  u                 Quitar selección
+| Tecla | Acción |
+| :--- | :--- |
+| `k` / `j` | Subir / Bajar |
+| `h` / `l` | Atrás / Entrar |
+| `gg` / `G` | Inicio / Final |
+| `Ctrl` + `u` / `d` | Scroll rápido |
 
-──────────────────────────────────────────
-### Archivos / Portapapeles
-  y                 Copiar
-  d                 Cortar
-  p                 Pegar
-  c                 Limpiar portapapeles
+# Selección
 
-──────────────────────────────────────────
-### Búsqueda
-  /                 Buscar
-  n / N             Siguiente / Anterior
+| Tecla | Acción |
+| :--- | :--- |
+| `Espacio` | Seleccionar |
+| `v` | Invertir selección |
+| `u` | Quitar selección |
 
-──────────────────────────────────────────
-### Sistema
-  :                 Comando
-  $                 Terminal
-  q                 Salir
+# Archivos / Portapapeles
 
-──────────────────────────────────────────
-## Atajos personalizados
+| Tecla | Acción |
+| :--- | :--- |
+| `y` | Copiar |
+| `d` | Cortar |
+| `p` | Pegar |
+| `c` | Limpiar portapapeles |
 
-──────────────────────────────────────────
-### Terminales
-  t                 Terminal Externa
-  T                 Terminal Interna
+# Búsqueda
 
-──────────────────────────────────────────
-### Archivos / Portapapeles
-  x               Comprimir archivos
-  D               Borrar archivos
+| Tecla | Acción |
+| :--- | :--- |
+| `/` | Buscar |
+| `n` / `N` | Siguiente / Anterior |
 
-──────────────────────────────────────────
-### Ayuda
-  ?                 Mostrar esta guía
+# Sistema
+
+| Tecla | Acción |
+| :--- | :--- |
+| `:` | Comando |
+| `$` | Terminal |
+| `q` | Salir |
+
+---
+
+# Atajos personalizados
+
+# Terminales
+
+| Tecla | Acción |
+| :--- | :--- |
+| `t` | Terminal Externa (Kitty) |
+| `T` | Terminal Interna |
+
+# Operaciones
+
+| Tecla | Acción |
+| :--- | :--- |
+| `x` | Comprimir archivos (Menú) |
+| `D` | Borrar archivos |
+| `w` | Drag & Drop inteligente |
+
+# Ayuda
+
+| Tecla | Acción |
+| :--- | :--- |
+| `?` | Mostrar esta guía |
