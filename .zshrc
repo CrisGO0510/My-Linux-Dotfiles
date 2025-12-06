@@ -111,7 +111,7 @@ export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_8:$LD_LIBRARY_PATH
 eval "$(direnv hook zsh)"
 
 # thefuck
-eval "$(thefuck --alias)"
+eval "$(thefuck --alias f)"
 
 # --- Angular CLI autocompletion (safe) ---
 if command -v ng &>/dev/null; then
