@@ -28,7 +28,7 @@ sudo pacman -S git stow
 Descarga tus dotfiles en la carpeta de usuario (es importante que sea en `~/dotfiles` para que stow funcione correctamente con la ruta relativa):
 
 ```bash
-git clone https://github.com/CrisGO0510/My-Hyprland-Dotfiles.git ~/dotfiles
+git clone https://github.com/CrisGO0510/My-Linux-Dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
