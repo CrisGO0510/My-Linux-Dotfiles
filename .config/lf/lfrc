@@ -16,6 +16,7 @@ map f search
 map F jump
 
 map a push :create<space>
+map e $nvim .
 map x zip_menu
 map w drag_files
 map D delete

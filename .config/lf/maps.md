@@ -58,6 +58,7 @@
 
 | Tecla | Acción |
 | :--- | :--- |
+| `e` | Abre nvim |
 | `a` | Crear directorio/archivo |
 | `x` | Comprimir archivos (Menú) |
 | `D` | Borrar archivos |
