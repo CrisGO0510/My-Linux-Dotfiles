@@ -12,6 +12,9 @@ set truncatechar "…"
 map t &kitty
 map T $zsh
 
+map f search
+map F jump
+
 map a push :create<space>
 map x zip_menu
 map w drag_files
@@ -158,4 +161,27 @@ cmd create ${{
             ;;
     esac
     lf -remote "send $id select \"$target\""
+}}
+
+
+cmd search ${{
+    res=$(fd --type f --hidden --follow --exclude .git | \
+        fzf --layout=reverse --border --height=80% --prompt='Buscar Archivo > ' \
+            --preview 'bat --color=always --style=numbers --line-range=:500 {}' \
+            --bind 'ctrl-j:down,ctrl-k:up,ctrl-d:preview-page-down,ctrl-u:preview-page-up')
+    
+    if [ -n "$res" ]; then
+        lf -remote "send $id select \"$res\""
+    fi
+}}
+
+cmd jump ${{
+    res=$(fd --type d --hidden --follow --exclude .git | \
+        fzf --layout=reverse --border --height=80% --prompt='Ir a Carpeta > ' \
+            --preview 'tree -L 2 -C {}' \
+            --bind 'ctrl-j:down,ctrl-k:up,ctrl-d:preview-page-down,ctrl-u:preview-page-up')
+    
+    if [ -n "$res" ]; then
+        lf -remote "send $id cd \"$res\""
+    fi
 }}

@@ -1,8 +1,8 @@
 # GUÍA DE ATAJOS
 
-# Atajos default
+## Atajos default
 
-# Navegación
+### Navegación
 
 | Tecla | Acción |
 | :--- | :--- |
@@ -11,7 +11,7 @@
 | `gg` / `G` | Inicio / Final |
 | `Ctrl` + `u` / `d` | Scroll rápido |
 
-# Selección
+### Selección
 
 | Tecla | Acción |
 | :--- | :--- |
@@ -19,7 +19,7 @@
 | `v` | Invertir selección |
 | `u` | Quitar selección |
 
-# Archivos / Portapapeles
+### Archivos / Portapapeles
 
 | Tecla | Acción |
 | :--- | :--- |
@@ -28,14 +28,14 @@
 | `p` | Pegar |
 | `c` | Limpiar portapapeles |
 
-# Búsqueda
+### Búsqueda
 
 | Tecla | Acción |
 | :--- | :--- |
-| `/` | Buscar |
+| `/` | Buscar (Nativo) |
 | `n` / `N` | Siguiente / Anterior |
 
-# Sistema
+### Sistema
 
 | Tecla | Acción |
 | :--- | :--- |
@@ -45,25 +45,32 @@
 
 ---
 
-# Atajos personalizados
+## Atajos personalizados
 
-# Terminales
+### Navegación Inteligente
+
+| Tecla | Acción |
+| :--- | :--- |
+| `f` | Buscar archivo (FZF) |
+| `F` | Saltar a carpeta (FZF) |
+
+### Operaciones
+
+| Tecla | Acción |
+| :--- | :--- |
+| `a` | Crear directorio/archivo |
+| `x` | Comprimir archivos (Menú) |
+| `D` | Borrar archivos |
+| `w` | Drag & Drop inteligente |
+
+### Terminales
 
 | Tecla | Acción |
 | :--- | :--- |
 | `t` | Terminal Externa (Kitty) |
 | `T` | Terminal Interna |
 
-# Operaciones
-
-| Tecla | Acción |
-| :--- | :--- |
-| `x` | Comprimir archivos (Menú) |
-| `a` | Crear directorio/archivo |
-| `D` | Borrar archivos |
-| `w` | Drag & Drop inteligente |
-
-# Ayuda
+### Ayuda
 
 | Tecla | Acción |
 | :--- | :--- |
