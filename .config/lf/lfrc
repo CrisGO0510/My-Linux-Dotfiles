@@ -6,4 +6,48 @@ set drawbox
 set ratios 1:2:3
 set truncatechar "…"
 
+
+# --- ATAJOS PERSONALIZADOS ---
+
+map t &kitty
+map T $zsh
+
+map x zip_menu
+map D delete
+
 map ? ${{ glow -p ~/.config/lf/maps.md }}
+
+
+# --- Funciones ---
+cmd zip_menu ${{
+    set -f
+    base=$(basename "$f")
+    default_name="${base%.*}"
+
+    printf "Nombre del archivo (Enter para '%s'): " "$default_name"
+    read -r input_name
+
+    if [ -z "$input_name" ]; then
+        name="$default_name"
+    else
+        name="$input_name"
+    fi
+
+    format=$(printf "zip\ntar.gz\n7z\nrar" | \
+        fzf --height=20% --layout=reverse --border --prompt="Elige formato > " \
+            --bind 'j:down,k:up')
+
+    [ -z "$format" ] && exit 1
+
+    fullname="${name}.${format}"
+
+    case "$format" in
+        zip) zip -r "$fullname" $fx ;;
+        tar.gz) tar -czf "$fullname" $fx ;;
+        7z) 7z a "$fullname" $fx ;;
+        rar) rar a "$fullname" $fx ;;
+    esac
+
+    lf -remote "send $id unselect"
+    lf -remote "send $id select \"$fullname\""
+}}

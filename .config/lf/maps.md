@@ -22,7 +22,6 @@
   d                 Cortar
   p                 Pegar
   c                 Limpiar portapapeles
-  Del               Borrar archivo
 
 ──────────────────────────────────────────
 ### Búsqueda
@@ -39,6 +38,15 @@
 ## Atajos personalizados
 
 ──────────────────────────────────────────
+### Terminales
+  t                 Terminal Externa
+  T                 Terminal Interna
 
-  ?                 Ayuda
 ──────────────────────────────────────────
+### Archivos / Portapapeles
+  x               Comprimir archivos
+  D               Borrar archivos
+
+──────────────────────────────────────────
+### Ayuda
+  ?                 Mostrar esta guía
