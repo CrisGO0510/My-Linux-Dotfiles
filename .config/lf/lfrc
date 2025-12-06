@@ -26,28 +26,114 @@ cmd zip_menu ${{
 
     printf "Nombre del archivo (Enter para '%s'): " "$default_name"
     read -r input_name
-
-    if [ -z "$input_name" ]; then
-        name="$default_name"
-    else
-        name="$input_name"
-    fi
+    name="${input_name:-$default_name}"
 
     format=$(printf "zip\ntar.gz\n7z\nrar" | \
-        fzf --height=20% --layout=reverse --border --prompt="Elige formato > " \
-            --bind 'j:down,k:up')
+        fzf --height=20% --layout=reverse --border --prompt="Formato > " \
+            --bind 'j:down,k:up,q:abort,enter:accept' \
+            --bind 'up:disable-search,down:disable-search,left:disable-search,right:disable-search')
 
     [ -z "$format" ] && exit 1
 
-    fullname="${name}.${format}"
+    output_file="$PWD/${name}.${format}"
 
     case "$format" in
-        zip) zip -r "$fullname" $fx ;;
-        tar.gz) tar -czf "$fullname" $fx ;;
-        7z) 7z a "$fullname" $fx ;;
-        rar) rar a "$fullname" $fx ;;
+        zip)
+            zip -r -j "$output_file" $fx >/dev/null
+            ;;
+        
+        tar.gz)
+            tar -czf "$output_file" --transform 's|.*/||' $fx
+            ;;
+        
+        rar)
+            rar a -ep "$output_file" $fx >/dev/null
+            ;;
+            
+        7z)
+            first_file=$(echo "$fx" | head -n1)
+            source_dir=$(dirname "$first_file")
+            cd "$source_dir"
+            echo "$fx" | xargs -d '\n' -I {} basename "{}" | \
+                xargs -d '\n' 7z a "$output_file" >/dev/null
+            ;;
     esac
 
     lf -remote "send $id unselect"
-    lf -remote "send $id select \"$fullname\""
+    lf -remote "send $id select \"$output_file\""
+}}
+
+cmd open ${{
+    case "$f" in
+        *.sh)
+            setsid -f kitty --hold sh "$f" >/dev/null 2>&1
+            exit 0
+            ;;
+    esac
+
+    mime=$(file --mime-type -bL "$f")
+
+    case "$mime" in
+        text/*|application/json) 
+            nvim "$f" 
+            ;;
+        
+        video/*)
+            setsid -f mpv "$f" >/dev/null 2>&1
+            ;;
+
+        audio/*)
+            setsid -f kitty mpv "$f" >/dev/null 2>&1
+            ;;
+          
+        application/zip|application/x-tar|application/gzip|application/x-bzip2|application/x-7z-compressed|application/vnd.rar|application/x-rar)
+            lf -remote "send $id extract_handler"
+            ;;
+
+        *) 
+            lf -remote "send $id echoerr ' No hay aplicación definida para: $mime'" 
+            ;;
+    esac
+}}
+
+cmd extract_handler ${{
+    set -f
+    
+    ans=$(printf "Carpeta nueva\nExtraer aquí" | fzf --height=10% --layout=reverse --border \
+        --prompt=" " --header="¿Dónde extraer?" \
+        --bind 'j:down,k:up,enter:accept,q:abort' \
+        --bind 'up:disable-search,down:disable-search,left:disable-search,right:disable-search')
+
+    [ -z "$ans" ] && exit 1
+
+    if [ "$ans" = "Carpeta nueva" ]; then
+        base=$(basename "$f")
+        case "$base" in
+            *.tar.gz) dirname="${base%.tar.gz}" ;;
+            *.tar.bz2) dirname="${base%.tar.bz2}" ;;
+            *.tar.xz) dirname="${base%.tar.xz}" ;;
+            *.tgz) dirname="${base%.tgz}" ;;
+            *) dirname="${base%.*}" ;;
+        esac
+        
+        dest="$dirname"
+        mkdir -p "$dest"
+        should_select=true
+    else
+        dest="."
+        should_select=false
+    fi
+
+    case "$f" in
+        *.zip) unzip "$f" -d "$dest" >/dev/null ;;
+        *.tar.gz|*.tgz|*.tar.bz2|*.tar.xz|*.tar) tar -xf "$f" -C "$dest" ;;
+        # Nota: 7z requiere que -o vaya pegado al nombre (-oDIR)
+        *.7z) 7z x "$f" -o"$dest" >/dev/null ;;
+        *.rar) unrar x "$f" "$dest/" >/dev/null ;;
+    esac
+    
+    if [ "$should_select" = "true" ]; then
+        lf -remote "send $id unselect"
+        lf -remote "send $id select \"$dest\""
+    fi
 }}
