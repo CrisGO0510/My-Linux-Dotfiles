@@ -1,7 +1,6 @@
 local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
-local cmp = require("cmp")
 
 -- Evita que <Space> haga algo
 map("n", "<Space>", "<NOP>", opts)
@@ -23,6 +22,15 @@ wk.add({
 		desc = "Acciones de código (Code Action)",
 		mode = { "n", "v" }, -- puede ser normal y visual mode
 	},
+	{
+		"<leader>cr",
+		function()
+			vim.lsp.buf.rename()
+		end,
+		desc = "Renombrar variable (LSP Rename)",
+		mode = { "n", "v" },
+	},
+
 	{
 		"<leader>ce",
 		function()
