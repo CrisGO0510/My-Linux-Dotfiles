@@ -316,34 +316,12 @@ wk.add({
 
 wk.add({
 	{ "<leader>f", group = "find" },
-
-	{
-		"<leader>fb",
-		function()
-			require("snacks").picker.buffers()
-		end,
-		desc = "Buffers",
-	},
 	{
 		"<leader>fc",
 		function()
 			require("snacks").picker.files({ cwd = vim.fn.stdpath("config") })
 		end,
 		desc = "Find Config File",
-	},
-	{
-		"<leader>ff",
-		function()
-			require("snacks").picker.files()
-		end,
-		desc = "Find Files",
-	},
-	{
-		"<leader>fg",
-		function()
-			require("snacks").picker.git_files()
-		end,
-		desc = "Find Git Files",
 	},
 	{
 		"<leader>fp",
@@ -436,7 +414,12 @@ wk.add({
 	{
 		"<leader>,",
 		function()
-			require("snacks").picker.buffers()
+			require("telescope.builtin").buffers({
+				initial_mode = "normal",
+				-- Opcional: para que el buffer actual no aparezca en la lista
+				ignore_current_buffer = true,
+				sort_mru = true,
+			})
 		end,
 		desc = "Buffers",
 	},
@@ -818,32 +801,11 @@ wk.add({
 		desc = "Goto Definition",
 	},
 	{
-		"gD",
-		function()
-			require("snacks").picker.lsp_declarations()
-		end,
-		desc = "Goto Declaration",
-	},
-	{
-		"gr",
+		"gI",
 		function()
 			require("telescope.builtin").lsp_references({})
 		end,
 		desc = "References Telescope",
-	},
-	{
-		"gI",
-		function()
-			require("snacks").picker.lsp_implementations()
-		end,
-		desc = "Goto Implementation",
-	},
-	{
-		"gy",
-		function()
-			require("snacks").picker.lsp_type_definitions()
-		end,
-		desc = "Goto Type Definition",
 	},
 })
 
