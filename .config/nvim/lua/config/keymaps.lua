@@ -340,64 +340,63 @@ wk.add({
 })
 
 wk.add({
-	{ "<leader>a", group = "AI" },
+	{ "<leader>a", group = "AI (CodeCompanion)" },
 
-	-- Chat general
+	-- Chat General
 	{
 		"<leader>aa",
-		"<cmd>AvanteAsk<CR>",
-		desc = "Abrir Chat de Avante",
+		"<cmd>CodeCompanionChat Toggle<CR>",
+		desc = "Toggle IA Chat",
 		mode = { "n", "v" },
 	},
 
-	-- Refactorizar
+	-- Acciones sobre el código (Refactor, Tipos, etc.)
+	-- CodeCompanion usa una paleta de acciones muy potente
+	{
+		"<leader>ap",
+		"<cmd>CodeCompanionActions<CR>",
+		desc = "Paleta de Acciones (Selector)",
+		mode = { "n", "v" },
+	},
+
+	-- Refactorizar (Inline)
 	{
 		"<leader>ar",
-		"<cmd>AvanteAsk refactoriza<CR>",
+		"<cmd>CodeCompanion #{buffer}<CR>",
 		desc = "Refactorizar código",
-		mode = { "n", "v" },
+		mode = { "v" },
 	},
 
-	-- Anotaciones de tipo
+	-- Documentar y Tipos
 	{
 		"<leader>ad",
-		"<cmd>AvanteAsk agrega tipos<CR>",
-		desc = "Agregar anotaciones de tipo",
-		mode = { "n", "v" },
+		"<cmd>CodeCompanion Añade tipos y documentación<CR>",
+		desc = "Agregar tipos y Docs",
+		mode = { "v" }, -- Importante: Selecciona el código en modo visual y presiona el atajo
 	},
 
-	-- Sugerir nombre
+	-- Figma & MCP Hub (La novedad)
 	{
-		"<leader>an",
-		"<cmd>AvanteAsk nombra esta función<CR>",
-		desc = "Sugerir nombre para función",
-		mode = { "n", "v" },
+		"<leader>am",
+		group = "MCP / Figma",
 	},
-
-	-- Explicar
 	{
-		"<leader>ae",
-		"<cmd>AvanteAsk explica<CR>",
-		desc = "Explicar código",
-		mode = { "n", "v" },
+		"<leader>ams",
+		"<cmd>MCPStep<CR>",
+		desc = "Siguiente paso MCP",
 	},
-
-	-- Traducir
 	{
-		"<leader>at",
-		"<cmd>AvanteAsk traduce al español<CR>",
-		desc = "Traducir al español",
-		mode = { "n", "v" },
-	},
-
-	-- Documentar
-	{
-		"<leader>ac",
-		"<cmd>AvanteAsk documenta<CR>",
-		desc = "Documentar código",
-		mode = { "n", "v" },
+		"<leader>amf",
+		function()
+			local id = vim.fn.input("Figma File ID: ")
+			if id ~= "" then
+				vim.cmd("CodeCompanionChat @mcp figma lee el archivo " .. id .. " y genera el componente")
+			end
+		end,
+		desc = "Maquetar desde Figma",
 	},
 })
+
 wk.add({
 	{
 		"<C-s>",
