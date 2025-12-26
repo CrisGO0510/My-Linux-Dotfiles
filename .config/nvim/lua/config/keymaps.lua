@@ -344,7 +344,7 @@ wk.add({
 
 	-- Chat General
 	{
-		"<leader>aa",
+		"<leader>ac",
 		"<cmd>CodeCompanionChat Toggle<CR>",
 		desc = "Toggle IA Chat",
 		mode = { "n", "v" },
@@ -359,12 +359,22 @@ wk.add({
 		mode = { "n", "v" },
 	},
 
-	-- Refactorizar (Inline)
 	{
-		"<leader>ar",
-		"<cmd>CodeCompanion #{buffer}<CR>",
-		desc = "Refactorizar código",
-		mode = { "v" },
+		"<leader>aa",
+		function()
+			local mode = vim.api.nvim_get_mode().mode
+			if mode == "v" or mode == "V" or mode == "" then
+				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(":CodeCompanion ", true, false, true), "n", false)
+			else
+				vim.api.nvim_feedkeys(
+					vim.api.nvim_replace_termcodes(":CodeCompanion #{buffer} ", true, false, true),
+					"n",
+					false
+				)
+			end
+		end,
+		desc = "IA Prompt Rápido (Contextual)",
+		mode = { "n", "v" },
 	},
 
 	-- Documentar y Tipos
