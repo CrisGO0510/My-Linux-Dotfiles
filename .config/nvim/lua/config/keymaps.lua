@@ -2,6 +2,10 @@ local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
 
+-- Navegar por líneas visuales (útil cuando wrap está activo)
+vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+
 -- Evita que <Space> haga algo
 map("n", "<Space>", "<NOP>", opts)
 vim.g.mapleader = " " -- Define <Space> como tecla líder
@@ -43,7 +47,8 @@ wk.add({
 		"<leader>cw",
 		function()
 			vim.wo.wrap = not vim.wo.wrap
-			print("Wrap " .. (vim.wo.wrap and "activado" or "desactivado"))
+			local status = vim.wo.wrap and "Activado" or "Desactivado"
+			require("snacks").notifier.notify("Word Wrap " .. status, "info", { title = "Interfaz" })
 		end,
 		desc = "Toggle wrap",
 		mode = "n",
@@ -59,7 +64,7 @@ wk.add({
 	{
 		"<leader>cm",
 		function()
-			vim.cmd("MarkdownPreview")
+			vim.cmd("MarkdownPreviewToggle")
 		end,
 		desc = "Alternar vista previa de Markdown",
 		mode = "n",
