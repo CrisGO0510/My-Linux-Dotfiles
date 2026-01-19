@@ -3,56 +3,42 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
-		"ravitemer/mcphub.nvim",
 		{ "stevearc/dressing.nvim", opts = {} },
+		"nvim-telescope/telescope.nvim",
 	},
 	config = function()
 		require("codecompanion").setup({
 			strategies = {
-				chat = {
-					adapter = "copilot",
-				},
-				inline = {
-					adapter = "copilot",
-				},
+				chat = { adapter = "ollama" },
+				inline = { adapter = "ollama" },
 			},
-
+			-- Ventana a la derecha
 			display = {
 				chat = {
-					window = {
-						layout = "vertical",
-						position = "right",
-						width = 0.40,
-					},
+					window = { layout = "vertical", position = "right", width = 0.40 },
 				},
 			},
-
-			extensions = {
-				mcphub = {
-					callback = "mcphub.extensions.codecompanion",
-					opts = {
-						show_result_in_chat = true,
-						make_vars = true,
-						make_slash_commands = true,
-					},
-				},
-			},
-
 			adapters = {
-				copilot = function()
-					return require("codecompanion.adapters").extend("copilot", {
+				ollama = function()
+					return require("codecompanion.adapters").extend("ollama", {
 						schema = {
-							model = { default = "gpt-4o" },
+							model = { default = "qwen2.5-coder:14b" },
+							num_ctx = { default = 16384 }, -- 16k de contexto para leer archivos largos
 						},
 						opts = {
 							system_prompt = [[Eres un programador de élite. Tu jefe es Cris. 
-Responde siempre en español. Aplica SOLID y Clean Code.
-IMPORTANTE: Tienes acceso a herramientas externas mediante MCP. 
-Si Cris te pide algo, usa las herramientas disponibles.]],
+Responde SIEMPRE en español. 
+Aplica SOLID, Clean Code y patrones de diseño.
+Tu objetivo es escribir código robusto y mantenible.]],
 						},
 					})
 				end,
 			},
+		})
+
+		-- Setup de Dressing para que los menús de CodeCompanion se vean bien
+		require("dressing").setup({
+			select = { enabled = true, backend = { "telescope", "builtin" } },
 		})
 	end,
 }

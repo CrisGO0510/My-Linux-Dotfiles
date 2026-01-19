@@ -389,27 +389,6 @@ wk.add({
 		desc = "Agregar tipos y Docs",
 		mode = { "v" }, -- Importante: Selecciona el código en modo visual y presiona el atajo
 	},
-
-	-- Figma & MCP Hub (La novedad)
-	{
-		"<leader>am",
-		group = "MCP / Figma",
-	},
-	{
-		"<leader>ams",
-		"<cmd>MCPStep<CR>",
-		desc = "Siguiente paso MCP",
-	},
-	{
-		"<leader>amf",
-		function()
-			local id = vim.fn.input("Figma File ID: ")
-			if id ~= "" then
-				vim.cmd("CodeCompanionChat @mcp figma lee el archivo " .. id .. " y genera el componente")
-			end
-		end,
-		desc = "Maquetar desde Figma",
-	},
 })
 
 wk.add({
