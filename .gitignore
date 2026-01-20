@@ -28,4 +28,8 @@ debug
 foo.*
 *.log
 data
+
+# Ignored config files
 .config/eww/image.jpg
+.config/opencode/bun.lock
+.config/opencode/package.json
