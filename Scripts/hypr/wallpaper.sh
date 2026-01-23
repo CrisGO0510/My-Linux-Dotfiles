@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 DOTFILES="$HOME/dotfiles/assets"
-WALL="$DOTFILES/eyes.png"
+WALL="$DOTFILES/ds_tanjiro.jpg"
 
 killall hyprpaper 2>/dev/null
 sleep 0.2
