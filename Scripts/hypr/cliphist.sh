@@ -3,7 +3,8 @@
 # Set variables
 scrDir=$(dirname "$(realpath "$0")")
 source "$scrDir/globalcontrol.sh"
-roconf="${confDir}/rofi/clipboard.rasi"
+# Updated to use Azure Dreams unified config instead of specialized clipboard.rasi
+roconf="${confDir}/rofi/config.rasi"
 favoritesFile="${HOME}/.cliphist_favorites"
 
 # Set rofi scaling

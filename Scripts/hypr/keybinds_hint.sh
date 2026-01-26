@@ -16,21 +16,21 @@ else
 fi
 
 # AQUÍ DEFINIMOS EL TEMA VISUAL DESDE CERO
-# Usamos tus colores exactos, pero forzamos una estructura de lista simple.
-# main-bg: #161925ff (Fondo)
-# main-fg: #c74dedff (Texto principal/Prompt)
-# main-br: #f9dc5cff (Borde Amarillo)
-# select-bg: #ed254eff (Rojo Selección)
+# Usamos los colores de Azure Dreams para consistencia visual
+# main-bg: #0f0f23ff (Fondo)
+# main-fg: #ddd6feff (Texto principal)
+# main-br: #4fd1c7ff (Borde Turquesa)
+# select-bg: #a29bfeff (Lavanda Selección)
 
 read -r -d '' r_theme << EOM
 * {
-    /* Tus Colores */
-    bg:         #161925ff;
-    fg:         #e0def4;     /* Blanco suave para texto normal */
-    accent:     #c74dedff;   /* Tu main-fg (Morado) */
-    border:     #f9dc5cff;   /* Tu main-br (Amarillo) */
-    sel-bg:     #ed254eff;   /* Tu select-bg (Rojo) */
-    sel-fg:     #ffffff;     /* Blanco para texto seleccionado */
+    /* Azure Dreams Color Scheme */
+    bg:         #0f0f23ff;   /* Deep navy background */
+    fg:         #ddd6feff;   /* Purple-tinted white text */
+    accent:     #6c5ce7ff;   /* Modern vibrant purple */
+    border:     #4fd1c7ff;   /* Turquoise accent border */
+    sel-bg:     #a29bfeff;   /* Soft lavender selection */
+    sel-fg:     #0f0f23ff;   /* Dark text on light selection */
 
     background-color:   @bg;
     text-color:         @fg;
@@ -40,7 +40,7 @@ window {
     width:              60%;     /* Ancho perfecto */
     border:             2px;
     border-color:       @border;
-    border-radius:      10px;
+    border-radius:      16px;    /* Consistent with Azure Dreams theme */
     padding:            20px;
     background-color:   @bg;
 }

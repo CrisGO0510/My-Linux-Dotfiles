@@ -157,7 +157,7 @@ while getopts "iop:st" opt; do
             nsink=$(playerctl --list-all | grep -w "$srce")
             ;;
         s)
-            select_output "$(select_output | rofi -dmenu -config "${confDir}/rofi/notification.rasi")"
+            select_output "$(select_output | rofi -dmenu -config "${confDir}/rofi/config.rasi")"
             exit
             ;;
         t)

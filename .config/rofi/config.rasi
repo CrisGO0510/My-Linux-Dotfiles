@@ -1,21 +1,39 @@
-// Config //
+/* ================================================
+ * Azure Dreams - Clean Modern Rofi Configuration
+ * ============================================== */
+
 configuration {
-    modi:                        "drun,filebrowser,window,run";
+    modes:                       "drun,window,run,ssh";
     show-icons:                  true;
-    display-drun:                " ";
-    display-run:                 " ";
-    display-filebrowser:         " ";
-    display-window:              " ";
+    display-drun:                "📦";
+    display-window:              "🖥️";
+    display-run:                 "⚙️";
+    display-ssh:                 "🌐";
     drun-display-format:         "{name}";
     window-format:               "{w}{t}";
     font:                        "JetBrainsMono Nerd Font 10";
     icon-theme:                  "Tela-circle-dracula";
 }
 
-@theme "~/.config/rofi/theme.rasi"
+/* Azure Dreams Color Scheme */
+* {
+    /* Main Colors */
+    main-bg:            #0f0f23ff;  /* Deep navy background */
+    main-bg-alt:        #1a1a2eff;  /* Soft dark blue secondary */
+    element-bg:         #2e2e4eff;  /* List elements background (slightly lighter) */
+    main-fg:            #ddd6feff;  /* Purple-tinted white text */
+    main-br:            #4fd1c7ff;  /* Turquoise accent border */
+    main-ex:            #6c5ce7ff;  /* Modern vibrant purple */
+    select-bg:          #a29bfeff;  /* Soft lavender selection */
+    select-fg:          #0f0f23ff;  /* Dark text on light selection */
+    accent-blue:        #74b9ffff;  /* Bright sky blue accent */
+    gradient-start:     #6c5ce7ff;  /* Purple gradient start */
+    gradient-end:       #74b9ffff;  /* Blue gradient end */
+    separatorcolor:     transparent;
+    border-color:       @main-br;
+}
 
-
-// Main //
+/* Main Window */
 window {
     height:                      33em;
     width:                       63em;
@@ -25,9 +43,13 @@ window {
     cursor:                      "default";
     spacing:                     0em;
     padding:                     0em;
+    border:                      2px;
+    border-radius:               16px;
     border-color:                @main-br;
     background-color:            @main-bg;
 }
+
+/* Main Container */
 mainbox {
     enabled:                     true;
     spacing:                     0em;
@@ -36,62 +58,72 @@ mainbox {
     children:                    [ "dummywall" , "listbox" ];
     background-color:            transparent;
 }
+
+/* Left Side (Wallpaper + Mode Buttons) */
 dummywall {
     spacing:                     0em;
     padding:                     0em;
-    width:                       37em;
+    width:                       38.5em;
     expand:                      false;
     orientation:                 horizontal;
     children:                    [ "mode-switcher" , "inputbar" ];
     background-color:            transparent;
-    background-image:            url("~/.cache/hyde/wall.thmb", height);
+    background-image:            url("/tmp/rofi_wallpapers/wall_main.jpg", height);
 }
 
-
-// Modes //
+/* Mode Switcher */
 mode-switcher{
     orientation:                 vertical;
     enabled:                     true;
-    width:                       3.8em;
-    padding:                     9.2em 0.5em 9.2em 0.5em;
-    spacing:                     1.2em;
+    width:                       6em;
+    padding:                     8.5em 1.2em 8.5em 1.2em;
+    spacing:                     1.5em;
     background-color:            transparent;
-    background-image:            url("~/.cache/hyde/wall.blur", height);
+    background-image:            url("/tmp/rofi_wallpapers/wall_blur.jpg", height);
+    border-radius:               16px 0px 0px 16px;
 }
+
 button {
     cursor:                      pointer;
-    border-radius:               2em;
+    border-radius:               12px;
+    padding:                     12px;
     background-color:            @main-bg;
     text-color:                  @main-fg;
+    font:                        "JetBrainsMono Nerd Font 18";
 }
+
 button selected {
-    background-color:            @main-fg;
-    text-color:                  @main-bg;
+    background-color:            @main-bg-alt;
+    text-color:                  @accent-blue;
+    border:                      1px;
+    border-color:                @main-br;
+    font:                        "JetBrainsMono Nerd Font 18";
 }
 
-
-// Inputs //
+/* Input Bar */
 inputbar {
     enabled:                     true;
     children:                    [ "entry" ];
     background-color:            transparent;
 }
+
 entry {
     enabled:                     false;
 }
 
-
-// Lists //
+/* List Container */
 listbox {
     spacing:                     0em;
-    padding:                     2em;
+    padding:                     2.5em;
     children:                    [ "dummy" , "listview" , "dummy" ];
     background-color:            transparent;
+    border-radius:               0px 16px 16px 0px;
 }
+
 listview {
     enabled:                     true;
-    spacing:                     0em;
-    padding:                     0em;
+    spacing:                     0.5em;
+    padding:                     1em;
     columns:                     1;
     lines:                       8;
     cycle:                       true;
@@ -103,42 +135,61 @@ listview {
     fixed-height:                true;
     fixed-columns:               true;
     cursor:                      "default";
-    background-color:            transparent;
+    background-color:            @main-bg-alt;
     text-color:                  @main-fg;
+    border-radius:               12px;
 }
+
 dummy {
     background-color:            transparent;
 }
 
-
-// Elements //
+/* List Elements */
 element {
     enabled:                     true;
-    spacing:                     0.8em;
-    padding:                     0.4em 0.4em 0.4em 1.5em;
+    spacing:                     1em;
+    padding:                     0.8em 1em;
     cursor:                      pointer;
-    background-color:            transparent;
+    background-color:            @element-bg;
     text-color:                  @main-fg;
+    border-radius:               8px;
 }
+
 element selected.normal {
     background-color:            @select-bg;
     text-color:                  @select-fg;
+    border:                      1px;
+    border-color:                @main-br;
 }
+
+element normal.normal {
+    background-color:            @element-bg;
+    text-color:                  @main-fg;
+}
+
+element alternate.normal {
+    background-color:            @element-bg;
+    text-color:                  @main-fg;
+}
+
 element-icon {
-    size:                        2.8em;
+    size:                        3.2em;
     cursor:                      inherit;
     background-color:            transparent;
     text-color:                  inherit;
+    border-radius:               6px;
 }
+
 element-text {
     vertical-align:              0.5;
     horizontal-align:            0.0;
     cursor:                      inherit;
     background-color:            transparent;
     text-color:                  inherit;
+    font:                        "JetBrainsMono Nerd Font 11";
 }
 
-// Error message //
+/* Error Messages */
 error-message {
     text-color:                  @main-fg;
     background-color:            @main-bg;
