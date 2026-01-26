@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 export OLLAMA_HOST=127.0.0.1:5000
-MODEL="qwen2.5-coder:14b"
+MODEL="qwen2.5-coder:7b"
 
 echo "Levantando $MODEL en el puerto 5000..."
 
