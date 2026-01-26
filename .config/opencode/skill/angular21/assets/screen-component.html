@@ -1,0 +1,163 @@
+<!-- Screen component template with modern control flow -->
+<div class="entity-list-container">
+  <!-- Header -->
+  <mat-card class="header-card">
+    <mat-card-content>
+      <div class="header-content">
+        <div class="title-section">
+          <h2>Entities</h2>
+          <span class="entity-count">{{ filteredEntities().length }} items</span>
+        </div>
+        
+        <div class="actions-section">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="onCreateNew()"
+          >
+            <mat-icon>add</mat-icon>
+            Create New
+          </button>
+          
+          <button 
+            mat-icon-button 
+            (click)="onRefresh()"
+            [disabled]="loading()"
+            matTooltip="Refresh"
+          >
+            <mat-icon>refresh</mat-icon>
+          </button>
+          
+          <button 
+            mat-icon-button 
+            (click)="onToggleViewMode()"
+            [matTooltip]="viewMode() === 'grid' ? 'Switch to list view' : 'Switch to grid view'"
+          >
+            <mat-icon>{{ viewMode() === 'grid' ? 'view_list' : 'view_module' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Search -->
+      <div class="search-section">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search entities...</mat-label>
+          <input 
+            matInput 
+            [formControl]="searchControl"
+            (input)="onSearchChange($event.target.value)"
+            placeholder="Search by name or description"
+          >
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Content -->
+  <div class="content-section">
+    @if (loading()) {
+      <!-- Loading State -->
+      <mat-card class="loading-card">
+        <mat-card-content>
+          <div class="loading-content">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading entities...</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    } @else if (error(); as errorMessage) {
+      <!-- Error State -->
+      <mat-card class="error-card">
+        <mat-card-content>
+          <div class="error-content">
+            <mat-icon color="warn">error</mat-icon>
+            <h3>Error loading entities</h3>
+            <p>{{ errorMessage }}</p>
+            <button mat-raised-button color="primary" (click)="onRefresh()">
+              Try Again
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    } @else if (hasResults()) {
+      <!-- Entities Grid/List -->
+      <div [class]="'entities-container ' + viewMode()">
+        @for (entity of filteredEntities(); track entity.id) {
+          <mat-card 
+            class="entity-card"
+            [class.selected]="selectedEntity()?.id === entity.id"
+            [class.inactive]="!entity.active"
+            (click)="onEntitySelect(entity)"
+          >
+            <mat-card-header>
+              <mat-card-title>{{ entity.name }}</mat-card-title>
+              <mat-card-subtitle>{{ entity.description }}</mat-card-subtitle>
+              
+              @if (!entity.active) {
+                <div class="status-badge inactive">
+                  <mat-icon>visibility_off</mat-icon>
+                  Inactive
+                </div>
+              }
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="entity-meta">
+                <span class="created-date">
+                  Created: {{ entity.createdAt | date:'short' }}
+                </span>
+              </div>
+            </mat-card-content>
+            
+            <mat-card-actions align="end">
+              <button 
+                mat-button 
+                color="primary" 
+                (click)="onEntityEdit(entity); $event.stopPropagation()"
+              >
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+              
+              <button 
+                mat-button 
+                color="warn" 
+                (click)="onEntityDelete(entity); $event.stopPropagation()"
+              >
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <mat-card class="empty-card">
+        <mat-card-content>
+          <div class="empty-content">
+            @if (searchTerm()) {
+              <!-- No search results -->
+              <mat-icon>search_off</mat-icon>
+              <h3>No results found</h3>
+              <p>No entities match your search: "{{ searchTerm() }}"</p>
+              <button mat-raised-button (click)="searchControl.setValue('')">
+                Clear Search
+              </button>
+            } @else {
+              <!-- No entities at all -->
+              <mat-icon>inbox</mat-icon>
+              <h3>No entities yet</h3>
+              <p>Get started by creating your first entity</p>
+              <button mat-raised-button color="primary" (click)="onCreateNew()">
+                <mat-icon>add</mat-icon>
+                Create First Entity
+              </button>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</div>
