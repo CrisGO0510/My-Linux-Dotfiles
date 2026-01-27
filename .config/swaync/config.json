@@ -1,7 +1,7 @@
 {
   "$schema": "/etc/xdg/swaync/configSchema.json",
   "positionX": "right",
-  "positionY": "top", 
+  "positionY": "top",
   "layer": "overlay",
   "control-center-layer": "top",
   "layer-shell": true,
@@ -42,12 +42,7 @@
       "category": "Im"
     }
   },
-  "widgets": [
-    "inhibitors",
-    "title",
-    "dnd",
-    "notifications"
-  ],
+  "widgets": ["inhibitors", "title", "dnd", "notifications"],
   "widget-config": {
     "inhibitors": {
       "text": "Inhibitors",
@@ -96,7 +91,7 @@
             "command": "systemctl reboot"
           },
           {
-            "label": "Shutdown", 
+            "label": "Shutdown",
             "command": "systemctl poweroff"
           }
         ]

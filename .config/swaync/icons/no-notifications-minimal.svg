@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <!-- Azure Dreams Minimalist No Notifications Icon -->
+  
+  <defs>
+    <!-- Gradient definitions -->
+    <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#4fd1c7;stop-opacity:0.8"/>
+    </linearGradient>
+    
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:0.4"/>
+      <stop offset="50%" style="stop-color:#a29bfe;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#ddd6fe;stop-opacity:0.3"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer ring - very subtle -->
+  <circle cx="48" cy="48" r="40" 
+          fill="none" 
+          stroke="url(#ringGradient)" 
+          stroke-width="1" 
+          opacity="0.4"/>
+          
+  <!-- Inner ring -->
+  <circle cx="48" cy="48" r="25" 
+          fill="none" 
+          stroke="url(#centerGradient)" 
+          stroke-width="2" 
+          opacity="0.5"/>
+  
+  <!-- Central peaceful symbol - yin yang inspired but bell-like -->
+  <circle cx="48" cy="48" r="15" fill="url(#centerGradient)" opacity="0.3"/>
+  
+  <!-- Minimalist bell -->
+  <path d="M38 38 C38 32, 42 30, 48 30 C54 30, 58 32, 58 38 L58 50 C58 52, 56 52, 55 53 L41 53 C40 52, 38 52, 38 50 Z" 
+        fill="none" 
+        stroke="url(#centerGradient)" 
+        stroke-width="2" 
+        opacity="0.7"/>
+  
+  <!-- Bell bottom -->
+  <path d="M41 53 Q48 56, 55 53" 
+        stroke="url(#centerGradient)" 
+        stroke-width="1.5" 
+        fill="none" 
+        opacity="0.6"/>
+  
+  <!-- Tiny zen dots -->
+  <circle cx="48" cy="55" r="1.5" fill="#ddd6fe" opacity="0.7"/>
+  
+  <!-- Floating particles around -->
+  <circle cx="25" cy="25" r="1" fill="#74b9ff" opacity="0.3"/>
+  <circle cx="71" cy="30" r="0.8" fill="#a29bfe" opacity="0.4"/>
+  <circle cx="22" cy="70" r="0.6" fill="#4fd1c7" opacity="0.5"/>
+  <circle cx="74" cy="66" r="1.2" fill="#6c5ce7" opacity="0.3"/>
+</svg>

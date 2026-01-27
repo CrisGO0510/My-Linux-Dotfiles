@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <!-- Azure Dreams - All Clear Icon -->
+  
+  <defs>
+    <linearGradient id="peacefulGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4fd1c7;stop-opacity:0.7"/>
+      <stop offset="50%" style="stop-color:#74b9ff;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:0.6"/>
+    </linearGradient>
+    
+    <linearGradient id="zenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#ddd6fe;stop-opacity:0.6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Peaceful zen circle -->
+  <circle cx="40" cy="40" r="30" 
+          fill="none" 
+          stroke="url(#peacefulGradient)" 
+          stroke-width="1.5" 
+          opacity="0.6"/>
+  
+  <!-- Inner peaceful state -->
+  <circle cx="40" cy="40" r="18" 
+          fill="url(#zenGradient)" 
+          opacity="0.3"/>
+  
+  <!-- Checkmark/tick for "all clear" -->
+  <path d="M30 38 L36 44 L50 30" 
+        stroke="url(#peacefulGradient)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none" 
+        opacity="0.8"/>
+  
+  <!-- Floating zen particles -->
+  <circle cx="20" cy="20" r="1" fill="#4fd1c7" opacity="0.4"/>
+  <circle cx="60" cy="25" r="0.8" fill="#74b9ff" opacity="0.5"/>
+  <circle cx="15" cy="60" r="0.6" fill="#a29bfe" opacity="0.6"/>
+  <circle cx="65" cy="55" r="1.2" fill="#ddd6fe" opacity="0.4"/>
+  
+  <!-- Subtle peaceful waves -->
+  <path d="M10 65 Q25 60, 40 65 Q55 70, 70 65" 
+        stroke="url(#zenGradient)" 
+        stroke-width="1" 
+        fill="none" 
+        opacity="0.3"/>
+</svg>

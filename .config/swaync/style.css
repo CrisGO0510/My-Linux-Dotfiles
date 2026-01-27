@@ -34,16 +34,16 @@
   --accent-blue: #74b9ff;
   --gradient-start: #6c5ce7;
   --gradient-end: #74b9ff;
-  
+
   /* Transparency levels */
   --bg-alpha: rgba(15, 15, 35, 0.95);
   --bg-alt-alpha: rgba(26, 26, 46, 0.9);
   --element-alpha: rgba(46, 46, 78, 0.8);
-  
+
   /* Border radius */
   --border-radius: 12px;
   --border-radius-small: 8px;
-  
+
   /* Transition timing */
   --transition-time: 200ms;
 }
@@ -149,7 +149,11 @@
  * Botones de acción
  * ============================================== */
 .notification-action {
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   border: 1px solid var(--main-br);
   border-radius: var(--border-radius-small);
   color: var(--main-fg);
@@ -161,7 +165,11 @@
 }
 
 .notification-action:hover {
-  background: linear-gradient(45deg, var(--gradient-end), var(--gradient-start));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-end),
+    var(--gradient-start)
+  );
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
 }
@@ -214,7 +222,11 @@
   font-size: 22px;
   font-weight: 700;
   color: var(--main-fg);
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -224,7 +236,11 @@
 }
 
 .widget-title > button {
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   border: 1px solid var(--main-br);
   border-radius: var(--border-radius-small);
   color: var(--main-fg);
@@ -236,7 +252,11 @@
 }
 
 .widget-title > button:hover {
-  background: linear-gradient(45deg, var(--gradient-end), var(--gradient-start));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-end),
+    var(--gradient-start)
+  );
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(108, 92, 231, 0.25);
 }
@@ -263,7 +283,11 @@
 }
 
 .widget-dnd > switch:checked {
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
 }
 
 .widget-dnd > switch slider {
@@ -284,7 +308,11 @@
 }
 
 .widget-inhibitors > button {
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   border: 1px solid var(--main-br);
   border-radius: var(--border-radius-small);
   color: var(--main-fg);
@@ -314,7 +342,11 @@
 }
 
 .control-center scrollbar slider {
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   border-radius: var(--border-radius-small);
   transition: all var(--transition-time) ease;
 }
@@ -357,8 +389,105 @@
 }
 
 /* ================================================
- * Estados especiales
+ * Control Center personalizado
  * ============================================== */
+.control-center .control-center-list-placeholder {
+  /* Completely reset and override default placeholder */
+  position: relative;
+  min-height: 180px;
+  color: transparent !important; /* Hide any default text */
+  font-size: 0 !important; /* Hide any default text */
+  text-indent: -9999px !important; /* Move any default text off screen */
+  overflow: hidden;
+  /* Remove any default background */
+  background: none !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Create our custom placeholder content */
+.control-center .control-center-list-placeholder::before {
+  content: "All clear! No notifications" !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: var(--accent-blue) !important;
+  font-size: 13px !important;
+  font-weight: 400;
+  text-align: center;
+  padding: 20px;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1000; /* Ensure it's on top */
+  background: var(--main-bg);
+  /* Add our custom icon as background */
+  background-image: url("icons/all-clear-azure.svg");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 80px 80px;
+  padding-top: 100px;
+}
+
+/* Hide absolutely everything else in the placeholder */
+.control-center .control-center-list-placeholder > * {
+  position: absolute !important;
+  left: -9999px !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  z-index: -1 !important;
+}
+
+/* Hide absolutely everything else in the placeholder */
+.control-center .control-center-list-placeholder > * {
+  position: absolute !important;
+  left: -9999px !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  z-index: -1 !important;
+}
+
+/* Remove any potential background images from the placeholder itself */
+.control-center .control-center-list-placeholder::before,
+.control-center .control-center-list-placeholder::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  background-image: none !important;
+}
+
+/* Target potential GTK widgets */
+.control-center .control-center-list-placeholder box,
+.control-center .control-center-list-placeholder widget,
+.control-center .control-center-list-placeholder image,
+.control-center .control-center-list-placeholder .image,
+.control-center .control-center-list-placeholder .icon,
+.control-center .control-center-list-placeholder picture,
+.control-center .control-center-list-placeholder svg {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  background: none !important;
+  background-image: none !important;
+}
+
+/* Mostrar solo el texto personalizado */
+.control-center .control-center-list-placeholder label {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 0.8 !important;
+  color: var(--accent-blue);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: none !important;
+  background-image: none !important;
+}
 .notification.dismissed {
   animation: slide-out-right var(--transition-time) ease-in forwards;
 }
@@ -370,6 +499,12 @@
   }
 }
 
+/* Ocultar la imagen del marcador de posición cuando no hay notificaciones */
+.control-center .notification-list-placeholder > image {
+  opacity: 0;
+  margin-bottom: -150px; /* Esto ayuda a que el texto suba y no quede el hueco */
+}
+
 /* ================================================
  * Responsive adjustments
  * ============================================== */
@@ -378,13 +513,27 @@
     margin: 0;
     border-radius: 0;
   }
-  
+
   .notification-window {
     margin: 4px 8px 0 0;
   }
-  
+
   .notification {
     margin: 4px;
     padding: 10px;
   }
+}
+
+/* En style.css */
+.control-center .notification-list-placeholder image {
+  opacity: 0;
+  min-height: 0;
+  margin-bottom: -100px;
+}
+
+.control-center .notification-list-placeholder label {
+  font-size: 1.5rem;
+  color: #89b4fa; /* Un azul suave */
+  font-weight: bold;
+  opacity: 0.6;
 }
