@@ -2,7 +2,7 @@
 
 # Set variables
 scrDir=$(dirname "$(realpath "$0")")
-source "$scrDir/globalcontrol.sh"
+source "$scrDir/config.sh"
 # Updated to use Azure Dreams unified config instead of specialized clipboard.rasi
 roconf="${confDir}/rofi/config.rasi"
 favoritesFile="${HOME}/.cliphist_favorites"

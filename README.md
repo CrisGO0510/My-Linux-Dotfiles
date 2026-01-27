@@ -64,7 +64,7 @@ Esto hace que se queden las configuraciones del dotfiles y se vincule sin necesi
 
 ## 🎨 Detalles del Entorno (Hyprland)
 
-La configuración de Hyprland (`.config/hypr/`) es modular basada en HyDE:
+La configuración de Hyprland (`.config/hypr/`) es modular y personalizada:
 
 *   **Configuración Base:** `hyprland.conf`, `keybindings.conf`, `monitors.conf`.
 *   **Animaciones:** Ubicadas en `animations/`. Puedes cambiar entre estilos (ej. `fast.conf`, `diablo-1.conf`, `end4.conf`) editando el archivo `hyprland.conf` para incluir el deseado.

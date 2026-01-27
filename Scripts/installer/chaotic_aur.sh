@@ -6,7 +6,7 @@ rootOpts=("--install" "--purge" "--revert" "fresh") #? List Of Flags that needs 
 vertL="$(printf '=%.0s' $(seq 1 "$(tput cols)"))"
 
 box_me() {
-    local s="Hyde: $*"
+    local s="Setup: $*"
     tput setaf 3
     echo " ═${s//?/═}"
     echo "║$s ║"
