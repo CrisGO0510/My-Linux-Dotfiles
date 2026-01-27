@@ -2,13 +2,19 @@
 
 # Set local configuration variables
 confDir="$HOME/.config"
-icodir="${confDir}/dunst/icons/vol"
+icodir="${confDir}/swaync/icons"  # Updated to use swaync icons
 step=5
 
 # Check if SwayOSD is installed
 use_swayosd=false
 if command -v swayosd-client >/dev/null 2>&1 && pgrep -x swayosd-server >/dev/null; then
     use_swayosd=true
+fi
+
+# Check if SwayNC is available, otherwise fall back to notify-send
+use_swaync=false
+if command -v swaync-client >/dev/null 2>&1; then
+    use_swaync=true
 fi
 
 # Define functions
@@ -43,19 +49,33 @@ EOF
 }
 
 notify_vol() {
-    angle=$(( (($vol + 2) / 5) * 5 ))
-    ico="${icodir}/vol-${angle}.svg"
+    # Use generic volume icon for swaync
+    ico="${icodir}/volume.svg"
     bar=$(seq -s "." $(($vol / 15)) | sed 's/[0-9]//g')
-    notify-send -a "t2" -r 91190 -t 800 -i "${ico}" "${vol}${bar}" "${nsink}"
+    
+    if $use_swaync; then
+        swaync-client -n --body "${vol}${bar} - ${nsink}" --summary "Volume" --icon "${ico}" --app-name "volumecontrol" --replace-id 91190
+    else
+        notify-send -a "t2" -r 91190 -t 800 -i "${ico}" "${vol}${bar}" "${nsink}"
+    fi
 }
 
 notify_mute() {
     mute=$(pamixer "${srce}" --get-mute)
     [ "${srce}" = "--default-source" ] && dvce="mic" || dvce="speaker"
+    
     if [ "${mute}" = "true" ]; then
-        notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/muted-${dvce}.svg" "muted" "${nsink}"
+        if $use_swaync; then
+            swaync-client -n --body "Muted - ${nsink}" --summary "Audio" --icon "${icodir}/volume-muted.svg" --app-name "volumecontrol" --replace-id 91190
+        else
+            notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/volume-muted.svg" "muted" "${nsink}"
+        fi
     else
-        notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/unmuted-${dvce}.svg" "unmuted" "${nsink}"
+        if $use_swaync; then
+            swaync-client -n --body "Unmuted - ${nsink}" --summary "Audio" --icon "${icodir}/volume.svg" --app-name "volumecontrol" --replace-id 91190
+        else
+            notify-send -a "t2" -r 91190 -t 800 -i "${icodir}/volume.svg" "unmuted" "${nsink}"
+        fi
     fi
 }
 
@@ -118,9 +138,17 @@ select_output() {
     if [ -n "$selection" ]; then
         device=$(pactl list sinks | grep -C2 -F "Description: $selection" | grep Name | cut -d: -f2 | xargs)
         if pactl set-default-sink "$device"; then
-            notify-send -t 2000 -r 2 -u low "Activated: $selection"
+            if $use_swaync; then
+                swaync-client -n --body "Audio device switched" --summary "Activated: $selection" --app-name "volumecontrol"
+            else
+                notify-send -t 2000 -r 2 -u low "Activated: $selection"
+            fi
         else
-            notify-send -t 2000 -r 2 -u critical "Error activating $selection"
+            if $use_swaync; then
+                swaync-client -n --body "Failed to switch audio device" --summary "Error activating $selection" --app-name "volumecontrol" --urgency critical
+            else
+                notify-send -t 2000 -r 2 -u critical "Error activating $selection"
+            fi
         fi
     else
         pactl list sinks | grep -ie "Description:" | awk -F ': ' '{print $2}' | sort

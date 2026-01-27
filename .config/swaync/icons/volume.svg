@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Background circle -->
+  <circle cx="24" cy="24" r="20" fill="#1a1a2e" stroke="#4fd1c7" stroke-width="2"/>
+  
+  <!-- Volume waves -->
+  <path d="M12 18v12h4l6 6v-24l-6 6h-4z" fill="#6c5ce7"/>
+  
+  <!-- Sound waves -->
+  <path d="M26 14v20c2.8-1.2 4.7-4 4.7-7s-1.9-5.8-4.7-7z" fill="#74b9ff" opacity="0.8"/>
+  <path d="M26 10v28c5.5-2.5 9.3-8 9.3-14s-3.8-11.5-9.3-14z" fill="#a29bfe" opacity="0.6"/>
+</svg>

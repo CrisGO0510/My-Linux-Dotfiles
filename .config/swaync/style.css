@@ -1,0 +1,390 @@
+/*
+ * ======================================================
+ *  SwayNC - Azure Dreams Theme
+ * ======================================================
+ * 
+ * Tema de notificaciones que coincide con la estética
+ * Azure Dreams del resto de la configuración.
+ * 
+ * Colores base:
+ * - Deep navy background: #0f0f23
+ * - Soft dark blue: #1a1a2e  
+ * - Element background: #2e2e4e
+ * - Purple-tinted white: #ddd6fe
+ * - Turquoise accent: #4fd1c7
+ * - Vibrant purple: #6c5ce7
+ * - Bright sky blue: #74b9ff
+ * - Soft lavender: #a29bfe
+ * ======================================================
+ */
+
+/* ================================================
+ * Variables globales
+ * ============================================== */
+* {
+  /* Azure Dreams Color Palette */
+  --main-bg: #0f0f23;
+  --main-bg-alt: #1a1a2e;
+  --element-bg: #2e2e4e;
+  --main-fg: #ddd6fe;
+  --main-br: #4fd1c7;
+  --main-ex: #6c5ce7;
+  --select-bg: #a29bfe;
+  --select-fg: #0f0f23;
+  --accent-blue: #74b9ff;
+  --gradient-start: #6c5ce7;
+  --gradient-end: #74b9ff;
+  
+  /* Transparency levels */
+  --bg-alpha: rgba(15, 15, 35, 0.95);
+  --bg-alt-alpha: rgba(26, 26, 46, 0.9);
+  --element-alpha: rgba(46, 46, 78, 0.8);
+  
+  /* Border radius */
+  --border-radius: 12px;
+  --border-radius-small: 8px;
+  
+  /* Transition timing */
+  --transition-time: 200ms;
+}
+
+/* ================================================
+ * Ventana de notificaciones
+ * ============================================== */
+.notification-window {
+  color: var(--main-fg);
+  background: transparent;
+  border-radius: var(--border-radius);
+  margin: 6px 12px 0 0;
+}
+
+/* ================================================
+ * Notificaciones individuales
+ * ============================================== */
+.notification {
+  background: var(--bg-alpha);
+  border: 2px solid var(--main-br);
+  border-radius: var(--border-radius);
+  margin: 6px;
+  padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all var(--transition-time) ease;
+}
+
+.notification:hover {
+  background: var(--bg-alt-alpha);
+  border-color: var(--gradient-start);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 48px rgba(108, 92, 231, 0.2);
+}
+
+.notification.critical {
+  border-color: #ff6b9d;
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.notification.low {
+  border-color: var(--accent-blue);
+  background: rgba(116, 185, 255, 0.05);
+}
+
+/* ================================================
+ * Contenido de notificaciones
+ * ============================================== */
+.notification-content {
+  background: transparent;
+  padding: 8px;
+  margin: 0;
+}
+
+.summary {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--main-fg);
+  margin-bottom: 6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.time {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--accent-blue);
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+.body {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--main-fg);
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* ================================================
+ * Íconos de notificaciones
+ * ============================================== */
+.notification-icon {
+  margin: 0 12px 0 0;
+  border-radius: var(--border-radius-small);
+  background: var(--element-bg);
+  border: 1px solid var(--main-br);
+}
+
+.notification-icon image {
+  border-radius: var(--border-radius-small);
+}
+
+/* ================================================
+ * Imagen del cuerpo de notificación
+ * ============================================== */
+.notification-default-action .notification-content .image {
+  margin: 8px 0;
+  border-radius: var(--border-radius-small);
+  border: 1px solid var(--main-br);
+}
+
+/* ================================================
+ * Botones de acción
+ * ============================================== */
+.notification-action {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  border: 1px solid var(--main-br);
+  border-radius: var(--border-radius-small);
+  color: var(--main-fg);
+  font-weight: 500;
+  margin: 4px 2px;
+  padding: 8px 16px;
+  transition: all var(--transition-time) ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.notification-action:hover {
+  background: linear-gradient(45deg, var(--gradient-end), var(--gradient-start));
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+}
+
+.notification-action:active {
+  transform: scale(0.98);
+}
+
+/* ================================================
+ * Botón de cierre
+ * ============================================== */
+.close-button {
+  background: rgba(255, 107, 157, 0.8);
+  border: 1px solid #ff6b9d;
+  border-radius: 50%;
+  color: white;
+  margin: 2px;
+  padding: 4px;
+  transition: all var(--transition-time) ease;
+}
+
+.close-button:hover {
+  background: #ff6b9d;
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 16px rgba(255, 107, 157, 0.4);
+}
+
+/* ================================================
+ * Control Center
+ * ============================================== */
+.control-center {
+  background: var(--bg-alpha);
+  border: 2px solid var(--main-br);
+  border-radius: var(--border-radius);
+  margin: 6px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.4);
+}
+
+.control-center .notification {
+  background: var(--element-alpha);
+  border: 1px solid var(--main-br);
+  margin: 8px;
+}
+
+/* ================================================
+ * Widgets del Control Center
+ * ============================================== */
+.widget-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-fg);
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 16px;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.widget-title > button {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  border: 1px solid var(--main-br);
+  border-radius: var(--border-radius-small);
+  color: var(--main-fg);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  margin: 8px;
+  transition: all var(--transition-time) ease;
+}
+
+.widget-title > button:hover {
+  background: linear-gradient(45deg, var(--gradient-end), var(--gradient-start));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.25);
+}
+
+.widget-dnd {
+  background: var(--element-alpha);
+  border: 1px solid var(--main-br);
+  border-radius: var(--border-radius);
+  margin: 8px 16px;
+  padding: 12px;
+  transition: all var(--transition-time) ease;
+}
+
+.widget-dnd:hover {
+  background: var(--bg-alt-alpha);
+  border-color: var(--gradient-start);
+}
+
+.widget-dnd > switch {
+  background: var(--main-bg-alt);
+  border: 1px solid var(--main-br);
+  border-radius: 24px;
+  transition: all var(--transition-time) ease;
+}
+
+.widget-dnd > switch:checked {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+}
+
+.widget-dnd > switch slider {
+  background: var(--main-fg);
+  border-radius: 50%;
+  transition: all var(--transition-time) ease;
+}
+
+/* ================================================
+ * Widget de inhibidores
+ * ============================================== */
+.widget-inhibitors {
+  background: var(--element-alpha);
+  border: 1px solid var(--main-br);
+  border-radius: var(--border-radius);
+  margin: 8px 16px;
+  padding: 12px;
+}
+
+.widget-inhibitors > button {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  border: 1px solid var(--main-br);
+  border-radius: var(--border-radius-small);
+  color: var(--main-fg);
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all var(--transition-time) ease;
+}
+
+.widget-inhibitors > button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+}
+
+/* ================================================
+ * Scrollbar personalizado
+ * ============================================== */
+.control-center scrollbar {
+  background: transparent;
+  border-radius: var(--border-radius-small);
+  margin: 4px;
+  width: 8px;
+}
+
+.control-center scrollbar trough {
+  background: var(--main-bg-alt);
+  border-radius: var(--border-radius-small);
+}
+
+.control-center scrollbar slider {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+  border-radius: var(--border-radius-small);
+  transition: all var(--transition-time) ease;
+}
+
+.control-center scrollbar slider:hover {
+  background: var(--accent-blue);
+}
+
+/* ================================================
+ * Efectos adicionales
+ * ============================================== */
+.floating-notifications .notification {
+  animation: slide-in-right var(--transition-time) ease-out;
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.control-center {
+  animation: slide-in-left var(--transition-time) ease-out;
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ================================================
+ * Estados especiales
+ * ============================================== */
+.notification.dismissed {
+  animation: slide-out-right var(--transition-time) ease-in forwards;
+}
+
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ================================================
+ * Responsive adjustments
+ * ============================================== */
+@media (max-width: 800px) {
+  .control-center {
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .notification-window {
+    margin: 4px 8px 0 0;
+  }
+  
+  .notification {
+    margin: 4px;
+    padding: 10px;
+  }
+}

@@ -70,7 +70,7 @@
   }
 }
 
-.keyboard,.battery,.volume-short, .ram-short{
+.notifications,.battery,.volume-short, .ram-short{
   background-color:rgba(0,0,0,0.38);
   padding:0px 13px;
   border-radius:20px;
@@ -86,8 +86,16 @@
   color: #4D9FEC;
 }
 
-.keyboard{
+.keyboard,.notifications{
   color:rgb(245,162,96);
+}
+
+.notifications{
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: rgba(108, 92, 231, 0.2);
+  }
 }
 
 .kb-div,.wifi-div{
@@ -740,5 +748,35 @@ tooltip{
   all: unset;
   background-color:rgb(144, 104, 220);
   border-radius: 10px;
+}
+
+/* ================================================
+ * Widget de Notificaciones (SwayNC) - Azure Dreams
+ * ============================================== */
+.notifications-icon {
+  color: #4fd1c7;
+  margin-right: 4px;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.notifications:hover .notifications-icon {
+  color: #6c5ce7;
+}
+
+.notifications-count {
+  color: #74b9ff;
+  font-size: 9px;
+  font-weight: bold;
+  background-color: rgba(116, 185, 255, 0.3);
+  border-radius: 6px;
+  padding: 1px 4px;
+  min-width: 8px;
+  transition: all 0.3s ease;
+}
+
+.notifications:hover .notifications-count {
+  background-color: rgba(108, 92, 231, 0.4);
+  color: #ddd6fe;
 }
 

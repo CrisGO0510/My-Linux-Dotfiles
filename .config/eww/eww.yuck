@@ -21,17 +21,18 @@
             :hexpand true
             :space-evenly false
             :spacing 10
-            (box :space-evenly false
-                  :spacing 7
-                  (tray)
-                  (volume)
-                  (ram)
-                  (battery)
-                  (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
-                            (wifi))
-                  (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
-                            (keyboard))
-            )
+             (box :space-evenly false
+                   :spacing 7
+                   (tray)
+                   (notifications)
+                   (volume)
+                   (ram)
+                   (battery)
+                   (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                             (wifi))
+                   (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                             (keyboard))
+             )
             (divider)
             (power)
        )
@@ -807,6 +808,35 @@
                    (eventbox :class "mico" :cursor "pointer" :onclick "playerctl next" "󰒭")
               )
          ))
+)
+
+; ================================================
+; Widget de Notificaciones (SwayNC)
+; ================================================
+
+(defpoll swaync_count :interval "1s"
+                      "swaync-client --count")
+
+(defpoll swaync_dnd :interval "1s" 
+                    "swaync-client --get-dnd")
+
+(defwidget notifications []
+    (eventbox :cursor "pointer"
+              :onclick "swaync-client -t -sw"
+              :onrightclick "swaync-client -d -sw"
+              :tooltip "Left click: Toggle notification center | Right click: Toggle DND"
+              (box :class "notifications"
+                   (box :orientation "h"
+                        :space-evenly false
+                        :valign "center"
+                        (label :class "notifications-icon"
+                               :text {swaync_dnd == "true" ? "󰂛" : "󰂚"})
+                        (label :class "notifications-count"
+                               :text {swaync_count > 0 ? swaync_count : ""}
+                               :visible {swaync_count > 0})
+                   )
+              )
+    )
 )
 
 (defvar workspaces-output-0 "")

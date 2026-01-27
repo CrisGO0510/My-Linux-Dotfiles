@@ -32,6 +32,7 @@ PACKAGES=(
     rofi
     eww
     firefox
+    swaync
 )
 
 # Instalación de paquetes

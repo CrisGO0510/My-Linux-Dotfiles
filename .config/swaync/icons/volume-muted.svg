@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Background circle -->
+  <circle cx="24" cy="24" r="20" fill="#1a1a2e" stroke="#ff6b9d" stroke-width="2"/>
+  
+  <!-- Volume base -->
+  <path d="M12 18v12h4l6 6v-24l-6 6h-4z" fill="#6c5ce7"/>
+  
+  <!-- Mute X -->
+  <path d="M28 16l-2.83 2.83 2.83 2.83-1.42 1.42-2.83-2.83-2.83 2.83-1.42-1.42 2.83-2.83-2.83-2.83 1.42-1.42 2.83 2.83 2.83-2.83z" fill="#ff6b9d" stroke="#ddd6fe" stroke-width="0.5"/>
+</svg>
