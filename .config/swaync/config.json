@@ -10,9 +10,7 @@
   "control-center-margin-bottom": 8,
   "control-center-margin-right": 8,
   "control-center-margin-left": 8,
-  "notification-2fa-command": true,
   "notification-inline-replies": false,
-  "notification-icon-size": 48,
   "notification-body-image-height": 100,
   "notification-body-image-width": 200,
   "timeout": 10,
@@ -61,10 +59,6 @@
       "max-lines": 5,
       "text": "Label Text"
     },
-    "mpris": {
-      "image-size": 96,
-      "image-radius": 12
-    },
     "volume": {
       "label": "󰕾",
       "show-per-app": true
@@ -76,7 +70,6 @@
     "menubar": {
       "menu#power-options": {
         "label": "󰐥",
-        "position": "bottom",
         "actions": [
           {
             "label": "Logout",
