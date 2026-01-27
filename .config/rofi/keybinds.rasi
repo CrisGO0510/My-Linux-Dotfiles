@@ -1,0 +1,139 @@
+/* ================================================
+ * Azure Dreams - Configuración para keybinds
+ * ============================================== 
+ * 
+ * Configuración limpia y simple para el modo dmenu
+ * de Rofi, optimizada para mostrar listas de texto
+ * como keybinds, comandos, etc.
+ * 
+ * Diseño sin wallpaper para mejor legibilidad.
+ * ================================================ */
+
+@import "/home/cris/dotfiles/.config/rofi/azure-colors.rasi"
+
+/* Override all default Rofi colors */
+* {
+    background-color: @main-bg;
+    foreground: @main-fg;
+    normal-foreground: @main-fg;
+    alternate-normal-foreground: @main-fg;
+    selected-normal-foreground: @select-fg;
+    normal-background: @main-bg;
+    alternate-normal-background: @element-bg;
+    selected-normal-background: @select-bg;
+    separatorcolor: transparent;
+    border-color: @main-br;
+    text-color: @main-fg;
+    
+    /* Override markup colors specifically */
+    foreground-color: @main-fg;
+    background: @main-bg;
+    alternate-background: @element-bg;
+    selected-background: @select-bg;
+    selected-foreground: @select-fg;
+}
+
+configuration {
+    font: "JetBrainsMono Nerd Font 10";
+}
+
+window {
+    width: 60%;
+    border: 2px;
+    border-color: @main-br;
+    border-radius: 16px;
+    padding: 20px;
+    background-color: @main-bg;
+    transparency: "real";
+}
+
+/* Estructura simple para dmenu */
+mainbox {
+    children: [ "inputbar", "listview" ];
+    background-color: @main-bg;
+    spacing: 0px;
+}
+
+inputbar {
+    children: [ "prompt", "entry" ];
+    padding: 0px 0px 15px 0px;
+    background-color: @main-bg;
+    spacing: 10px;
+}
+
+prompt {
+    background-color: @main-ex;
+    text-color: @main-bg;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font: "JetBrainsMono Nerd Font 10 bold";
+}
+
+entry {
+    background-color: @main-bg-alt;
+    text-color: @main-fg;
+    padding: 8px 12px;
+    border-radius: 8px;
+    placeholder: "Buscar...";
+    placeholder-color: @main-fg;
+}
+
+listview {
+    lines: 12;
+    background-color: @main-bg-alt;
+    border-radius: 12px;
+    padding: 12px;
+    spacing: 5px;
+    scrollbar: false;
+    cycle: true;
+}
+
+/* Elements with explicit color overrides */
+element {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: @element-bg;
+    text-color: @main-fg;
+    cursor: pointer;
+    orientation: horizontal;
+}
+
+element selected {
+    background-color: @select-bg;
+    text-color: @select-fg;
+    border: 1px;
+    border-color: @main-br;
+}
+
+element normal {
+    background-color: @element-bg;
+    text-color: @main-fg;
+}
+
+element alternate {
+    background-color: @element-bg;
+    text-color: @main-fg;
+}
+
+element-text {
+    vertical-align: 0.5;
+    horizontal-align: 0.0;
+    background-color: transparent;
+    text-color: @main-fg;
+    font: "JetBrainsMono Nerd Font 10";
+}
+
+element-text selected {
+    text-color: @select-fg;
+    background-color: transparent;
+}
+
+element-text normal {
+    text-color: @main-fg;
+    background-color: transparent;
+}
+
+element-text alternate {
+    text-color: @main-fg;
+    background-color: transparent;
+}

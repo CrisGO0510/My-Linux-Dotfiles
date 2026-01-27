@@ -1,0 +1,27 @@
+/* ================================================
+ * Azure Dreams - Paleta de colores centralizada
+ * ============================================== 
+ * 
+ * Este archivo contiene únicamente las definiciones
+ * de color para el tema Azure Dreams.
+ * 
+ * Uso: @import "azure-colors.rasi" en cualquier 
+ * archivo de configuración de Rofi
+ * ================================================ */
+
+* {
+    /* Main Colors */
+    main-bg:            #0f0f23ff;  /* Deep navy background */
+    main-bg-alt:        #1a1a2eff;  /* Soft dark blue secondary */
+    element-bg:         #2e2e4eff;  /* List elements background (slightly lighter) */
+    main-fg:            #ddd6feff;  /* Purple-tinted white text */
+    main-br:            #4fd1c7ff;  /* Turquoise accent border */
+    main-ex:            #6c5ce7ff;  /* Modern vibrant purple */
+    select-bg:          #a29bfeff;  /* Soft lavender selection */
+    select-fg:          #0f0f23ff;  /* Dark text on light selection */
+    accent-blue:        #74b9ffff;  /* Bright sky blue accent */
+    gradient-start:     #6c5ce7ff;  /* Purple gradient start */
+    gradient-end:       #74b9ffff;  /* Blue gradient end */
+    separatorcolor:     transparent;
+    border-color:       @main-br;
+}
