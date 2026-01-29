@@ -39,6 +39,47 @@
   )
 )
 
+(defwidget bar_1 [workspace_widget]
+  (box :class "bar"
+       :orientation "h"
+       (box :halign "start"
+            :valign "center"
+            :spacing 10
+            :hexpand true
+            :space-evenly false
+            (menu_1)
+            (literal :content workspace_widget)
+       )
+       (box :halign "center"
+            :valign "center"
+            :spacing 10
+            :hexpand true
+            :orientation "h"
+            (time_1 :time get_time)
+       )
+       (box :halign "end"
+            :valign "center"
+            :hexpand true
+            :space-evenly false
+            :spacing 10
+             (box :space-evenly false
+                   :spacing 7
+                   (tray)
+                   (notifications)
+                   (volume)
+                   (ram)
+                   (battery)
+                   (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                             (wifi_1))
+                   (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                             (keyboard))
+             )
+            (divider)
+            (power_1)
+       )
+  )
+)
+
 (defvar trayrev false)
 
 (defwidget tray []
@@ -116,6 +157,30 @@
                        (label :text "${wifistatus.icon}")
                        (label :class "space-wifi" :text "\\u00A0")
                        (revealer :reveal {wifirev || wifictlrev ? true : false}
+                                 :transition "slideright"
+                                 :duration "350ms"
+                                 (box :class "wifi-type" :space-evenly false
+                                      (label :class "wifi-div" :text "|")
+                                      (label :limit-width 12 :text "${wifistatus.ssid}")
+                                 )
+                       )
+
+                  )
+        )
+    )
+)
+
+(defwidget wifi_1 []
+    (box :class "wifi"
+        (eventbox :cursor "pointer"
+                  :onhover "./scripts/wifi-delay.sh 1"
+                  :onhoverlost "bash -c '/usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
+                  :onclick "${ctlrev_1==true?"./scripts/usrctl.sh 1 && ./scripts/wifictl.sh 1":"./scripts/wifictl.sh 1"}"
+                  (box :orientation "h"
+                       :space-evenly false
+                       (label :text "${wifistatus.icon}")
+                       (label :class "space-wifi" :text "\\u00A0")
+                       (revealer :reveal {wifirev || wifictlrev_1 ? true : false}
                                  :transition "slideright"
                                  :duration "350ms"
                                  (box :class "wifi-type" :space-evenly false
@@ -303,8 +368,16 @@
 (defwidget menu []
     (button-module :class "menu"
                    :subclass "menu-eventbox"
-                   :icon " "
+                   :icon " "
                    :cmd "~/.config/eww/scripts/menuctl.sh"
+    )
+)
+
+(defwidget menu_1 []
+    (button-module :class "menu"
+                   :subclass "menu-eventbox"
+                   :icon " "
+                   :cmd "~/.config/eww/scripts/menuctl.sh 1"
     )
 )
 
@@ -386,6 +459,17 @@
     )
 )
 
+(defwidget power_1 []
+    (box :class "power"
+         :orientation "h"
+         (eventbox :onclick '${wifictlrev_1 == true ? "bash -c \"./scripts/wifictl.sh 1 & sleep 0.233 && ./scripts/usrctl.sh 1 &\"" : "./scripts/usrctl.sh 1"}'
+                   :cursor "pointer"
+                   :class "power-eventbox"
+                   (label :text "󰻃 ")
+         )
+    )
+)
+
 (defwidget divider []
     (label :class "div" :text "|")
 )
@@ -443,6 +527,16 @@
 (defwidget time [time]
     (eventbox :cursor "pointer"
               :onclick "./scripts/calendar.sh"
+              :width 120
+              :height 25
+              :class "time-label"
+              (label :text "${time}")
+    )
+)
+
+(defwidget time_1 [time]
+    (eventbox :cursor "pointer"
+              :onclick "./scripts/calendar.sh 1"
               :width 120
               :height 25
               :class "time-label"
@@ -862,5 +956,82 @@
                         :height "37px"
     )
     :exclusive true
-    (bar :workspace_widget workspaces-output-1)
+    (bar_1 :workspace_widget workspaces-output-1)
+)
+
+;; === VENTANAS DUPLICADAS PARA MONITOR 1 ===
+;; Variables para monitor 1
+(defvar menurev_1 false)
+(defvar wifictlrev_1 false)
+(defvar calrev_1 false)
+(defvar ctlrev_1 false)
+
+;; Duplicación exacta de menuctl para monitor 1
+(defwindow menuctl_1
+    :monitor 1
+    :stacking "overlay"
+    :focusable false
+    :geometry (geometry :anchor "top left"
+                        :x "3px"
+                        :y "-4px"
+                        :width "285px"
+                        :height "510px")
+    (box :space-evenly false
+         (revealer :transition "slideright"
+                   :reveal menurev_1
+                   :duration "350ms"
+                   (menu_event)))
+)
+
+;; Duplicación exacta de wifictl para monitor 1
+(defwindow wifictl_1
+    :monitor 1
+    :stacking "overlay"
+    :focusable true
+    :geometry (geometry :anchor "top right"
+                        :x "3px"
+                        :y "-14px"
+                        :width "285px"
+                        :height "295px")
+    (expander :expanded true
+              (revealer :transition "slidedown"
+                        :reveal wifictlrev_1
+                        :duration "350ms"
+                        (wifi_event)
+              )
+    )
+)
+
+;; Duplicación exacta de calendar para monitor 1
+(defwindow calendar_1
+    :monitor 1
+    :stacking "overlay"
+    :focusable false
+    :geometry (geometry :anchor "bottom right"
+                        :x "3px"
+                        :y "-3px"
+                        :width "285px"
+                        :height "510px")
+    (box :space-evenly false
+         (revealer :transition "slideup"
+                   :reveal calrev_1
+                   :duration "350ms"
+                   (calendar_event)))
+)
+
+;; Duplicación exacta de usrctl para monitor 1
+(defwindow usrctl_1
+    :monitor 1
+    :stacking "overlay"
+    :focusable false
+    :geometry (geometry :anchor "top right"
+                        :x "3px"
+                        :y "-4px"
+                        :width "285px"
+                        :height "405px")
+    (box :space-evenly false
+         (revealer :transition "slidedown"
+                   :reveal ctlrev_1
+                   :duration "350ms"
+                   (usrctl-widget :uptime get_uptime)))
 )
