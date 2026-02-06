@@ -33,3 +33,4 @@ data
 .config/eww/image.jpg
 .config/opencode/bun.lock
 .config/opencode/package.json
+.config/eww/image.jpg.tmp

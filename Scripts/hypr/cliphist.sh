@@ -13,33 +13,39 @@ r_scale="configuration {font: \"JetBrainsMono Nerd Font ${rofiScale}\";}"
 wind_border=$((hypr_border * 3 / 2))
 elem_border=$([ $hypr_border -eq 0 ] && echo "5" || echo $hypr_border)
 
-# Evaluate spawn position
-readarray -t curPos < <(hyprctl cursorpos -j | jq -r '.x,.y')
-readarray -t monRes < <(hyprctl -j monitors | jq '.[] | select(.focused==true) | .width,.height,.scale,.x,.y')
-readarray -t offRes < <(hyprctl -j monitors | jq -r '.[] | select(.focused==true).reserved | map(tostring) | join("\n")')
-monRes[2]="$(echo "${monRes[2]}" | sed "s/\.//")"
-monRes[0]="$(( ${monRes[0]} * 100 / ${monRes[2]} ))"
-monRes[1]="$(( ${monRes[1]} * 100 / ${monRes[2]} ))"
-curPos[0]="$(( ${curPos[0]} - ${monRes[3]} ))"
-curPos[1]="$(( ${curPos[1]} - ${monRes[4]} ))"
+# Centered positioning (replaced dynamic positioning)
+# Previous dynamic positioning code has been disabled for center placement
+# If you want to restore cursor-based positioning, uncomment the following block:
+#
+# readarray -t curPos < <(hyprctl cursorpos -j | jq -r '.x,.y')
+# readarray -t monRes < <(hyprctl -j monitors | jq '.[] | select(.focused==true) | .width,.height,.scale,.x,.y')
+# readarray -t offRes < <(hyprctl -j monitors | jq -r '.[] | select(.focused==true).reserved | map(tostring) | join("\n")')
+# monRes[2]="$(echo "${monRes[2]}" | sed "s/\.//")"
+# monRes[0]="$(( ${monRes[0]} * 100 / ${monRes[2]} ))"
+# monRes[1]="$(( ${monRes[1]} * 100 / ${monRes[2]} ))"
+# curPos[0]="$(( ${curPos[0]} - ${monRes[3]} ))"
+# curPos[1]="$(( ${curPos[1]} - ${monRes[4]} ))"
+#
+# if [ "${curPos[0]}" -ge "$((${monRes[0]} / 2))" ] ; then
+#     x_pos="east"
+#     x_off="-$(( ${monRes[0]} - ${curPos[0]} - ${offRes[2]} ))"
+# else
+#     x_pos="west"
+#     x_off="$(( ${curPos[0]} - ${offRes[0]} ))"
+# fi
+#
+# if [ "${curPos[1]}" -ge "$((${monRes[1]} / 2))" ] ; then
+#     y_pos="south"
+#     y_off="-$(( ${monRes[1]} - ${curPos[1]} - ${offRes[3]} ))"
+# else
+#     y_pos="north"
+#     y_off="$(( ${curPos[1]} - ${offRes[1]} ))"
+# fi
+#
+# r_override="window{location:${x_pos} ${y_pos};anchor:${x_pos} ${y_pos};x-offset:${x_off}px;y-offset:${y_off}px;border:${hypr_width}px;border-radius:${wind_border}px;} wallbox{border-radius:${elem_border}px;} element{border-radius:${elem_border}px;}"
 
-if [ "${curPos[0]}" -ge "$((${monRes[0]} / 2))" ] ; then
-    x_pos="east"
-    x_off="-$(( ${monRes[0]} - ${curPos[0]} - ${offRes[2]} ))"
-else
-    x_pos="west"
-    x_off="$(( ${curPos[0]} - ${offRes[0]} ))"
-fi
-
-if [ "${curPos[1]}" -ge "$((${monRes[1]} / 2))" ] ; then
-    y_pos="south"
-    y_off="-$(( ${monRes[1]} - ${curPos[1]} - ${offRes[3]} ))"
-else
-    y_pos="north"
-    y_off="$(( ${curPos[1]} - ${offRes[1]} ))"
-fi
-
-r_override="window{location:${x_pos} ${y_pos};anchor:${x_pos} ${y_pos};x-offset:${x_off}px;y-offset:${y_off}px;border:${hypr_width}px;border-radius:${wind_border}px;} wallbox{border-radius:${elem_border}px;} element{border-radius:${elem_border}px;}"
+# Center the rofi window on screen
+r_override="window{location:center;anchor:center;border:${hypr_width}px;border-radius:${wind_border}px;} wallbox{border-radius:${elem_border}px;} element{border-radius:${elem_border}px;}"
 
 # Show main menu if no arguments are passed
 if [ $# -eq 0 ]; then
