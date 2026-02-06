@@ -201,11 +201,34 @@ wk.add({
 		function()
 			if cmp.visible() then
 				cmp.confirm({ select = true })
+			elseif require("copilot.suggestion").is_visible() then
+				require("copilot.suggestion").accept()
 			else
-				return require("copilot.suggestion").accept()
+				-- Si no hay nada, enviamos un Tab real
+				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", false)
 			end
 		end,
 		desc = "Confirmar CMP o aceptar Copilot",
+		mode = "i",
+	},
+	{
+		"<M-l>",
+		function()
+			if require("copilot.suggestion").is_visible() then
+				require("copilot.suggestion").accept_word()
+			end
+		end,
+		desc = "Aceptar palabra de Copilot",
+		mode = "i",
+	},
+	{
+		"<M-j>", -- Te agrego esta, es muy útil para aceptar una línea entera
+		function()
+			if require("copilot.suggestion").is_visible() then
+				require("copilot.suggestion").accept_line()
+			end
+		end,
+		desc = "Aceptar línea de Copilot",
 		mode = "i",
 	},
 	{
@@ -230,14 +253,6 @@ wk.add({
 			require("copilot.suggestion").dismiss()
 		end,
 		desc = "Cerrar sugerencia",
-		mode = "i",
-	},
-	{
-		"<M-l>",
-		function()
-			require("copilot.suggestion").accept_word()
-		end,
-		desc = "Aceptar palabra",
 		mode = "i",
 	},
 })
