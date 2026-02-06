@@ -10,6 +10,7 @@ return {
 		require("mason-lspconfig").setup({
 			ensure_installed = {
 				"ts_ls",
+				"vue_ls",
 				"angularls",
 				"eslint",
 				"jsonls",

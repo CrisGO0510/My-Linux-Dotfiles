@@ -13,6 +13,8 @@ return {
 				"html",
 				"css",
 				"scss",
+				-- Vue
+				"vue",
 				-- TS/JS base
 				"typescript",
 				"javascript",
