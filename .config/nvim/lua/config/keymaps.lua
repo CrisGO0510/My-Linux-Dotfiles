@@ -351,6 +351,13 @@ wk.add({
 		desc = "Projects",
 	},
 	{
+		"<leader>fr",
+		function()
+			require("telescope").extensions.frecency.frecency()
+		end,
+		desc = "Archivos Frecuentes (Manual)",
+	},
+	{
 		"<leader>ft",
 		function()
 			require("snacks").terminal()
@@ -567,8 +574,9 @@ wk.add({
 -- lsp
 
 wk.add({
-	{ "<leader>s", group = "search" },
+	{ "<leader>s", group = "search/session" },
 
+	-- Funciones de búsqueda originales
 	{
 		"<leader>sb",
 		function()
@@ -744,6 +752,57 @@ wk.add({
 		end,
 		desc = "LSP Workspace Symbols",
 	},
+
+	-- APIs modernas de sesión (no deprecated)
+	{
+		"<leader>sE",
+		function()
+			require("auto-session").search()
+		end,
+		desc = "Buscar/Cambiar Sesión",
+	},
+	{
+		"<leader>sS",
+		function()
+			require("auto-session").save_session()
+		end,
+		desc = "Guardar Sesión Manual",
+	},
+	{
+		"<leader>sD",
+		function()
+			require("auto-session").delete_session()
+		end,
+		desc = "Eliminar Sesión Actual",
+	},
+	{
+		"<leader>sR",
+		function()
+			require("auto-session").restore_session()
+		end,
+		desc = "Restaurar Sesión",
+	},
+	{
+		"<leader>sW",
+		function()
+			vim.cmd("SessionSave")
+		end,
+		desc = "Guardar Sesión Manual",
+	},
+	{
+		"<leader>sD",
+		function()
+			vim.cmd("SessionDelete")
+		end,
+		desc = "Eliminar Sesión Actual",
+	},
+	{
+		"<leader>sL",
+		function()
+			vim.cmd("SessionRestore")
+		end,
+		desc = "Restaurar Última Sesión",
+	},
 })
 
 -- UI
@@ -874,5 +933,12 @@ wk.add({
 		"<leader>e",
 		":Neotree toggle reveal=true position=left dir=" .. vim.fn.expand("%:p:h") .. "<CR>",
 		desc = "Toggle NeoTree at CWD",
+	},
+	{
+		"<leader>A",
+		function()
+			require("alpha").start()
+		end,
+		desc = "Mostrar Dashboard Alpha (Lain)",
 	},
 })

@@ -4,6 +4,10 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-telescope/telescope-project.nvim",
 		"nvim-telescope/telescope-ui-select.nvim",
+		{
+			"nvim-telescope/telescope-frecency.nvim",
+			dependencies = { "kkharji/sqlite.lua" },
+		},
 	},
 	config = function()
 		local telescope = require("telescope")
@@ -41,9 +45,23 @@ return {
 						},
 					}),
 				},
+				frecency = {
+					auto_validate = true, -- Verificar archivos existen
+					show_scores = false, -- Interface limpia
+					show_unindexed = true, -- Mostrar archivos no indexados
+					ignore_patterns = { "*.git/*", "*/tmp/*", "*/node_modules/*" },
+					default_workspace = "CWD", -- Por directorio actual
+					workspaces = {
+						["conf"] = "~/.config",
+						["data"] = "~/.local/share",
+						["project"] = "~/Documents/Repo",
+						["dotfiles"] = "~/dotfiles",
+					},
+				},
 			},
 		})
 		telescope.load_extension("project")
 		telescope.load_extension("ui-select") -- 3. Cargamos la extensión
+		telescope.load_extension("frecency") -- Cargamos frecency
 	end,
 }

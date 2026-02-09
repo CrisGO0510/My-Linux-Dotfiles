@@ -19,6 +19,10 @@ vim.opt.listchars = {
   precedes = "«" 
 }
 
+-- Deshabilitar netrw (explorador de archivos integrado)
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- Otras opciones para un look "Premium"
 vim.opt.cursorline = true         -- Resalta la línea actual
 vim.opt.showmode = false          -- No mostrar -- INSERT -- (lualine ya lo hace)
