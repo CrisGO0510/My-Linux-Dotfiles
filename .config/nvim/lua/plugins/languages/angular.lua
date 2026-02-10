@@ -178,9 +178,9 @@ return {
 								tags = {},
 								attributes = {
 									-- Angular directives
-									{ name = "*ngIf" },
-									{ name = "*ngFor" },
-									{ name = "*ngSwitch" },
+									{ name = "@if" },
+									{ name = "@for" },
+									{ name = "@switch" },
 									{ name = "(click)" },
 									{ name = "(input)" },
 									{ name = "(change)" },

@@ -1,7 +1,3 @@
--- AUTOCOMMANDS MINIMALISTAS PARA AUTO-SESSION + ALPHA
--- Prioridad absoluta: Auto-session > Alpha fallback
--- Sin lógica compleja, sin race conditions
-
 local augroup = vim.api.nvim_create_augroup("MinimalStartup", { clear = true })
 
 -- Solo mostrar alpha como fallback cuando NO hay argumentos
