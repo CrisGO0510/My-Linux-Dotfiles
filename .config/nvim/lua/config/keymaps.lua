@@ -857,36 +857,8 @@ wk.add({
 	},
 })
 
--- goto
 
 wk.add({
-	{
-		"gd",
-		function()
-			local ok, err = pcall(require("snacks").picker.lsp_definitions)
-			
-			if not ok then
-				vim.lsp.buf.definition()
-			else
-				vim.defer_fn(function()
-					local filetype = vim.bo.filetype
-					if filetype == "vue" then
-						local clients = vim.lsp.get_clients({ bufnr = 0, name = "vue_ls" })
-						if #clients > 0 then
-							local current_pos = vim.api.nvim_win_get_cursor(0)
-							vim.defer_fn(function()
-								local new_pos = vim.api.nvim_win_get_cursor(0)
-								if current_pos[1] == new_pos[1] and current_pos[2] == new_pos[2] then
-									vim.lsp.buf.definition()
-								end
-							end, 100)
-						end
-					end
-				end, 200)
-			end
-		end,
-		desc = "Goto Definition (Smart Vue + Picker)",
-	},
 	{
 		"gI",
 		function()
@@ -960,5 +932,73 @@ wk.add({
 			require("alpha").start()
 		end,
 		desc = "Mostrar Dashboard Alpha (Lain)",
+	},
+})
+
+local component_nav = require("config.component-navigation")
+
+wk.add({
+	{ "<leader>v", group = "Component Navigation" },
+	{
+		"<leader>vv",
+		function()
+			component_nav.navigate_to_component()
+		end,
+		desc = "→ Component file (.vue/.component.ts)",
+		mode = "n",
+	},
+	{
+		"<leader>vh", 
+		function()
+			component_nav.navigate_to_template()
+		end,
+		desc = "→ Template file (.html)",
+		mode = "n",
+	},
+	{
+		"<leader>vt",
+		function()
+			component_nav.navigate_to_script()
+		end,
+		desc = "→ Script/Logic file (.ts/.js)",
+		mode = "n",
+	},
+	{
+		"<leader>vs",
+		function()
+			component_nav.navigate_to_style()
+		end,
+		desc = "→ Style file (.scss/.css)",
+		mode = "n",
+	},
+	{
+		"<leader>ve",
+		function()
+			component_nav.navigate_to_test()
+		end,
+		desc = "→ Test/Spec file (.spec.ts)",
+		mode = "n",
+	},
+	{
+		"<leader>vf",
+		function()
+			component_nav.show_related_files()
+		end,
+		desc = "📋 List all component files",
+		mode = "n",
+	},
+})
+
+-- ===== ENHANCED GOTO DEFINITION =====
+-- Override 'gd' with smart component-aware navigation
+
+wk.add({
+	{
+		"gd",
+		function()
+			component_nav.smart_goto_definition()
+		end,
+		desc = "Smart Go to Definition (Component-aware)",
+		mode = "n",
 	},
 })
