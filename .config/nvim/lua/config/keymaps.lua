@@ -863,9 +863,29 @@ wk.add({
 	{
 		"gd",
 		function()
-			require("snacks").picker.lsp_definitions()
+			local ok, err = pcall(require("snacks").picker.lsp_definitions)
+			
+			if not ok then
+				vim.lsp.buf.definition()
+			else
+				vim.defer_fn(function()
+					local filetype = vim.bo.filetype
+					if filetype == "vue" then
+						local clients = vim.lsp.get_clients({ bufnr = 0, name = "vue_ls" })
+						if #clients > 0 then
+							local current_pos = vim.api.nvim_win_get_cursor(0)
+							vim.defer_fn(function()
+								local new_pos = vim.api.nvim_win_get_cursor(0)
+								if current_pos[1] == new_pos[1] and current_pos[2] == new_pos[2] then
+									vim.lsp.buf.definition()
+								end
+							end, 100)
+						end
+					end
+				end, 200)
+			end
 		end,
-		desc = "Goto Definition",
+		desc = "Goto Definition (Smart Vue + Picker)",
 	},
 	{
 		"gI",
