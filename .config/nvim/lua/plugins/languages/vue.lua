@@ -1,16 +1,4 @@
 return {
-	-- =====================================================================
-	-- Vue.js 3 Complete LSP Configuration
-	-- - Volar (Vue Language Server) for .vue files
-	-- - HTML Language Server for separated component templates
-	-- - Support for separated component structure (.vue + .html + .ts + .scss)
-	-- 
-	-- Note: Component navigation keymaps are now handled by the centralized
-	-- Component Navigation System in config/keymaps.lua
-	-- =====================================================================
-
-	-- Volar (Vue Official Language Server) optimizado para Vue 3 + TypeScript moderno
-	-- Con navegación de componentes y Take Over Mode completo
 	{
 		"neovim/nvim-lspconfig",
 		dependencies = { "williamboman/mason.nvim" },
@@ -18,22 +6,19 @@ return {
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			-- =====================================================================
-			-- UTILITY FUNCTIONS - Shared by both Volar and HTML LSP
-			-- =====================================================================
-
-			-- Function to detect Vue projects by configuration files
 			local function is_vue_project(bufnr)
 				local vue_markers = {
-					'vue.config.js', 'vue.config.ts',
-					'vite.config.js', 'vite.config.ts',
-					'nuxt.config.js', 'nuxt.config.ts',
+					"vue.config.js",
+					"vue.config.ts",
+					"vite.config.js",
+					"vite.config.ts",
+					"nuxt.config.js",
+					"nuxt.config.ts",
 				}
 				local root = vim.fs.root(bufnr, vue_markers)
 				return root ~= nil
 			end
 
-			-- Check if HTML file is part of a Vue component (has corresponding .vue/.ts)
 			local function is_vue_component_html(filepath)
 				if not filepath or not filepath:match("%.html$") then
 					return false
@@ -54,13 +39,7 @@ return {
 				return vue_exists or ts_exists
 			end
 
-			-- =====================================================================
-			-- VOLAR (Vue Language Server) CONFIGURATION
-			-- =====================================================================
-
-			-- Streamlined on_attach for Vue files - keymaps handled centrally
 			local vue_on_attach = function(client, bufnr)
-				-- Enable completion triggered by <c-x><c-o>
 				vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
 				-- Vue/Volar specific configurations
@@ -68,7 +47,7 @@ return {
 					-- Disable formatting if using prettier via conform.nvim
 					client.server_capabilities.documentFormattingProvider = false
 					client.server_capabilities.documentRangeFormattingProvider = false
-					
+
 					-- Enable enhanced capabilities para navegación de componentes
 					client.server_capabilities.definitionProvider = true
 					client.server_capabilities.referencesProvider = true
@@ -77,18 +56,18 @@ return {
 						triggerCharacters = { ".", ":", "<", '"', "'", "/", "@", "*" },
 						resolveProvider = true,
 					}
-					
+
 					-- Standard LSP keybindings (non-component specific)
 					local opts = { buffer = bufnr, silent = true }
-					
+
 					-- Standard LSP navigation bindings
-					vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-					vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts) 
-					vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-					vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-					
+					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+					vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+
 					-- Vue component specific LSP commands
-					vim.keymap.set('n', '<leader>vr', function()
+					vim.keymap.set("n", "<leader>vr", function()
 						vim.lsp.buf.references()
 					end, { buffer = bufnr, desc = "Find Vue Component References" })
 				end
@@ -98,22 +77,25 @@ return {
 			vim.lsp.config.vue_ls = {
 				-- Usar el binary correcto de Mason
 				cmd = { vim.fn.stdpath("data") .. "/mason/bin/vue-language-server", "--stdio" },
-				
+
 				-- Archivos Vue (Take Over Mode: Volar maneja TypeScript internally)
 				filetypes = { "vue" },
-				
+
 				-- Detección de proyecto Vue específica
 				autostart = is_vue_project,
 				root_markers = {
-					'vue.config.js', 'vue.config.ts',
-					'vite.config.js', 'vite.config.ts', 
-					'nuxt.config.js', 'nuxt.config.ts',
-					'package.json'
+					"vue.config.js",
+					"vue.config.ts",
+					"vite.config.js",
+					"vite.config.ts",
+					"nuxt.config.js",
+					"nuxt.config.ts",
+					"package.json",
 				},
-				
+
 				capabilities = capabilities,
 				on_attach = vue_on_attach,
-				
+
 				-- Configuración optimizada para Vue 3 + TypeScript + Component Navigation
 				settings = {
 					vue = {
@@ -121,28 +103,28 @@ return {
 						server = {
 							vitePress = { supportMdFile = true },
 							maxFileSize = 20971520, -- 20MB max
-							
+
 							-- Configuración específica para navegación de componentes
 							completion = {
 								autoImportComponentIndex = true,
 								autoImportVueComponent = true,
 							},
 						},
-						
+
 						-- Habilitar análisis completo de componentes
 						analysis = {
 							templateBodyOnlyForInlayHints = false,
 						},
-						
+
 						-- Component resolution optimizada para paths relativos
 						resolve = {
 							-- Support para ./components/, ../components/, etc.
 							alias = {
-								["@"] = "src",  -- Si usas @/ como alias
+								["@"] = "src", -- Si usas @/ como alias
 							},
 						},
 					},
-					
+
 					-- TypeScript integration completa (Take Over Mode)
 					typescript = {
 						-- Configuración específica para Vue + TypeScript
@@ -152,7 +134,7 @@ return {
 							useAliasesForRenames = false,
 							quotePreference = "double",
 						},
-						
+
 						-- Enable all inlay hints para mejor desarrollo
 						inlayHints = {
 							includeInlayParameterNameHints = "all",
@@ -163,7 +145,7 @@ return {
 							includeInlayFunctionLikeReturnTypeHints = true,
 							includeInlayEnumMemberValueHints = true,
 						},
-						
+
 						-- Optimización para navegación de componentes
 						suggest = {
 							autoImports = true,
@@ -173,7 +155,7 @@ return {
 							includeAutomaticOptionalChainCompletions = true,
 						},
 					},
-					
+
 					-- Volar-specific features para componentes Vue
 					volar = {
 						-- Enable component intelligence
@@ -181,7 +163,7 @@ return {
 							includeCompletionsForModuleExports = true,
 							includeAutomaticOptionalChainCompletions = true,
 						},
-						
+
 						-- Template analysis para <Component/> navigation
 						template = {
 							-- Enable component tag navigation
@@ -191,24 +173,19 @@ return {
 						},
 					},
 				},
-				
+
 				-- Inicialización específica sin warning de TypeScript LSP
 				on_init = function(client, initialize_result)
 					vim.defer_fn(function()
 						if client and client.server_capabilities then
 							vim.notify(
-								"🚀 Volar activado - Vue 3 + TypeScript + Component Navigation ✅", 
+								"🚀 Volar activado - Vue 3 + TypeScript + Component Navigation ✅",
 								vim.log.levels.INFO
 							)
 						end
 					end, 1000)
 				end,
 			}
-
-			-- =====================================================================
-			-- HTML LANGUAGE SERVER CONFIGURATION
-			-- Enhanced support for separated Vue component templates (.html files)
-			-- =====================================================================
 
 			-- Streamlined HTML on_attach - keymaps handled by central system
 			local html_on_attach = function(client, bufnr)
@@ -235,22 +212,24 @@ return {
 			vim.lsp.config.html = {
 				cmd = { vim.fn.stdpath("data") .. "/mason/bin/vscode-html-language-server", "--stdio" },
 				filetypes = { "html" },
-				
+
 				-- Only autostart for Vue component HTML files
 				autostart = function(bufnr)
 					local filepath = vim.api.nvim_buf_get_name(bufnr)
 					return is_vue_project(bufnr) and is_vue_component_html(filepath)
 				end,
-				
+
 				root_markers = {
-					'vue.config.js', 'vue.config.ts',
-					'vite.config.js', 'vite.config.ts', 
-					'package.json'
+					"vue.config.js",
+					"vue.config.ts",
+					"vite.config.js",
+					"vite.config.ts",
+					"package.json",
 				},
-				
+
 				capabilities = capabilities,
 				on_attach = html_on_attach,
-				
+
 				-- Enhanced HTML settings with Vue template support
 				settings = {
 					html = {
@@ -265,7 +244,7 @@ return {
 							indentHandlebars = false,
 							endWithNewline = false,
 							extraLiners = "head, body, /html",
-							wrapAttributes = "auto"
+							wrapAttributes = "auto",
 						},
 						suggest = {
 							html5 = true,
@@ -294,8 +273,8 @@ return {
 									{ name = ":href" },
 									{ name = "ref" },
 									{ name = "key" },
-								}
-							}
+								},
+							},
 						},
 						completion = {
 							attributeDefaultValue = "doublequotes",
@@ -304,7 +283,7 @@ return {
 							scripts = true,
 							styles = true,
 						},
-					}
+					},
 				},
 
 				-- Initialize with Vue component context
@@ -314,15 +293,98 @@ return {
 							local bufnr = vim.api.nvim_get_current_buf()
 							local filepath = vim.api.nvim_buf_get_name(bufnr)
 							if is_vue_component_html(filepath) then
-								vim.notify(
-									"🎨 HTML LSP activado para componente Vue ✅", 
-									vim.log.levels.INFO
-								)
+								vim.notify("🎨 HTML LSP activado para componente Vue ✅", vim.log.levels.INFO)
 							end
 						end
 					end, 1000)
 				end,
 			}
+
+			local vue_group = vim.api.nvim_create_augroup("VueComponentSupport", { clear = true })
+
+			-- Set proper filetype for Vue component HTML files
+			vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+				group = vue_group,
+				pattern = "*.html",
+				callback = function()
+					if is_vue_project(0) then
+						local filepath = vim.api.nvim_buf_get_name(0)
+						if is_vue_component_html(filepath) then
+							-- Set buffer-specific options for Vue templates
+							vim.opt_local.filetype = "html"
+							vim.opt_local.syntax = "html"
+
+							-- Add Vue-specific buffer variables for LSP detection
+							vim.b.vue_component_html = true
+							vim.b.vue_component_base = filepath:gsub("%.html$", "")
+
+							-- Enhanced syntax highlighting for Vue templates
+							vim.cmd([[
+								runtime! syntax/html.vim
+								syn region vueDirective start=/v-\w/ end=/=/
+								syn region vueInterpolation start=/{{/ end=/}}/
+								syn region vueBinding start=/:/ end=/=/
+								syn region vueEvent start=/@/ end=/=/
+								hi def link vueDirective Keyword
+								hi def link vueInterpolation Identifier
+								hi def link vueBinding Type
+								hi def link vueEvent Function
+							]])
+
+							vim.notify("📄 Archivo HTML de componente Vue detectado", vim.log.levels.INFO)
+						end
+					end
+				end,
+			})
+
+			-- Auto-open related component files
+			vim.api.nvim_create_autocmd("BufEnter", {
+				group = vue_group,
+				pattern = "*.vue",
+				callback = function()
+					if is_vue_project(0) then
+						local filepath = vim.api.nvim_buf_get_name(0)
+						local base_path = filepath:gsub("%.vue$", "")
+
+						-- Store related file paths for quick access
+						vim.b.vue_component_files = {
+							html = base_path .. ".html",
+							ts = base_path .. ".ts",
+							scss = base_path .. ".scss",
+							css = base_path .. ".css",
+						}
+					end
+				end,
+			})
+
+			-- Provide quick navigation hints
+			vim.api.nvim_create_autocmd("FileType", {
+				group = vue_group,
+				pattern = "html",
+				callback = function()
+					if vim.b.vue_component_html then
+						-- Quick hints about available navigation
+						vim.defer_fn(function()
+							if vim.b.vue_component_base then
+								local base = vim.b.vue_component_base
+								local hints = {}
+
+								if vim.fn.filereadable(base .. ".vue") == 1 then
+									table.insert(hints, "gd → Ir a componente")
+								end
+								if vim.fn.filereadable(base .. ".ts") == 1 then
+									table.insert(hints, "<leader>vt → Ir a TypeScript")
+								end
+
+								if #hints > 0 then
+									vim.notify("💡 " .. table.concat(hints, " | "), vim.log.levels.INFO)
+								end
+							end
+						end, 1000)
+					end
+				end,
+			})
 		end,
 	},
 }
+
