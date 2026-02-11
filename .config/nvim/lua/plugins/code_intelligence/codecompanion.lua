@@ -7,16 +7,8 @@ return {
 		"nvim-telescope/telescope.nvim",
 	},
 	config = function()
-		-- 1. Lógica de detección de Ollama (Puerto 5000)
-		local function check_ollama()
-			local handle = io.popen("curl -s -m 1 -o /dev/null -w '%{http_code}' http://localhost:5000")
-			local result = handle:read("*a")
-			handle:close()
-			return result == "200"
-		end
-
-		local ollama_active = check_ollama()
-		local default_adapter = ollama_active and "ollama" or "copilot"
+		-- Solo usar GitHub Copilot como adaptador
+		local default_adapter = "copilot"
 
 		-- 2. El Prompt del "Gentleman" (Arquitecto Senior)
 		local system_prompt =
@@ -45,18 +37,7 @@ PRINCIPIO CORE: Ayudá PRIMERO. Sos un MENTOR. SOLID y Clean Code no se negocian
 				},
 			},
 			adapters = {
-				-- ADAPTADOR OLLAMA (Cerebro Local)
-				ollama = function()
-					return require("codecompanion.adapters").extend("ollama", {
-						schema = {
-							model = { default = "qwen2.5-coder:14b" },
-							num_ctx = { default = 16384 },
-						},
-						env = { url = "http://localhost:5000" },
-						opts = { system_prompt = system_prompt },
-					})
-				end,
-				-- ADAPTADOR COPILOT (Cerebro en la Nube - Fallback)
+				-- ADAPTADOR COPILOT (GitHub Copilot)
 				copilot = function()
 					return require("codecompanion.adapters").extend("copilot", {
 						schema = {
@@ -68,12 +49,6 @@ PRINCIPIO CORE: Ayudá PRIMERO. Sos un MENTOR. SOLID y Clean Code no se negocian
 			},
 		})
 
-		-- Notificación para saber qué modelo estamos usando al arrancar
-		if ollama_active then
-			print("🚀 IA: Mentor Qwen (Local) activo en puerto 5000")
-		else
-			print("☁️ IA: Ollama apagado. Usando Copilot (Cloud)")
-		end
 
 		require("dressing").setup({
 			select = { enabled = true, backend = { "telescope", "builtin" } },
