@@ -1,31 +1,46 @@
 return {
 	"rmagatti/auto-session",
+	lazy = false,
 	config = function()
+		-- Configurar sessionoptions óptimo para auto-session
+		vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+		
 		require("auto-session").setup({
-			-- Configuración moderna y confiable
-			auto_save_enabled = true, -- Guarda automático siempre
-			auto_restore_enabled = true, -- Restaura automático siempre
-			auto_create_enabled = true, -- Crear sesiones automáticamente
-
-			-- CLAVE: Habilitar auto-restore para `nvim .`
-			auto_session_enable_last_session = true,
-
-			-- Configuración estándar
-			auto_session_root_dir = vim.fn.stdpath("data") .. "/sessions/",
-			auto_session_suppress_dirs = {}, -- NO suprimir ningún directorio
-			auto_session_use_git_branch = true, -- Sesiones por rama git
-			log_level = "error", -- Sin logs molestos
-
-			-- Session lens moderna
+			-- Operación completamente automática
+			enabled = true,
+			auto_save = true,
+			auto_restore = true,
+			auto_create = true,
+			
+			-- APIs modernas (elimina warnings deprecation)
+			legacy_cmds = false,
+			
+			-- Sesiones por directorio únicamente
+			auto_session_use_git_branch = false,
+			
+			-- Guardar sesiones en todos los directorios
+			suppressed_dirs = {},
+			
+			-- Limpieza automática
+			auto_delete_empty_sessions = true,
+			close_unsupported_windows = true,
+			
+			-- Notificación simple como solicitaste
+			show_auto_restore_notif = true,
+			log_level = "info", -- Permite ver mensajes de session
+			
+			-- Desactivar session lens (picker manual)
 			session_lens = {
-				load_on_setup = true,
-				theme_conf = { border = true },
-				previewer = false,
+				load_on_setup = false,
 			},
-
-			-- Hooks mínimos - auto-session maneja todo
-			pre_save_cmds = {},
-			post_restore_cmds = {},
+			
+			-- Evitar guardar buffers problemáticos
+			bypass_save_filetypes = { 
+				"alpha", 
+				"dashboard", 
+				"help",
+				"qf"
+			},
 		})
 	end,
 }

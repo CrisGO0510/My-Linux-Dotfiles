@@ -22,7 +22,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
 				end
 			end, 50) -- Delay mínimo
 		end
-		-- Si argc() > 0 (como "nvim ."), auto-session maneja TODO automáticamente
 	end,
 })
 

@@ -574,7 +574,7 @@ wk.add({
 -- lsp
 
 wk.add({
-	{ "<leader>s", group = "search/session" },
+	{ "<leader>s", group = "search" },
 
 	-- Funciones de búsqueda originales
 	{
@@ -751,57 +751,6 @@ wk.add({
 			require("snacks").picker.lsp_workspace_symbols()
 		end,
 		desc = "LSP Workspace Symbols",
-	},
-
-	-- APIs modernas de sesión (no deprecated)
-	{
-		"<leader>sE",
-		function()
-			require("auto-session").search()
-		end,
-		desc = "Buscar/Cambiar Sesión",
-	},
-	{
-		"<leader>sS",
-		function()
-			require("auto-session").save_session()
-		end,
-		desc = "Guardar Sesión Manual",
-	},
-	{
-		"<leader>sD",
-		function()
-			require("auto-session").delete_session()
-		end,
-		desc = "Eliminar Sesión Actual",
-	},
-	{
-		"<leader>sR",
-		function()
-			require("auto-session").restore_session()
-		end,
-		desc = "Restaurar Sesión",
-	},
-	{
-		"<leader>sW",
-		function()
-			vim.cmd("SessionSave")
-		end,
-		desc = "Guardar Sesión Manual",
-	},
-	{
-		"<leader>sD",
-		function()
-			vim.cmd("SessionDelete")
-		end,
-		desc = "Eliminar Sesión Actual",
-	},
-	{
-		"<leader>sL",
-		function()
-			vim.cmd("SessionRestore")
-		end,
-		desc = "Restaurar Última Sesión",
 	},
 })
 
