@@ -126,4 +126,3 @@ fi
 export ORACLE_HOME=/opt/oracle/instantclient_23_9
 export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_9:$LD_LIBRARY_PATH
 export PATH=/opt/oracle/instantclient_23_9:$PATH
-export OLLAMA_HOST=127.0.0.1:5000
