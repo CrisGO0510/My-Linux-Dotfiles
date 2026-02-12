@@ -70,16 +70,6 @@ wk.add({
 		mode = "n",
 	},
 	{
-		"<leader>ch",
-		function()
-			local is_enabled = vim.lsp.inlay_hint.is_enabled()
-			vim.lsp.inlay_hint.enable(not is_enabled)
-			print("Inlay Hints " .. (not is_enabled and "activados" or "desactivados"))
-		end,
-		desc = "Alternar Inlay Hints (global)",
-		mode = "n",
-	},
-	{
 		"<leader>cs",
 		":SSSelected<CR>",
 		desc = "Capturar selección (CodeShot)",
@@ -417,10 +407,9 @@ wk.add({
 	{
 		"<C-s>",
 		function()
-			vim.cmd("w") -- Guarda el archivo
-			require("conform").format({ async = true }) -- Formatea el archivo
+			require("conform").format({ async = true }) -- Solo formatea el archivo
 		end,
-		desc = "Guardar y formatear",
+		desc = "Formatear archivo",
 	},
 }, { mode = { "n", "i" } })
 -- snacks.lua

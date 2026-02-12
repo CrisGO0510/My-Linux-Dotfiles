@@ -135,15 +135,15 @@ return {
 							quotePreference = "double",
 						},
 
-						-- Enable all inlay hints para mejor desarrollo
+						-- Disable all inlay hints para mejor performance
 						inlayHints = {
-							includeInlayParameterNameHints = "all",
+							includeInlayParameterNameHints = "none",
 							includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-							includeInlayFunctionParameterTypeHints = true,
-							includeInlayVariableTypeHints = true,
-							includeInlayPropertyDeclarationTypeHints = true,
-							includeInlayFunctionLikeReturnTypeHints = true,
-							includeInlayEnumMemberValueHints = true,
+							includeInlayFunctionParameterTypeHints = false,
+							includeInlayVariableTypeHints = false,
+							includeInlayPropertyDeclarationTypeHints = false,
+							includeInlayFunctionLikeReturnTypeHints = false,
+							includeInlayEnumMemberValueHints = false,
 						},
 
 						-- Optimización para navegación de componentes

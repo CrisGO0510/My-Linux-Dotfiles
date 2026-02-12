@@ -19,7 +19,7 @@ return {
       enabled = true,
       trigger_events = {
         immediate_save = { nil },
-        defer_save = { "InsertLeave", "TextChanged" },
+				defer_save = { "InsertLeave" },
         cancel_deferred_save = { "InsertEnter" },
       },
       condition = function(buf)
@@ -34,9 +34,9 @@ return {
         return false
       end,
       write_all_buffers = false,
-      noautocmd = false,
+			noautocmd = true,
       lockmarks = false,
-      debounce_delay = 750,
+			debounce_delay = 2000,
 
     },
   },
