@@ -407,9 +407,14 @@ wk.add({
 	{
 		"<C-s>",
 		function()
-			require("conform").format({ async = true }) -- Solo formatea el archivo
+			require("conform").format({ async = true }, function(err, did_edit)
+				-- Callback ejecutado después de que el formatting termine
+				if not err then
+					vim.cmd("w")  -- Guardar solo si no hubo error
+				end
+			end)
 		end,
-		desc = "Formatear archivo",
+		desc = "Formatear y guardar",
 	},
 }, { mode = { "n", "i" } })
 -- snacks.lua
