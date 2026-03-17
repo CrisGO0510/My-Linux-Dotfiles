@@ -22,6 +22,7 @@ map w drag_files
 map D delete
 
 map ? ${{ glow -p ~/.config/lf/maps.md }}
+map gp dev_project
 
 
 # --- Funciones ---
@@ -185,4 +186,14 @@ cmd jump ${{
     if [ -n "$res" ]; then
         lf -remote "send $id cd \"$res\""
     fi
+}}
+
+cmd dev_project ${{
+    # Terminal 1
+    setsid -f kitty sh -c "cd \"$PWD\" && opencode" >/dev/null 2>&1
+
+    # Terminal 2
+    setsid -f kitty sh -c "cd \"$PWD\" && zsh"
+    # Reemplazar lf con nvim
+    exec nvim .
 }}

@@ -70,6 +70,7 @@
 | :--- | :--- |
 | `t` | Terminal Externa (Kitty) |
 | `T` | Terminal Interna |
+| `gp` | Desplegar terminal + opencode |
 
 ### Ayuda
 
