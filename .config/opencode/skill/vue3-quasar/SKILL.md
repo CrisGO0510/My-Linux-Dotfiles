@@ -23,6 +23,7 @@ metadata:
 
 ### 🎯 **Component Architecture**
 - **Composition API FIRST** - No Options API unless legacy
+- **File Separation PREFERRED** - Split components into .vue, .ts, .html, .scss files
 - **Single Responsibility** - One concern per component
 - **Props Interface** - Always define TypeScript interfaces for props
 - **Emits Definition** - Explicit emit declarations
@@ -32,7 +33,13 @@ metadata:
 ```
 src/
 ├── components/           # Reusable UI components
-│   ├── base/            # Generic components (BaseButton, BaseInput)
+│   ├── base/            # Generic components
+│   │   ├── BaseButton/  # Separated component files
+│   │   │   ├── BaseButton.vue      # Main component file
+│   │   │   ├── BaseButton.html     # Template logic
+│   │   │   ├── BaseButton.ts       # Script logic  
+│   │   │   └── BaseButton.scss     # Component styles
+│   │   └── BaseInput/   
 │   ├── layout/          # Layout components (AppHeader, AppSidebar)
 │   └── feature/         # Feature-specific components
 ├── composables/         # Reusable composition functions
@@ -42,11 +49,33 @@ src/
 └── types/               # TypeScript type definitions
 ```
 
+**Component File Organization Options:**
+1. **Separated Files** (Preferred for complex components):
+   - `Component.vue` - Main component registration
+   - `Component.html` - Template logic
+   - `Component.ts` - Script logic
+   - `Component.scss` - Component styles
+
+2. **Single File** (For simple components):
+   - `Component.vue` - All-in-one SFC
+
 ### 🔄 **State Management with Pinia**
 - **Store per Feature** - Separate stores for different domains
 - **Composition Store Style** - Use `setup()` syntax
 - **Persistence Strategy** - Use pinia-plugin-persistedstate
 - **Computed vs Getters** - Prefer computed for derived state
+
+### 📁 **File Organization Strategy**
+- **Separated Files** for complex components (>50 lines total, multiple responsibilities)
+  - Better separation of concerns
+  - Easier collaboration (designers work on .html, developers on .ts)
+  - Cleaner code review process
+  - Better IDE support for large files
+  
+- **Single File Components** for simple components (<50 lines total)
+  - Quick prototyping
+  - Simple UI components
+  - When template, script, and styles are tightly coupled
 
 ### 📱 **Quasar Best Practices**
 - **Platform Detection** - Use `$q.platform` for conditional logic
@@ -56,26 +85,47 @@ src/
 
 ## Code Examples
 
-### 🧩 **Reusable Component Pattern**
-```vue
-<template>
-  <q-btn
-    :class="buttonClasses"
-    :disable="loading || disabled"
-    :loading="loading"
-    @click="handleClick"
-  >
-    <slot>{{ label }}</slot>
-  </q-btn>
-</template>
+### 🧩 **Separated Files Component Pattern (Preferred)**
 
-<script setup lang="ts">
+**Structure:**
+```
+components/BaseButton/
+├── BaseButton.vue      # Main component registration
+├── BaseButton.html     # Template logic  
+├── BaseButton.ts       # Script logic
+└── BaseButton.scss     # Component styles
+```
+
+**BaseButton.vue (Main File):**
+```vue
+<template src="./BaseButton.html"></template>
+<script setup lang="ts" src="./BaseButton.ts"></script>
+<style scoped lang="scss" src="./BaseButton.scss"></style>
+```
+
+**BaseButton.html (Template):**
+```html
+<q-btn
+  :class="buttonClasses"
+  :disable="loading || disabled"
+  :loading="loading"
+  :color="quasarColor"
+  @click="handleClick"
+>
+  <q-icon v-if="icon" :name="icon" />
+  <slot>{{ label }}</slot>
+</q-btn>
+```
+
+**BaseButton.ts (Script):**
+```typescript
 interface Props {
   variant?: 'primary' | 'secondary' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   disabled?: boolean
   label?: string
+  icon?: string
 }
 
 interface Emits {
@@ -97,32 +147,68 @@ const buttonClasses = computed(() => [
   `base-button--${props.size}`,
 ])
 
+const quasarColor = computed(() => {
+  const colorMap = {
+    primary: 'primary',
+    secondary: 'grey-6', 
+    danger: 'negative'
+  }
+  return colorMap[props.variant]
+})
+
 const handleClick = (event: MouseEvent) => {
   if (!props.loading && !props.disabled) {
     emit('click', event)
   }
 }
+```
+
+**BaseButton.scss (Styles):**
+```scss
+.base-button {
+  @apply transition-all duration-200 ease-in-out;
+
+  &--primary {
+    // Custom primary styles if needed
+  }
+
+  &--secondary {
+    // Custom secondary styles  
+  }
+
+  &--sm {
+    @apply px-3 py-1 text-sm;
+  }
+
+  &--md {
+    @apply px-4 py-2 text-base;
+  }
+}
+```
+
+### 🧩 **Single File Component (For Simple Cases)**
+```vue
+<template>
+  <q-card class="simple-card">
+    <q-card-section>
+      <slot />
+    </q-card-section>
+  </q-card>
+</template>
+
+<script setup lang="ts">
+interface Props {
+  variant?: 'default' | 'bordered'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+})
 </script>
 
 <style scoped>
-.base-button {
-  @apply transition-all duration-200 ease-in-out;
-}
-
-.base-button--primary {
-  @apply bg-primary text-white hover:bg-primary-dark;
-}
-
-.base-button--secondary {
-  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
-}
-
-.base-button--sm {
-  @apply px-3 py-1 text-sm;
-}
-
-.base-button--md {
-  @apply px-4 py-2 text-base;
+.simple-card {
+  /* Simple styles */
 }
 </style>
 ```
@@ -339,12 +425,58 @@ npm install -D @typescript-eslint/eslint-plugin @typescript-eslint/parser pretti
 # Testing
 npm install -D @vue/test-utils vitest jsdom
 
+# Component creation helper
+mkdir -p src/components/MyComponent
+touch src/components/MyComponent/MyComponent.{vue,html,ts,scss}
+
 # Type checking
 npm run type-check
 
 # Lint and format
 npm run lint
 npm run format
+
+# File organization helper (create separated component)
+create-component() {
+  local name=$1
+  local path="src/components/$name"
+  mkdir -p "$path"
+  
+  # Main .vue file
+  cat > "$path/$name.vue" << EOF
+<template src="./$name.html"></template>
+<script setup lang="ts" src="./$name.ts"></script>
+<style scoped lang="scss" src="./$name.scss"></style>
+EOF
+  
+  # Template file
+  cat > "$path/$name.html" << EOF
+<div class="${name,,}">
+  <!-- Your template here -->
+  <slot />
+</div>
+EOF
+  
+  # Script file
+  cat > "$path/$name.ts" << EOF
+interface Props {
+  // Define your props here
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  // defaults here
+})
+EOF
+  
+  # Style file
+  cat > "$path/$name.scss" << EOF
+.${name,,} {
+  // Your styles here
+}
+EOF
+  
+  echo "Created component: $path"
+}
 ```
 
 ### 📱 **Quasar CLI Commands**
