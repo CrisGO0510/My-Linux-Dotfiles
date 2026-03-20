@@ -5,7 +5,7 @@ description: >
   Trigger: When writing Angular 21 code - signals, components, modules, Material UI, control flow.
 license: Apache-2.0
 metadata:
-  author: gentleman-programming
+  author: CrisGO0510
   version: "1.0"
 ---
 
