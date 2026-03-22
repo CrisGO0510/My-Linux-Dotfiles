@@ -62,6 +62,16 @@ wk.add({
 		mode = "n",
 	},
 	{
+		"<leader>cy",
+		function()
+			local filename = vim.fn.expand("%:t")
+			vim.fn.setreg("+", filename)
+			require("snacks").notifier.notify("Copiado: " .. filename, "info", { title = "Clipboard" })
+		end,
+		desc = "Copiar nombre del archivo al portapapeles",
+		mode = "n",
+	},
+	{
 		"<leader>cm",
 		function()
 			vim.cmd("MarkdownPreviewToggle")
