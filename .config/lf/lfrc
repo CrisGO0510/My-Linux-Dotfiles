@@ -190,7 +190,7 @@ cmd jump ${{
 
 cmd dev_project ${{
     # Terminal 1
-    setsid -f kitty sh -c "cd \"$PWD\" && opencode" >/dev/null 2>&1
+    setsid -f kitty sh -c "cd \"$PWD\" && claude" >/dev/null 2>&1
 
     # Terminal 2
     setsid -f kitty sh -c "cd \"$PWD\" && zsh"
