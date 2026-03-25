@@ -276,28 +276,30 @@ function M.smart_goto_definition()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
 	local project_type = detect_project_type(bufnr)
-	
-	if project_type == 'none' then
-		-- Fallback to normal LSP goto definition
+
+	-- Si hay un LSP con definitionProvider activo, usarlo siempre primero
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+	local has_definition = false
+	for _, client in ipairs(clients) do
+		if client.server_capabilities.definitionProvider then
+			has_definition = true
+			break
+		end
+	end
+
+	if has_definition then
 		vim.lsp.buf.definition()
 		return
 	end
-	
-	-- Framework-specific smart navigation
+
+	-- Fallback: navegación custom por archivos de componente
 	if project_type == 'vue' then
-		-- From template -> script, from script -> component 
 		if filepath:match('%.html$') then
 			M.navigate_to_file_type('script', { 'script', 'component' })
-		else
-			vim.lsp.buf.definition()
 		end
-		
 	elseif project_type == 'angular' then
-		-- From template -> component, from component -> definition
 		if filepath:match('%.component%.html$') then
 			M.navigate_to_file_type('component')
-		else
-			vim.lsp.buf.definition()
 		end
 	end
 end
@@ -310,7 +312,7 @@ end
 M.detect_project_type = detect_project_type
 M.navigate_to_component = function() M.navigate_to_file_type('component') end
 M.navigate_to_template = function() M.navigate_to_file_type('template') end
-M.navigate_to_script = function() M.navigate_to_file_type('script') end
+M.navigate_to_script = function() M.navigate_to_file_type('script', { 'script', 'component' }) end
 M.navigate_to_style = function() M.navigate_to_file_type('style', { 'style', 'style_alt' }) end
 M.navigate_to_test = function() 
 	M.navigate_to_file_type('spec')

@@ -20,6 +20,13 @@ require("lazy").setup({
 		{ import = "plugins.code_intelligence" },
 		{ import = "plugins.navigation" },
 		{ import = "plugins.colorschemes" },
+
+		-- ══════════════════════════════════════════════════════
+		-- Stacks de desarrollo: comentar/descomentar según necesites
+		-- ══════════════════════════════════════════════════════
+		{ import = "plugins.stacks.angular" },
+		-- { import = "plugins.stacks.vue" },
+		-- { import = "plugins.stacks.typescript" },
 	},
 	defaults = { lazy = false },
 	install = { colorscheme = { "catppuccin" } },
