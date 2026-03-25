@@ -21,6 +21,11 @@ return {
 				"json",
 				"jsdoc",
 				"regex",
+				-- Otros lenguajes con formatter configurado
+				"lua",
+				"python",
+				"rust",
+				"markdown",
 			},
 			highlight = {
 				enable = true,

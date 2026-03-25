@@ -19,9 +19,15 @@ return {
       enabled = true,
       trigger_events = {
         immediate_save = { nil },
-				defer_save = { "InsertLeave" },
+				defer_save = { "InsertLeave", "TextChanged" },
         cancel_deferred_save = { "InsertEnter" },
       },
+      pre_save = function()
+        local ok, conform = pcall(require, "conform")
+        if ok then
+          conform.format({ async = false, lsp_fallback = true, timeout_ms = 2000 })
+        end
+      end,
       condition = function(buf)
         if vim.bo[buf].filetype == "harpoon" then
           return false

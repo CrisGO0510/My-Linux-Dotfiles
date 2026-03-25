@@ -6,15 +6,14 @@ local wk = require("which-key")
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 
--- Evita que <Space> haga algo
+-- Evita que <Space> haga algo (leader ya definido en init.lua)
 map("n", "<Space>", "<NOP>", opts)
-vim.g.mapleader = " " -- Define <Space> como tecla líder
 
 map("t", "<C-Esc>", "<C-\\><C-n>", opts)
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Quitar resaltado de búsqueda" })
 map("n", "zl", "10zl", { desc = "Desplazar vista → 5 cols" })
 map("n", "zh", "10zh", { desc = "Desplazar vista ← 5 cols" })
-map("n", "<leader>q", "<cmd>:qall!<CR>", { desc = "Cerrar nvim" })
+map("n", "<leader>q", "<cmd>confirm qall<CR>", { desc = "Cerrar nvim" })
 
 wk.add({
 	{ "<leader>c", group = "Code" },
@@ -93,32 +92,11 @@ wk.add({
 	},
 })
 
--- lua/keymaps/cmp_keys.lua
-local ok_wk, wk = pcall(require, "which-key")
-if not ok_wk then
-	return
-end
-
-local ok_cmp, cmp = pcall(require, "cmp")
-if not ok_cmp then
-	return
-end
-
-local function has_words_before()
-	local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-	if col == 0 then
-		return false
-	end
-	local prev = vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col)
-	return not prev:match("%s")
-end
-
-local function t(keys)
-	return vim.api.nvim_replace_termcodes(keys, true, true, true)
-end
+-- cmp keymaps
+local cmp = require("cmp")
 
 local function feed(keys)
-	vim.api.nvim_feedkeys(t(keys), "", true)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, true, true), "", true)
 end
 
 wk.add({
@@ -280,11 +258,11 @@ wk.add({
 		desc = "Split horizontal",
 	},
 
-	-- Cerrar la ventana actual
+	-- Cerrar la ventana actual (no cierra nvim si es la última)
 	{
 		"<leader>wd",
 		function()
-			vim.cmd("q")
+			vim.cmd("close")
 		end,
 		desc = "Cerrar la ventana actual",
 	},
@@ -331,38 +309,6 @@ wk.add({
 			vim.cmd("wincmd J")
 		end,
 		desc = "Mover ventana abajo",
-	},
-})
-
-wk.add({
-	{ "<leader>f", group = "find" },
-	{
-		"<leader>fc",
-		function()
-			require("snacks").picker.files({ cwd = vim.fn.stdpath("config") })
-		end,
-		desc = "Find Config File",
-	},
-	{
-		"<leader>fp",
-		function()
-			require("telescope").extensions.project.project({})
-		end,
-		desc = "Projects",
-	},
-	{
-		"<leader>fr",
-		function()
-			require("telescope").extensions.frecency.frecency()
-		end,
-		desc = "Archivos Frecuentes (Manual)",
-	},
-	{
-		"<leader>ft",
-		function()
-			require("snacks").terminal()
-		end,
-		desc = "Toggle Terminal",
 	},
 })
 
@@ -450,13 +396,6 @@ wk.add({
 		end,
 		desc = "Command History",
 	},
-	{
-		"<leader>n",
-		function()
-			require("snacks").picker.notifications()
-		end,
-		desc = "Notification History",
-	},
 })
 
 wk.add({
@@ -496,6 +435,13 @@ wk.add({
 			require("telescope").extensions.project.project({})
 		end,
 		desc = "Projects",
+	},
+	{
+		"<leader>fr",
+		function()
+			require("telescope").extensions.frecency.frecency()
+		end,
+		desc = "Archivos Frecuentes (Manual)",
 	},
 	{
 		"<leader>ft",
