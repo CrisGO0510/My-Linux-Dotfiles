@@ -22,7 +22,7 @@ require("lazy").setup({
 		{ import = "plugins.colorschemes" },
 
 		-- ══════════════════════════════════════════════════════
-		-- Stacks de desarrollo: comentar/descomentar según necesites
+		-- Stacks de desarrollo: comentar/descomentar según la necesidad
 		-- ══════════════════════════════════════════════════════
 		{ import = "plugins.stacks.angular" },
 		-- { import = "plugins.stacks.vue" },

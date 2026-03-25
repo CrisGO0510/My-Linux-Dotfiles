@@ -271,28 +271,92 @@ end
 -- SMART GOTO DEFINITION
 -- =====================================================================
 
+-- Buscar componente por nombre en el proyecto (para tags como <Header>, <MyComponent>)
+local function find_component_by_tag(tag_name, root)
+	if not tag_name or not root then
+		return nil
+	end
+
+	-- PascalCase a kebab-case: "MyHeader" -> "my-header"
+	local kebab = tag_name:gsub("(%u)", function(c) return "-" .. c:lower() end):gsub("^-", "")
+	-- PascalCase a lowercase: "Header" -> "header"
+	local lower = tag_name:lower()
+
+	-- Patrones de búsqueda: nombre exacto, kebab-case, lowercase
+	local names = { tag_name, kebab, lower }
+	local extensions = { ".vue", ".component.ts", ".ts" }
+
+	for _, name in ipairs(names) do
+		for _, ext in ipairs(extensions) do
+			-- Buscar en src/components/<name>/<name><ext>
+			local path = root .. "/src/components/" .. name .. "/" .. name .. ext
+			if vim.fn.filereadable(path) == 1 then
+				return path
+			end
+			-- Buscar en src/components/<name><ext>
+			path = root .. "/src/components/" .. name .. ext
+			if vim.fn.filereadable(path) == 1 then
+				return path
+			end
+		end
+	end
+	return nil
+end
+
+-- Obtener el nombre del tag HTML bajo el cursor
+local function get_tag_under_cursor()
+	local line = vim.api.nvim_get_current_line()
+	local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+
+	-- Buscar <TagName en la línea alrededor del cursor
+	local tag = line:match("<([A-Z][%w%-]*)")
+	if tag then
+		-- Verificar que el cursor está sobre o cerca del tag
+		local start_pos = line:find("<" .. tag)
+		if start_pos and col >= start_pos and col <= start_pos + #tag + 1 then
+			return tag
+		end
+	end
+
+	-- Fallback: palabra bajo el cursor si es PascalCase
+	local word = vim.fn.expand("<cword>")
+	if word:match("^%u") then
+		return word
+	end
+	return nil
+end
+
 -- "Go to definition" inteligente basado en tipo de archivo y proyecto
 function M.smart_goto_definition()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
 	local project_type = detect_project_type(bufnr)
 
-	-- Si hay un LSP con definitionProvider activo, usarlo siempre primero
-	local clients = vim.lsp.get_clients({ bufnr = bufnr })
-	local has_definition = false
-	for _, client in ipairs(clients) do
-		if client.server_capabilities.definitionProvider then
-			has_definition = true
-			break
+	-- En templates HTML (Vue/Angular), intentar buscar componente por tag primero
+	if filepath:match("%.html$") and project_type ~= "none" then
+		local tag = get_tag_under_cursor()
+		if tag then
+			local root = vim.fs.root(bufnr, project_markers[project_type] or {})
+			if root then
+				local component_file = find_component_by_tag(tag, root)
+				if component_file then
+					vim.cmd("edit " .. component_file)
+					return
+				end
+			end
 		end
 	end
 
-	if has_definition then
-		vim.lsp.buf.definition()
-		return
+	-- Intentar LSP go-to-definition
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+	for _, client in ipairs(clients) do
+		if client.server_capabilities.definitionProvider then
+			vim.lsp.buf.definition()
+			return
+		end
 	end
 
-	-- Fallback: navegación custom por archivos de componente
+	-- Fallback: navegación por archivos de componente
 	if project_type == 'vue' then
 		if filepath:match('%.html$') then
 			M.navigate_to_file_type('script', { 'script', 'component' })
