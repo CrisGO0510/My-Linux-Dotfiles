@@ -26,6 +26,7 @@ return {
 				"python",
 				"rust",
 				"markdown",
+				"c_sharp",
 			},
 			highlight = {
 				enable = true,

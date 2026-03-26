@@ -14,6 +14,7 @@ return {
 				json = { "prettier" },
 				scss = { "prettier" },
 				vue = { "prettier" },
+				cs = { "csharpier" },
 			},
 		},
 	},
