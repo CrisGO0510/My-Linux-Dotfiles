@@ -12,4 +12,4 @@ UP=$(( TX2 - TX1 ))
 DOWN_STR=$(awk "BEGIN{printf \"%.1f\", $DOWN/1048576}")
 UP_STR=$(awk "BEGIN{printf \"%.1f\", $UP/1048576}")
 
-echo "{\"up\":\"${UP_STR} MB/s\",\"down\":\"${DOWN_STR} MB/s\"}"
+echo "{\"up\":\"${UP_STR}\",\"down\":\"${DOWN_STR}\"}"

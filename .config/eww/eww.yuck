@@ -117,18 +117,20 @@
 )
 
 ;; Network speed
-(defpoll net-speed :interval "3s" :initial '{"up":"0.0 MB/s","down":"0.0 MB/s"}'
+(defpoll net-speed :interval "3s" :initial '{"up":"0.0","down":"0.0"}'
     "~/.config/eww/scripts/netspeed.sh")
 
 (defwidget netspeed []
     (box :class "netspeed-short"
         (box :orientation "h"
              :space-evenly false
-             :spacing 5
+             :spacing 3
              (label :class "net-down-icon" :text "󰁅")
              (label :class "net-down-text" :text "${net-speed.down}")
+             (label :class "net-sep" :text "/")
              (label :class "net-up-icon" :text "󰁝")
              (label :class "net-up-text" :text "${net-speed.up}")
+             (label :class "net-unit" :text "MB/s")
         )
     )
 )
