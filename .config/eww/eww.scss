@@ -517,49 +517,9 @@ tooltip{
   border-radius:15px;
 }
 
-.BAT1, .BAT2, .BAT3{
-  color: #2ECC71;
-}
-
-.BAT4, .BAT5{
-  color:#E74C3C;
-}
-
-.CHARGING{
-  color: #F1C40F;
-}
-
-.batico-main{
-  margin-left:10px;
-  margin-right:15px;
-  font-size:50px;
-}
-
-.batico-short{
-  margin-right:6px;
-  margin-top:6px;
-}
-
 .volico{
   color:rgb(144, 104, 220);
   margin-left:3px;
-}
-
-.bsht{
-  color: #cdd6f4;
-}
-
-.bat-percent{
-  font-size:20px;
-  color:rgb(205,212,246);
-}
-
-.bat-status{
-  color:rgba(255,255,255,0.5)
-}
-
-.bat-btn{
-  font-size:13px;
 }
 
 .divider-h{
@@ -617,68 +577,8 @@ tooltip{
   margin-top:3.2px;
 }
 
-.sliderctl{
-  border-radius:15px;
-  box-shadow: 0 2px 3px 2px rgba(6,6,11,0.9);
-  background-color:rgba(45,52,66,0.3);
-  margin-left:20px;
-  margin-right:20px;
-  margin-top:20px;
-  margin-bottom:10px;
-}
-
-.monitor-container{
-  margin-bottom:6px;
-}
-
-.volume-slider{
-  margin-top:10px;
-  margin-left:13px;
-}
-
-.light-slider{
-  margin-bottom:10px;
-  margin-left:13px;
-}
-
-.vol trough {
-  all: unset;
-  background-color: rgba(0,0,0,0.3);
-  box-shadow: 0 2px 3px 2px rgba(6,6,11,0.3);
-  border-radius: 50px;
-  min-height: 10px;
-  min-width: 250px;
-  margin: 0 20px 0 20px;
-}
-
-.vol trough highlight {
-  all: unset;
-  background-color:rgb(144, 104, 190);
-  border-radius: 10px;
-}
-
-.volume-slider,.volume-short{
+.volume-short{
   color:rgb(144, 104, 190);
-}
-
-.lig trough {
-  all: unset;
-  background-color: rgba(0,0,0,0.3);
-  box-shadow: 0 2px 3px 2px rgba(6,6,11,0.3);
-  border-radius: 50px;
-  min-height: 10px;
-  min-width: 250px;
-  margin: 0 20px 0 20px;
-}
-
-.lig trough highlight {
-  all: unset;
-  background-color:rgb(219,193,117);
-  border-radius: 10px;
-}
-
-.light-slider{
-  color:rgb(219,193,117);
 }
 
 .clear-container{
@@ -898,11 +798,6 @@ tooltip{
     font-size: 10px;
   }
 
-  .batico-short {
-    margin-right: 4px;
-    margin-top: 4px;
-  }
-
   .volico {
     margin-left: 2px;
   }
@@ -1026,26 +921,6 @@ tooltip{
     margin-left: 17px;
   }
 
-  .batico-main {
-    margin-left: 7px;
-    margin-right: 10px;
-    font-size: 35px;
-  }
-
-  .bat-percent {
-    font-size: 15px;
-  }
-
-  /* Sliders */
-  .sliderctl {
-    border-radius: 10px;
-    margin: 14px 14px 7px 14px;
-  }
-
-  .vol trough, .lig trough {
-    min-width: 160px;
-    margin: 0 14px;
-  }
 
   /* Calendar */
   .calendar-container {

@@ -118,7 +118,7 @@
 
 ;; Network speed
 (defpoll net-speed :interval "3s" :initial '{"up":"0.0","down":"0.0"}'
-    "~/.config/eww/scripts/netspeed.sh")
+    "./scripts/netspeed.sh")
 
 (defwidget netspeed []
     (box :class "netspeed-short"
@@ -378,7 +378,7 @@
     (button-module :class "menu"
                    :subclass "menu-eventbox"
                    :icon " "
-                   :cmd "~/.config/eww/scripts/menuctl.sh"
+                   :cmd "./scripts/menuctl.sh"
     )
 )
 
@@ -386,7 +386,7 @@
     (button-module :class "menu"
                    :subclass "menu-eventbox"
                    :icon " "
-                   :cmd "~/.config/eww/scripts/menuctl.sh 1"
+                   :cmd "./scripts/menuctl.sh 1"
     )
 )
 
@@ -858,7 +858,7 @@
 (defpoll cpu-cores-usage
     :interval "2s" 
     :initial "[]"
-    "~/.config/eww/scripts/cpu_usage_json.sh")
+    "./scripts/cpu_usage_json.sh")
 
 (defwidget cpu-panel []
   (box :class "cpu-container"
