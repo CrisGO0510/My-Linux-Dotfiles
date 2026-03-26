@@ -25,9 +25,9 @@
                    :spacing 7
                    (tray)
                    (notifications)
+                   (netspeed)
                    (volume)
                    (ram)
-                   (battery)
                    (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
                              (wifi))
                    (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
@@ -40,7 +40,7 @@
 )
 
 (defwidget bar_1 [workspace_widget]
-  (box :class "bar"
+  (box :class "bar bar-sm"
        :orientation "h"
        (box :halign "start"
             :valign "center"
@@ -66,9 +66,9 @@
                    :spacing 7
                    (tray)
                    (notifications)
+                   (netspeed)
                    (volume)
                    (ram)
-                   (battery)
                    (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
                              (wifi_1))
                    (eventbox :onhoverlost "bash -c '/usr/bin/eww update keyrev=false && /usr/bin/eww update keyhov=false && /usr/bin/eww update wifirev=false && /usr/bin/eww update wifihov=false'"
@@ -104,12 +104,31 @@
 (defvar volico "󰕾")
 
 (defwidget volume []
+    (eventbox :cursor "pointer"
+              :onclick "pavucontrol &"
     (box :class "volume-short"
         (box :orientation "h"
              :space-evenly false
              (label :text "${volico} " :style "margin-right:1px;")
-             (label :class "bsht" 
+             (label :class "bsht"
                     :text "${get_vol}%")
+        )
+    ))
+)
+
+;; Network speed
+(defpoll net-speed :interval "3s" :initial '{"up":"0.0 MB/s","down":"0.0 MB/s"}'
+    "~/.config/eww/scripts/netspeed.sh")
+
+(defwidget netspeed []
+    (box :class "netspeed-short"
+        (box :orientation "h"
+             :space-evenly false
+             :spacing 5
+             (label :class "net-down-icon" :text "󰁅")
+             (label :class "net-down-text" :text "${net-speed.down}")
+             (label :class "net-up-icon" :text "󰁝")
+             (label :class "net-up-text" :text "${net-speed.up}")
         )
     )
 )
@@ -125,18 +144,6 @@
     )
 )
 
-(defwidget battery []
-    (box :class "battery"
-        (box :orientation "h"
-                       :space-evenly false
-                       (box :class "batico-short"
-                            (literal :content batico)
-                       )
-                       (label :class "bsht" 
-                              :text "${EWW_BATTERY.BAT0.capacity}%")
-                  )
-    )
-)
 
 (defvar wifirev false)
 (defvar wifihov false)
@@ -653,27 +660,14 @@
                    (box :class "sysctl"
                         :orientation "v"
                         :space-evenly false
-                        (box :class "bats"
-                             :space-evenly false
-                             (box :class "batico-main"
-                                  (literal :content batico)
-                             )
-                             (box :class "bat-detail"
-                                  :orientation "v"
-                                  (box :class "bat-percent"
-                                       :space-evenly false
-                                       (label :text "Battery ${EWW_BATTERY.BAT0.capacity}%")
-                                  )
-                                  (box :class "bat-status"
-                                       :space-evenly false
-                                       (label :limit-width 26 :text "${batest}")
-                                  )
-                             )
-                        )
-                        (box :class "divider-h")
                         (box :class "sys"
-                            (box :class "cpu-box" 
-                                 :orientation "v" 
+                             :orientation "v"
+                             :space-evenly false
+                             :spacing 10
+                            ;; Fila 1: CPU, RAM, HDD
+                            (box :orientation "h"
+                            (box :class "cpu-box"
+                                 :orientation "v"
                                  :space-evenly false
                                  (eventbox :class "cpu-hover"
                                            :tooltip " ${round(EWW_CPU.avg,1)}% used "
@@ -681,7 +675,7 @@
                                                     :value {round(EWW_CPU.avg,10)}
                                                     :thickness 5
                                                     (box :class "cpuico"
-                                                        (label :text " ")
+                                                        (label :text "󰻠 ")
                                                     )
                                            )
                                  )
@@ -696,8 +690,8 @@
                                       )
                                  )
                             )
-                            (box :class "ram-box" 
-                                 :orientation "v" 
+                            (box :class "ram-box"
+                                 :orientation "v"
                                  :space-evenly false
                                  (eventbox :class "ram-hover"
                                            :tooltip " ${round(EWW_RAM.used_mem/1073741824,1)}GB used "
@@ -705,7 +699,7 @@
                                                     :value {round(EWW_RAM.used_mem_perc,10)}
                                                     :thickness 5
                                                     (box :class "ramico"
-                                                         (label :text " ")
+                                                         (label :text "󰍛 ")
                                                     )
                                            )
                                  )
@@ -721,15 +715,15 @@
                                  )
                             )
                             (box :class "disk-box"
-                                 :orientation "v" 
-                                 :space-evenly false 
+                                 :orientation "v"
+                                 :space-evenly false
                                  (eventbox :class "disk-hover"
-                                           :tooltip " ${round(EWW_DISK["/"].used/1073741824,1)}GB used "
+                                           :tooltip " ${round(EWW_DISK["/home"].used/1073741824,1)}GB used "
                                            (circular-progress :class "disk"
-                                                    :value {round(EWW_DISK["/"].used_perc,10)}
+                                                    :value {round(EWW_DISK["/home"].used_perc,10)}
                                                     :thickness 5
                                                     (box :class "diskico"
-                                                         (label :text " ")
+                                                         (label :text "󰋊 ")
                                                     )
                                            )
                                  )
@@ -737,41 +731,89 @@
                                       :space-evenly false
                                       :halign "center"
                                       (box :class "disk01"
-                                        "DISK "
+                                        "HDD "
+                                      )
+                                      (box :class "disk02"
+                                        "${round(EWW_DISK["/home"].used_perc,0)}%"
+                                      )
+                                 )
+                            )
+                            )
+                            ;; Fila 2: GPU, VRAM, NVMe
+                            (box :orientation "h"
+                            (box :class "gpu-box"
+                                 :orientation "v"
+                                 :space-evenly false
+                                 (eventbox :class "gpu-hover"
+                                           :tooltip " ${gpu-usage}% used "
+                                           (circular-progress :class "gpu"
+                                                    :value {gpu-usage}
+                                                    :thickness 5
+                                                    (box :class "gpuico"
+                                                         (label :text "󰘚 ")
+                                                    )
+                                           )
+                                 )
+                                 (box :class "gpu-text"
+                                      :space-evenly false
+                                      :halign "center"
+                                      (box :class "gpu01"
+                                        "GPU "
+                                      )
+                                      (box :class "gpu02"
+                                        "${gpu-usage}%"
+                                      )
+                                 )
+                            )
+                            (box :class "vram-box"
+                                 :orientation "v"
+                                 :space-evenly false
+                                 (eventbox :class "vram-hover"
+                                           :tooltip " ${round(vram-usage * 8573157376 / 100 / 1073741824, 1)}GB / 8GB "
+                                           (circular-progress :class "vram"
+                                                    :value {vram-usage}
+                                                    :thickness 5
+                                                    (box :class "vramico"
+                                                         (label :text "󰍛 ")
+                                                    )
+                                           )
+                                 )
+                                 (box :class "vram-text"
+                                      :space-evenly false
+                                      :halign "center"
+                                      (box :class "vram01"
+                                        "VRAM "
+                                      )
+                                      (box :class "vram02"
+                                        "${vram-usage}%"
+                                      )
+                                 )
+                            )
+                            (box :class "disk-box"
+                                 :orientation "v"
+                                 :space-evenly false
+                                 (eventbox :class "disk-hover"
+                                           :tooltip " ${round(EWW_DISK["/"].used/1073741824,1)}GB used "
+                                           (circular-progress :class "disk"
+                                                    :value {round(EWW_DISK["/"].used_perc,10)}
+                                                    :thickness 5
+                                                    (box :class "diskico"
+                                                         (label :text "󰪱 ")
+                                                    )
+                                           )
+                                 )
+                                 (box :class "disk-text"
+                                      :space-evenly false
+                                      :halign "center"
+                                      (box :class "disk01"
+                                        "NVMe "
                                       )
                                       (box :class "disk02"
                                         "${round(EWW_DISK["/"].used_perc,0)}%"
                                       )
                                  )
                             )
-                        )
-                        (box :class "sliderctl"
-                             :orientation "v"
-                             :spacing 15
-                             (box :class "volume-slider"
-                                  :space-evenly false
-                                  :halign "center"
-                                  (label :text "${volico}")
-                                  (scale :class "vol"
-                                         :value get_vol
-                                         :max 101 
-                                         :min 0
-                                         :round-digits 0
-                                         :onchange "pamixer --set-volume {}"
-                                  )
-                             )
-                             (box :class "light-slider"
-                                  :space-evenly false
-                                  :halign "center"
-                                  (label :text "")
-                                  (scale :value get_light
-                                         :class "lig"
-                                         :max 101 
-                                         :min 1
-                                         :round-digits 0
-                                         :onchange "brightnessctl set {}%"
-                                  )
-                             )
+                            )
                         )
                    )
               )
@@ -782,17 +824,11 @@
     ))
 )
 
-(deflisten batico "./scripts/batico.sh")
-(deflisten batest "./scripts/batest.sh")
 (deflisten music :initial "{}" "./scripts/music.sh")
 (deflisten pmusic :initial "{}" "./scripts/pmusic.sh")
 
 (defpoll cmusic :interval "1s"
     "playerctl -l"
-)
-
-(defpoll get_light :interval "1s"
-  "brightnessctl -m | awk -F, '{gsub(/%/, \"\", \$4); print \$4}'"
 )
 
 (defvar get_vol "")
@@ -803,11 +839,19 @@
 
 ;; CPU
 (defpoll cpu-temp :interval "2s" :initial "0"
-    "sensors | awk '/Tctl:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+    "sensors 2>/dev/null | awk '/Tctl:/ {gsub(/\\+/, \"\", $2); print int($2)}'")
 
 ;; GPU
 (defpoll gpu-temp :interval "2s" :initial "0"
-    "sensors | awk '/edge:/ {gsub(\"+\", \"\", $2); print int($2)}'")
+    "sensors 2>/dev/null | awk '/edge:/ {gsub(/\\+/, \"\", $2); print int($2)}'")
+
+;; GPU Usage
+(defpoll gpu-usage :interval "2s" :initial "0"
+    "cat /sys/class/drm/card1/device/gpu_busy_percent 2>/dev/null || echo 0")
+
+;; VRAM Usage
+(defpoll vram-usage :interval "2s" :initial "0"
+    "awk 'BEGIN{getline t < \"/sys/class/drm/card1/device/mem_info_vram_total\"; getline u < \"/sys/class/drm/card1/device/mem_info_vram_used\"; printf \"%d\", u*100/t}'")
 
 (defpoll cpu-cores-usage
     :interval "2s" 
@@ -953,7 +997,7 @@
     :stacking "bg"
     :geometry (geometry :anchor "top center"
                         :width "99.5%"
-                        :height "37px"
+                        :height "28px"
     )
     :exclusive true
     (bar_1 :workspace_widget workspaces-output-1)
@@ -966,7 +1010,7 @@
 (defvar calrev_1 false)
 (defvar ctlrev_1 false)
 
-;; Duplicación exacta de menuctl para monitor 1
+;; Duplicación de menuctl para monitor 1 (escalado)
 (defwindow menuctl_1
     :monitor 1
     :stacking "overlay"
@@ -976,14 +1020,14 @@
                         :y "-4px"
                         :width "285px"
                         :height "510px")
-    (box :space-evenly false
+    (box :class "popup-sm" :space-evenly false
          (revealer :transition "slideright"
                    :reveal menurev_1
                    :duration "350ms"
                    (menu_event)))
 )
 
-;; Duplicación exacta de wifictl para monitor 1
+;; Duplicación de wifictl para monitor 1 (escalado)
 (defwindow wifictl_1
     :monitor 1
     :stacking "overlay"
@@ -993,16 +1037,18 @@
                         :y "-14px"
                         :width "285px"
                         :height "295px")
-    (expander :expanded true
-              (revealer :transition "slidedown"
-                        :reveal wifictlrev_1
-                        :duration "350ms"
-                        (wifi_event)
-              )
+    (box :class "popup-sm"
+         (expander :expanded true
+                   (revealer :transition "slidedown"
+                             :reveal wifictlrev_1
+                             :duration "350ms"
+                             (wifi_event)
+                   )
+         )
     )
 )
 
-;; Duplicación exacta de calendar para monitor 1
+;; Duplicación de calendar para monitor 1 (escalado)
 (defwindow calendar_1
     :monitor 1
     :stacking "overlay"
@@ -1012,14 +1058,14 @@
                         :y "-3px"
                         :width "285px"
                         :height "510px")
-    (box :space-evenly false
+    (box :class "popup-sm" :space-evenly false
          (revealer :transition "slideup"
                    :reveal calrev_1
                    :duration "350ms"
                    (calendar_event)))
 )
 
-;; Duplicación exacta de usrctl para monitor 1
+;; Duplicación de usrctl para monitor 1 (escalado)
 (defwindow usrctl_1
     :monitor 1
     :stacking "overlay"
@@ -1029,7 +1075,7 @@
                         :y "-4px"
                         :width "285px"
                         :height "405px")
-    (box :space-evenly false
+    (box :class "popup-sm" :space-evenly false
          (revealer :transition "slidedown"
                    :reveal ctlrev_1
                    :duration "350ms"

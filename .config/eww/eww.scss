@@ -86,6 +86,28 @@
   color: #4D9FEC;
 }
 
+.netspeed-short{
+  background-color:rgba(0,0,0,0.38);
+  padding:0px 13px;
+  border-radius:20px;
+  font-size:11px;
+  margin:3px 0px;
+  color: #cdd6f4;
+}
+
+.net-down-icon{
+  color: #43E97B;
+}
+
+.net-up-icon{
+  color: #FF6B6B;
+}
+
+.net-down-text, .net-up-text{
+  color: #cdd6f4;
+  font-size:10px;
+}
+
 .keyboard,.notifications{
   color:rgb(245,162,96);
 }
@@ -539,23 +561,25 @@ tooltip{
   margin:0px 10px;
 }
 
-.cpu-box, .ram-box, .disk-box{
+.cpu-box, .ram-box, .disk-box, .gpu-box, .vram-box{
   margin:0px 10px;
   border-radius:15px;
   box-shadow: 0 2px 3px 2px rgba(6,6,11,0.9);
   background-color:rgba(45,52,66,0.3);
 }
 
-.cpu, .ram, .disk{
+.cpu, .ram, .disk, .gpu, .vram{
   border-radius:100px;
   margin-top:20px;
 }
 .cpu, .cpu01{ color: #FF6B6B;}
 .ram, .ram01{ color: #4D9FEC; }
 .disk, .disk01{ color: #43E97B; }
-.cpu02, .ram02, .disk02{ color: rgb(205,212,246); }
+.gpu, .gpu01{ color: #c678dd; }
+.vram, .vram01{ color: #f5a260; }
+.cpu02, .ram02, .disk02, .gpu02, .vram02{ color: rgb(205,212,246); }
 
-.ramico, .diskico, .cpuico{
+.ramico, .diskico, .cpuico, .gpuico, .vramico{
   margin-right: 15px;
   margin-top: 15px;
   margin-bottom: 15px;
@@ -566,19 +590,19 @@ tooltip{
   margin-left:20px;
 }
 
-.ramico, .diskico{
+.ramico, .diskico, .gpuico, .vramico{
   margin-left:25px;
 }
 
-.cpu, .ram, .disk{
+.cpu, .ram, .disk, .gpu, .vram{
   background-color:rgb(0,0,0);
 }
 
-.cpu-text, .ram-text, .disk-text{
+.cpu-text, .ram-text, .disk-text, .gpu-text, .vram-text{
   margin-bottom:10px;
 }
 
-.ram-text, .disk-text{
+.ram-text, .disk-text, .gpu-text, .vram-text{
   margin-top:3.2px;
 }
 
@@ -778,5 +802,368 @@ tooltip{
 .notifications:hover .notifications-count {
   background-color: rgba(108, 92, 231, 0.4);
   color: #ddd6fe;
+}
+
+/* === Monitor secundario (1366x768) - escala ~72% === */
+.bar-sm {
+  padding: 3px;
+  margin: 4px;
+
+  .ws {
+    font-size: 12px;
+  }
+
+  .div {
+    font-size: 18px;
+  }
+
+  .power-eventbox {
+    font-size: 15px;
+  }
+
+  .notifications, .battery, .volume-short, .ram-short {
+    font-size: 8px;
+    padding: 0px 9px;
+    margin: 2px 0px;
+  }
+
+  .wifi {
+    font-size: 8px;
+    padding-left: 9px;
+    padding-right: 9px;
+    margin: 2px 0px;
+  }
+
+  .tray-button {
+    font-size: 15px;
+  }
+
+  .systray-shadow {
+    padding: 0px 6px;
+    margin-right: 3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+
+  .time-label {
+    border-radius: 15px;
+    font-size: 11px;
+  }
+
+  .menu {
+    margin-left: 8px;
+  }
+
+  .power {
+    margin-right: 7px;
+  }
+
+  .notifications-count {
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+
+  .notifications-icon {
+    font-size: 10px;
+  }
+
+  .batico-short {
+    margin-right: 4px;
+    margin-top: 4px;
+  }
+
+  .volico {
+    margin-left: 2px;
+  }
+}
+
+/* === Popups monitor secundario (1366x768) - escala ~67% === */
+.popup-sm {
+
+  .wifictl-container, .menuctl-container {
+    min-width: 255px;
+    margin: 4px;
+    border-radius: 15px;
+    padding: 4px;
+  }
+
+  .main-container, .music-container, .cpu-container {
+    min-width: 255px;
+    margin: 4px;
+    border-radius: 15px;
+    padding: 4px;
+  }
+
+  .wifi-header, .cpu-header, .menu-header {
+    font-size: 18px;
+    margin-left: 10px;
+    margin-top: 7px;
+    margin-bottom: 5px;
+  }
+
+  .wifi-stats, .menu-subheader {
+    font-size: 12px;
+    margin-left: 10px;
+  }
+
+  .network-container, .app-container {
+    min-height: 10rem;
+    margin: 5px;
+    margin-top: 12px;
+    border-radius: 10px;
+  }
+
+  .app-container {
+    min-height: 16rem;
+  }
+
+  .wifi-option-box, .app-option-box {
+    font-size: 12px;
+    margin: 3px 4px;
+    border-radius: 10px;
+    padding: 7px;
+  }
+
+  .app-name {
+    margin-left: 10px;
+    font-size: 12px;
+  }
+
+  .app-ico {
+    min-height: 1.8rem;
+    min-width: 1.8rem;
+  }
+
+  /* Panel de usuario */
+  .profile {
+    min-width: 250px;
+    margin: 0px 5px;
+    margin-top: 4px;
+    padding: 7px;
+    border-radius: 10px;
+  }
+
+  .pfp {
+    background-size: 60px;
+    min-height: 60px;
+    min-width: 60px;
+    margin-right: 12px;
+  }
+
+  .username {
+    font-size: 20px;
+  }
+
+  .uptime {
+    font-size: 11px;
+  }
+
+  .ctlpanel {
+    min-width: 150px;
+    margin-top: 7px;
+    border-radius: 15px;
+    padding: 3px;
+    font-size: 14px;
+  }
+
+  /* Sistema (CPU/RAM/Disk) */
+  .sysctl {
+    min-width: 250px;
+    margin: 0px 5px;
+    margin-top: 12px;
+    padding: 7px;
+    border-radius: 10px;
+  }
+
+  .cpu-box, .ram-box, .disk-box, .gpu-box, .vram-box {
+    margin: 0px 7px;
+    border-radius: 10px;
+  }
+
+  .ramico, .diskico, .cpuico, .gpuico, .vramico {
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+
+  .cpuico {
+    margin-left: 14px;
+  }
+
+  .ramico, .diskico, .gpuico, .vramico {
+    margin-left: 17px;
+  }
+
+  .batico-main {
+    margin-left: 7px;
+    margin-right: 10px;
+    font-size: 35px;
+  }
+
+  .bat-percent {
+    font-size: 15px;
+  }
+
+  /* Sliders */
+  .sliderctl {
+    border-radius: 10px;
+    margin: 14px 14px 7px 14px;
+  }
+
+  .vol trough, .lig trough {
+    min-width: 160px;
+    margin: 0 14px;
+  }
+
+  /* Calendar */
+  .calendar-container {
+    margin: 4px;
+    border-radius: 15px;
+    padding: 4px;
+  }
+
+  .time-box {
+    border-radius: 10px;
+    padding-left: 17px;
+    padding-right: 17px;
+    padding-bottom: 14px;
+  }
+
+  .time-inner {
+    font-size: 35px;
+  }
+
+  .date-inner {
+    font-size: 13px;
+    margin-top: 14px;
+  }
+
+  .calendar-box {
+    border-radius: 10px;
+    padding: 7px;
+  }
+
+  /* Wifi */
+  .swifi-header {
+    font-size: 11px;
+    margin-left: 10px;
+  }
+
+  .wifi-ssid {
+    margin: 2px 10px;
+    font-size: 12px;
+  }
+
+  .wifi-bcon {
+    margin: 7px;
+  }
+
+  /* Core Detail (cpu-panel) */
+  .cpu-container {
+    min-width: 255px;
+    margin: 4px;
+    padding: 4px;
+  }
+
+  .cpu-header {
+    font-size: 14px;
+    margin-left: 8px;
+    margin-top: 5px;
+    margin-bottom: 4px;
+    label {
+      font-size: 14px;
+    }
+  }
+
+  .graph-container {
+    min-width: 240px;
+    margin: 0px 5px;
+    margin-top: 4px;
+    padding: 7px;
+    border-radius: 10px;
+  }
+
+  .core-label {
+    font-size: 10px;
+  }
+
+  .graph-display {
+    min-width: 230px;
+  }
+
+  .minicore-container {
+    margin-top: 12px;
+    margin-bottom: 3px;
+  }
+
+  .minicores {
+    padding: 4px;
+  }
+
+  .C0, .C1, .C2, .C3 {
+    margin: 0px 4px;
+    padding: 6px;
+    border-radius: 10px;
+    font-size: 11px;
+  }
+
+  .main-temp {
+    border-radius: 7px;
+    padding: 3px 7px;
+  }
+
+  /* Reproductor de musica */
+  .music-container {
+    min-width: 255px;
+    margin: 4px;
+    padding: 4px;
+  }
+
+  .music-title {
+    margin: 5px;
+  }
+
+  .music-thumbnail {
+    min-height: 4rem;
+    min-width: 4rem;
+    border-radius: 0.7rem;
+  }
+
+  .main-title {
+    margin-top: 10px;
+    margin-bottom: 8px;
+    margin-left: 10px;
+    font-size: 14px;
+  }
+
+  .artist {
+    font-size: 10px;
+    margin-left: 10px;
+  }
+
+  .music-slider trough {
+    min-width: 180px;
+    margin: 0 14px;
+    min-height: 4px;
+  }
+
+  .music-timer {
+    margin: 2px 14px;
+    font-size: 11px;
+  }
+
+  .mico {
+    font-size: 22px;
+    margin-left: 7px;
+  }
+
+  .music-action {
+    margin: 0px 5px;
+  }
+
+  .vol-mini trough {
+    min-width: 70px;
+  }
 }
 
