@@ -1,57 +1,73 @@
 #!/bin/bash
 
-set -e  # Detiene el script si ocurre un error
+set -e
 
-# Colores para mensajes
 GREEN="\e[32m"
 RED="\e[31m"
 RESET="\e[0m"
 
-function info {
-    echo -e "${GREEN}[INFO] $1${RESET}"
-}
+function info { echo -e "${GREEN}[INFO] $1${RESET}"; }
+function error { echo -e "${RED}[ERROR] $1${RESET}"; }
 
-function error {
-    echo -e "${RED}[ERROR] $1${RESET}"
-}
-
-# Comprobar si yay está instalado
 if ! command -v yay &> /dev/null; then
-    error "El gestor 'yay' no está instalado. Por favor, instálalo primero."
+    error "El gestor 'yay' no esta instalado."
     exit 1
 fi
 
-# Actualizar el sistema
 info "Actualizando sistema..."
 yay -Syu --noconfirm
 
-# Lista de paquetes a instalar
 PACKAGES=(
-    curl
-    stow
+    # Shell y terminal
     zsh
     kitty
-    zsh-completions
-    zsh-syntax-highlighting
-    zsh-autosuggestions
-    zsh-256color
+    curl
+    wget
+    stow
+
+    # Herramientas modernas de CLI
     eza
     fd
     ripgrep
     fzf
     bat
+    jq
+
+    # File manager y previews
+    lf
+    glow
+    ripdrag
+    ffmpegthumbnailer
+    poppler           # pdftoppm para preview de PDFs
+    unzip
+    unrar
+    p7zip
+    bsdtar
+
+    # System info
+    fastfetch
+
+    # Zsh plugins (paquetes de Arch)
+    zsh-completions
+
+    # Utilidades
+    thefuck
+    pokemon-colorscripts-git
+
+    # Fuentes
     ttf-jetbrains-mono-nerd
     ttf-cascadia-code-nerd
+    ttf-nerd-fonts-symbols-mono
 )
 
-# Instalación de paquetes
 for pkg in "${PACKAGES[@]}"; do
     if pacman -Qi $pkg &> /dev/null; then
-        info "El paquete '$pkg' ya está instalado."
+        info "'$pkg' ya esta instalado."
     else
-        info "Instalando '$pkg' con yay..."
+        info "Instalando '$pkg'..."
         yay -S --noconfirm $pkg
     fi
 done
 
-info "Todos los paquetes de utilidades de terminal han sido instalados correctamente."
+info "Todas las utilidades de terminal instaladas."
+info "Ejecuta zsh-setup.sh para configurar Oh My Zsh y Powerlevel10k."

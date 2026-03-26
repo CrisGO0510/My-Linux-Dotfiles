@@ -1,49 +1,91 @@
 #!/bin/bash
 
-set -e  # Detiene el script si ocurre un error
+set -e
 
-# Colores para mensajes
 GREEN="\e[32m"
 RED="\e[31m"
 RESET="\e[0m"
 
-function info {
-    echo -e "${GREEN}[INFO] $1${RESET}"
-}
+function info { echo -e "${GREEN}[INFO] $1${RESET}"; }
+function error { echo -e "${RED}[ERROR] $1${RESET}"; }
 
-function error {
-    echo -e "${RED}[ERROR] $1${RESET}"
-}
-
-# Comprobar si yay está instalado
 if ! command -v yay &> /dev/null; then
-    error "El gestor 'yay' no está instalado. Por favor, instálalo primero."
+    error "El gestor 'yay' no esta instalado."
     exit 1
 fi
 
-# Actualizar el sistema
 info "Actualizando sistema..."
 yay -Syu --noconfirm
 
-# Lista de aplicaciones para Hyprland
+# === Hyprland core ===
 PACKAGES=(
-    bitwarden
-    pipewire
-    rofi
+    hyprland
+    hyprlock
+    hypridle
+    hyprpaper
+    xdg-desktop-portal-hyprland
+
+    # Bar y widgets
     eww
-    firefox
+
+    # Notificaciones y launcher
     swaync
+    rofi-wayland
+    wlogout
+
+    # Audio
+    pipewire
+    pipewire-pulse
+    wireplumber
+    pamixer
+    pavucontrol
+
+    # Red
+    networkmanager
+    nm-applet
+
+    # Bluetooth
+    bluez
+    bluez-utils
+    blueman
+
+    # Clipboard
+    wl-clipboard
+    cliphist
+
+    # Screenshot
+    grim
+    slurp
+    swappy
+
+    # Utilidades de sistema
+    polkit-kde-agent
+    udiskie
+    jq
+    socat
+    lm_sensors
+    playerctl
+    qt6ct
+
+    # Apps
+    firefox
+    bitwarden
+    kitty
 )
 
-# Instalación de paquetes
 for pkg in "${PACKAGES[@]}"; do
     if pacman -Qi $pkg &> /dev/null; then
-        info "El paquete '$pkg' ya está instalado."
+        info "'$pkg' ya esta instalado."
     else
-        info "Instalando '$pkg' con yay..."
+        info "Instalando '$pkg'..."
         yay -S --noconfirm $pkg
     fi
 done
 
-info "Todas las aplicaciones para Hyprland han sido instaladas correctamente. 🚀"
+# Habilitar servicios
+info "Habilitando servicios..."
+sudo systemctl enable --now NetworkManager 2>/dev/null || true
+sudo systemctl enable --now bluetooth 2>/dev/null || true
+systemctl --user enable --now pipewire pipewire-pulse wireplumber 2>/dev/null || true
 
+info "Todas las aplicaciones de Hyprland instaladas."
