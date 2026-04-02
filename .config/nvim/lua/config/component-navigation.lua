@@ -14,6 +14,7 @@ local project_markers = {
 		'vue.config.js', 'vue.config.ts',
 		'vite.config.js', 'vite.config.ts',
 		'nuxt.config.js', 'nuxt.config.ts',
+		'quasar.config.js', 'quasar.config.ts',
 	},
 	angular = {
 		'angular.json',

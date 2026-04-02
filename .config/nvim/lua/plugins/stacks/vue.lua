@@ -4,6 +4,7 @@ local vue_markers = {
 	"vue.config.js", "vue.config.ts",
 	"vite.config.js", "vite.config.ts",
 	"nuxt.config.js", "nuxt.config.ts",
+	"quasar.config.js", "quasar.config.ts",
 }
 
 local function is_vue_component_html(filepath)
@@ -37,13 +38,27 @@ vim.api.nvim_create_autocmd("FileType", {
 			return
 		end
 
+		-- Buscar tsdk en el proyecto o globalmente
+		local tsdk = root .. "/node_modules/typescript/lib"
+		if vim.fn.isdirectory(tsdk) == 0 then
+			-- Fallback: typescript global de Mason
+			local mason_ts = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/typescript/lib"
+			if vim.fn.isdirectory(mason_ts) == 1 then
+				tsdk = mason_ts
+			end
+		end
+
 		vim.lsp.start({
 			name = "vue_ls",
 			cmd = { vim.fn.stdpath("data") .. "/mason/bin/vue-language-server", "--stdio" },
 			root_dir = root,
 			capabilities = get_capabilities(),
-			-- Volar necesita saber que maneja .html también
 			filetypes = { "vue", "html" },
+			init_options = {
+				typescript = {
+					tsdk = tsdk,
+				},
+			},
 			on_attach = function(client, bufnr)
 				client.server_capabilities.documentFormattingProvider = false
 				client.server_capabilities.documentRangeFormattingProvider = false
