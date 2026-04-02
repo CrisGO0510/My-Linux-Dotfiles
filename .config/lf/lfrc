@@ -19,8 +19,9 @@ map a push :create<space>
 map e $nvim .
 map x zip_menu
 map w drag_files
-map D delete
+map D trash-confirm
 
+map gt cd ~/.local/share/Trash/files
 map ? ${{ glow -p ~/.config/lf/maps.md }}
 map gp dev_project
 
@@ -147,6 +148,53 @@ cmd extract_handler ${{
         lf -remote "send $id unselect"
         lf -remote "send $id select \"$dest\""
     fi
+}}
+
+cmd trash-confirm :{{
+    map y trash-execute
+    map n trash-cancel
+    map <escape> trash-cancel
+    echo "Mover a papelera? [y/N]"
+}}
+
+cmd trash-execute %{{
+    trash_dir="$HOME/.local/share/Trash"
+    mkdir -p "$trash_dir/files" "$trash_dir/info"
+
+    IFS='
+'
+    for f in $fx; do
+        name=$(basename "$f")
+        timestamp=$(date +%Y-%m-%dT%H:%M:%S)
+
+        dest="$trash_dir/files/$name"
+        if [ -e "$dest" ]; then
+            name="${name%.*}_$(date +%s).${name##*.}"
+            [ "$name" = "${name%.*}_$(date +%s)." ] && name="$(basename "$f")_$(date +%s)"
+            dest="$trash_dir/files/$name"
+        fi
+
+        cat > "$trash_dir/info/$name.trashinfo" <<EOF
+[Trash Info]
+Path=$f
+DeletionDate=$timestamp
+EOF
+
+        mv "$f" "$dest"
+    done
+
+    lf -remote "send $id unselect"
+    lf -remote "send $id trash-reset"
+}}
+
+cmd trash-cancel :{{
+    trash-reset
+    echo "Cancelado"
+}}
+
+cmd trash-reset :{{
+    map y
+    map n
 }}
 
 cmd create ${{

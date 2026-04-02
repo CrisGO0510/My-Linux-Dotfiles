@@ -1,0 +1,6 @@
+[Unit]
+Description=Limpiar papelera (archivos con más de 30 días)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'find "$HOME/.local/share/Trash/files" -mindepth 1 -mtime +30 -exec rm -rf {} + 2>/dev/null; find "$HOME/.local/share/Trash/info" -mindepth 1 -mtime +30 -exec rm -rf {} + 2>/dev/null'
