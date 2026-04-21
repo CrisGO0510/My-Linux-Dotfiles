@@ -1,73 +1,127 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
+	branch = "main",
 	build = ":TSUpdate",
-	event = { "BufReadPre", "BufNewFile" },
+	lazy = false,
 	dependencies = {
-		"nvim-treesitter/nvim-treesitter-textobjects",
+		{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
 	},
 	config = function()
-		require("nvim-treesitter.configs").setup({
-			ensure_installed = {
-				-- Angular + web
-				"angular",
-				"html",
-				"css",
-				"scss",
-				-- Vue
-				"vue",
-				-- TS/JS base
-				"typescript",
-				"javascript",
-				"json",
-				"jsdoc",
-				"regex",
-				-- Otros lenguajes con formatter configurado
-				"lua",
-				"python",
-				"rust",
-				"markdown",
-				"c_sharp",
-			},
-			highlight = {
-				enable = true,
-				additional_vim_regex_highlighting = false,
-			},
-			indent = { enable = true },
+		local ts = require("nvim-treesitter")
 
-			textobjects = {
-				select = {
-					enable = true,
-					lookahead = true,
-					keymaps = {
-						["af"] = "@function.outer",
-						["if"] = "@function.inner",
-						["ac"] = "@class.outer",
-						["ic"] = "@class.inner",
-						["aa"] = "@parameter.outer",
-						["ia"] = "@parameter.inner",
-						["ab"] = "@block.outer",
-						["ib"] = "@block.inner",
-						["al"] = "@loop.outer",
-						["il"] = "@loop.inner",
-						["ai"] = "@conditional.outer",
-						["ii"] = "@conditional.inner",
-					},
-				},
-				move = {
-					enable = true,
-					set_jumps = true,
-					goto_next_start = {
-						["]m"] = "@function.outer",
-						["]c"] = "@class.outer",
-						["]p"] = "@parameter.outer",
-					},
-					goto_previous_start = {
-						["[m"] = "@function.outer",
-						["[c"] = "@class.outer",
-						["[p"] = "@parameter.outer",
-					},
-				},
+		ts.setup({})
+
+		local parsers = {
+			-- Angular + web
+			"angular",
+			"html",
+			"css",
+			"scss",
+			-- Vue
+			"vue",
+			-- TS/JS base
+			"typescript",
+			"javascript",
+			"tsx",
+			"json",
+			"jsonc",
+			"jsdoc",
+			"regex",
+			-- Otros lenguajes
+			"lua",
+			"python",
+			"rust",
+			"markdown",
+			"markdown_inline",
+			"c_sharp",
+		}
+
+		ts.install(parsers)
+
+		-- Filetypes que reciben highlighting + indent por treesitter
+		local filetypes = {
+			"angular",
+			"htmlangular",
+			"html",
+			"css",
+			"scss",
+			"vue",
+			"typescript",
+			"typescriptreact",
+			"javascript",
+			"javascriptreact",
+			"json",
+			"jsonc",
+			"lua",
+			"python",
+			"rust",
+			"markdown",
+			"cs",
+		}
+
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = filetypes,
+			callback = function(args)
+				local bufnr = args.buf
+				pcall(vim.treesitter.start, bufnr)
+				vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+			end,
+		})
+
+		-- ============ TEXTOBJECTS ============
+		require("nvim-treesitter-textobjects").setup({
+			select = {
+				lookahead = true,
+			},
+			move = {
+				set_jumps = true,
 			},
 		})
+
+		local select = require("nvim-treesitter-textobjects.select")
+		local move = require("nvim-treesitter-textobjects.move")
+
+		local select_map = {
+			["af"] = "@function.outer",
+			["if"] = "@function.inner",
+			["ac"] = "@class.outer",
+			["ic"] = "@class.inner",
+			["aa"] = "@parameter.outer",
+			["ia"] = "@parameter.inner",
+			["ab"] = "@block.outer",
+			["ib"] = "@block.inner",
+			["al"] = "@loop.outer",
+			["il"] = "@loop.inner",
+			["ai"] = "@conditional.outer",
+			["ii"] = "@conditional.inner",
+		}
+
+		for key, query in pairs(select_map) do
+			vim.keymap.set({ "x", "o" }, key, function()
+				select.select_textobject(query, "textobjects")
+			end)
+		end
+
+		local next_start = {
+			["]m"] = "@function.outer",
+			["]c"] = "@class.outer",
+			["]p"] = "@parameter.outer",
+		}
+		local prev_start = {
+			["[m"] = "@function.outer",
+			["[c"] = "@class.outer",
+			["[p"] = "@parameter.outer",
+		}
+
+		for key, query in pairs(next_start) do
+			vim.keymap.set({ "n", "x", "o" }, key, function()
+				move.goto_next_start(query, "textobjects")
+			end)
+		end
+		for key, query in pairs(prev_start) do
+			vim.keymap.set({ "n", "x", "o" }, key, function()
+				move.goto_previous_start(query, "textobjects")
+			end)
+		end
 	end,
 }
