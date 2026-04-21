@@ -820,10 +820,44 @@
                    )
               )
          )
+         (ssh-toggle)
          (cpu-panel)
-         (music-player) 
+         (music-player)
          )
     ))
+)
+
+(defpoll ssh_active :interval "5s" :initial "false"
+    "./scripts/sshctl.sh")
+
+(defwidget ssh-toggle []
+    (box :class "ssh-container"
+         :orientation "h"
+         :space-evenly false
+         :spacing 10
+         (box :class "ssh-info"
+              :space-evenly false
+              :orientation "h"
+              :spacing 8
+              (label :class "ssh-icon" :text "󰣀 ")
+              (box :orientation "v"
+                   :space-evenly false
+                   :valign "center"
+                   (label :class "ssh-label" :text "SSH Server" :halign "start")
+                   (label :class "ssh-status"
+                          :text {ssh_active == "true" ? "Activo" : "Inactivo"}
+                          :halign "start")
+              )
+         )
+         (box :hexpand true)
+         (eventbox :cursor "pointer"
+                   :onclick "./scripts/sshctl.sh toggle"
+                   :tooltip {ssh_active == "true" ? "Desactivar SSH" : "Activar SSH"}
+                   (box :class "ssh-switch ${ssh_active == 'true' ? 'ssh-on' : 'ssh-off'}"
+                        (box :class "ssh-knob")
+                   )
+         )
+    )
 )
 
 (deflisten music :initial "{}" "./scripts/music.sh")
