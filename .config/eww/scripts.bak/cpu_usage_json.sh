@@ -40,7 +40,7 @@ done
 
 # --- SECCIÓN FINAL MODIFICADA ---
 CORE_USAGES=("${USAGES[@]:1}")
-COLUMNS=4
+COLUMNS=3 
 
 JSON_OUTPUT=$(jq -n --argjson cores "$(printf '%s\n' "${CORE_USAGES[@]}" | jq -s .)" '
   $cores | to_entries | map({id: .key, usage: .value})

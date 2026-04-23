@@ -1,19 +1,22 @@
 (defwidget bar [workspace_widget]
   (box :class "bar"
        :orientation "h"
-       (box :class "bar-island"
-            :halign "start"
+       (box :halign "start"
             :valign "center"
             :spacing 10
             :hexpand true
             :space-evenly false
+            (menu)
             (literal :content workspace_widget)
        )
        (box :halign "center"
             :valign "center"
-            :hexpand true)
-       (box :class "bar-island"
-            :halign "end"
+            :spacing 10
+            :hexpand true
+            :orientation "h"
+            (time :time get_time)
+       )
+       (box :halign "end"
             :valign "center"
             :hexpand true
             :space-evenly false
@@ -39,19 +42,22 @@
 (defwidget bar_1 [workspace_widget]
   (box :class "bar bar-sm"
        :orientation "h"
-       (box :class "bar-island"
-            :halign "start"
+       (box :halign "start"
             :valign "center"
             :spacing 10
             :hexpand true
             :space-evenly false
+            (menu_1)
             (literal :content workspace_widget)
        )
        (box :halign "center"
             :valign "center"
-            :hexpand true)
-       (box :class "bar-island"
-            :halign "end"
+            :spacing 10
+            :hexpand true
+            :orientation "h"
+            (time_1 :time get_time)
+       )
+       (box :halign "end"
             :valign "center"
             :hexpand true
             :space-evenly false
@@ -224,11 +230,7 @@
                            :class "network-container"
                            (box :orientation "v" :space-evenly false
                                 (for i in {network}
-                                    (wifi-option :ssid "${i.ssid}"
-                                                 :inuse "${i.in_use}"
-                                                 :auto {i.autoconnect}
-                                                 :band "${i.band}"
-                                                 :security "${i.security}")
+                                    (wifi-option :ssid "${i.ssid}" :inuse "${i.in_use}" :auto {i.autoconnect}) 
                                 )
                            )
                    )
@@ -298,27 +300,20 @@
 (defvar wifissidrev "")
 (defvar wificlass "")
 
-(defwidget wifi-option [ssid auto inuse ?band ?security]
+(defwidget wifi-option [ssid auto inuse]
     (eventbox :cursor "pointer"
               :onclick "/usr/bin/eww update wificonfigrev=false && /usr/bin/eww update wificonfigrev=true && /usr/bin/eww update wificlass=${auto==false?"1":inuse==false?"2":"3"} && /usr/bin/eww update wifissidrev=\"${ssid}\""
-              (box :class "wifi-item ${inuse==true?"connected":auto==true?"saved":"nearby"}"
-                   :orientation "h"
-                   :space-evenly false
-                   (label :class "wifi-signal ${inuse==true?"connected":""}" :text "󰤨")
-                   (box :class "wifi-info"
-                        :orientation "v"
+              (box :class "wifi-option-box"
+                   :orientation "v"
+                   (box :class "wifi-ssid"
                         :space-evenly false
-                        :hexpand true
-                        (label :class "wifi-ssid ${inuse==true?"connected":""}"
-                               :halign "start"
-                               :limit-width 25
-                               :text "${ssid}")
-                        (label :class "wifi-meta"
-                               :halign "start"
-                               :text "${inuse==true?"Connected":auto==true?"Saved":"Nearby"} / ${band != "" ? band : "--"} / ${security != "" ? security : "Open"}"))
-                   (label :class "wifi-lock ${security=="Open"?"open":""}"
-                          :text "${security=="Open"?"󰤨":"󰍁"}")
-              )
+                        :orientation "h"
+                        (label :class "${auto==false?"wifi-ssid-01":inuse==false?"wifi-ssid-02":"wifi-ssid-03"}"
+                               :limit-width 30 
+                               :text "${ssid}"
+                        )
+                   )
+               )
     )
 )
 
@@ -368,6 +363,100 @@
     )
 )
 
+(defwidget button-module [icon cmd ?class ?subclass]
+    (box :class "${class}"
+         :orientation "h"
+         (eventbox :onclick "${cmd}"
+                   :cursor "pointer"
+                   :class "${subclass}"
+                   (label :text "${icon}")
+         )
+    )
+)
+
+(defwidget menu []
+    (button-module :class "menu"
+                   :subclass "menu-eventbox"
+                   :icon " "
+                   :cmd "./scripts/menuctl.sh"
+    )
+)
+
+(defwidget menu_1 []
+    (button-module :class "menu"
+                   :subclass "menu-eventbox"
+                   :icon " "
+                   :cmd "./scripts/menuctl.sh 1"
+    )
+)
+
+(defvar menurev false)
+
+(defwindow menuctl
+    :monitor 0
+    :stacking "overlay"
+    :focusable "ondemand"
+    :geometry (geometry :anchor "top left"
+                        :x "5px"
+                        :y "-4px"
+                        :width "425px"
+                        :height "993px")
+    (box :space-evenly false
+         (revealer :transition "slideright"
+                   :reveal menurev
+                   :duration "350ms"
+                   (menu_event)))
+)
+
+(defpoll apps :interval "60s"
+    "./scripts/menu.sh"
+)
+
+(defwidget menu_event []
+    (eventbox :class "shadow-container"
+              :onhoverlost "./scripts/menuctl.sh"
+              (box :orientation "v"
+                   :space-evenly false
+                   (box :class "menuctl-container"
+                        :space-evenly false
+                        :orientation "v"
+                        (box :class "menu-header"
+                             :space-evenly false
+                             (label :text "Program Launcher"))
+                        (box :class "menu-subheader"
+                             :space-evenly false
+                             (label :text ">> Executable List")
+                        )
+                        (scroll :vscroll true
+                                :class "app-container"
+                                (box :orientation "v" 
+                                     :space-evenly false
+                                     (for i in {apps}
+                                        (application :name "${i.name}"
+                                                     :exec "${i.exec}"
+                                                     :icon "${i.icon}"
+                                                     :term "${i.terminal}"
+                                        )
+                                     )
+                                     ))))))
+
+(defwidget application [name exec icon term]
+    (eventbox :cursor "pointer"
+              :onclick "sh -c './scripts/menuctl.sh && cd ~ && ([[ ${term} == true ]] && kitty -e ${exec} || ${exec}) & disown'"
+              (box :class "app-option-box"
+                   :orientation "v"
+                   (box :class "app-display"
+                        :space-evenly false
+                        :orientation "h"
+                        (box :class "app-ico"
+                             :style "background-image:url('${icon}');"
+                        )
+                        (label :class "app-name" :text "${name}")
+                   )
+               )
+    )
+)
+
 (defwidget power []
     (box :class "power"
          :orientation "h"
@@ -394,39 +483,13 @@
     (label :class "div" :text "|")
 )
 
-(defwidget clock-overlay [time ?mod]
-    (eventbox :cursor "pointer"
-              :onclick "./scripts/calendar.sh"
-              (box :class "clock-overlay ${mod ?: ""}"
-                   :halign "center"
-                   :valign "start"
-                   (label :text "${time}" :show-truncated false :limit-width 10))))
-
-(defwindow clock
-    :monitor 0
-    :stacking "overlay"
-    :geometry (geometry :anchor "top center"
-                        :y "-50px"
-                        :width "240px"
-                        :height "50px")
-    (clock-overlay :time get_time))
-
-(defwindow clock_1
-    :monitor 1
-    :stacking "overlay"
-    :geometry (geometry :anchor "top center"
-                        :y "-30px"
-                        :width "240px"
-                        :height "50px")
-    (clock-overlay :time get_time :mod "clock-sm"))
-
 (defwindow calendar
     :monitor 0
     :stacking "overlay"
     :geometry (geometry :anchor "top center"
                         :y "-15px"
                         :width "355px"
-                        :height "380px"
+                        :height "41%"
     )
     (expander :expanded true
               (revealer :transition "slidedown"
@@ -441,7 +504,7 @@
 
 (defwidget calendar_event []
     (eventbox :onhoverlost "./scripts/calendar.sh"
-         (calendar_widget :time get_time_full
+         (calendar_widget :time get_time
                           :date get_date
          )
     )
@@ -454,23 +517,39 @@
          :space-evenly false
          (box :class "time-box"
               :orientation "v"
-              :halign "fill"
-              :hexpand true
+              :halign "center"
               :space-evenly false
               (box :class "time-inner"
-                   :halign "center"
-                   (label :text "${time}" :show-truncated false :limit-width 20)
+                   (label :text "${time}")
               )
               (box :class "date-inner"
-                   :halign "center"
-                   (label :text "${date}" :show-truncated false :limit-width 40)
+                   (label :text "${date}")
               )
          )
          (box :class "calendar-box"
-              :halign "fill"
-              :hexpand true
-              (calendar :class "cal" :hexpand true :halign "fill")
+              :halign "center"    
+              (calendar :class "cal")
          )
+    )
+)
+
+(defwidget time [time]
+    (eventbox :cursor "pointer"
+              :onclick "./scripts/calendar.sh"
+              :width 120
+              :height 25
+              :class "time-label"
+              (label :text "${time}")
+    )
+)
+
+(defwidget time_1 [time]
+    (eventbox :cursor "pointer"
+              :onclick "./scripts/calendar.sh 1"
+              :width 120
+              :height 25
+              :class "time-label"
+              (label :text "${time}")
     )
 )
 
@@ -479,11 +558,7 @@
 )
 
 (defpoll get_time :interval "1s"
-                  "date +%H:%M"
-)
-
-(defpoll get_time_full :interval "1s"
-                       "date +%H:%M:%S"
+                  "date +%H:%M:%S"
 )
 
 (defpoll get_uptime :interval "1s"
@@ -616,13 +691,6 @@
                                         "${round(EWW_CPU.avg,0)}%"
                                       )
                                  )
-                                 (box :class "stat-temp ${cpu-temp > 70 ? "hot" : cpu-temp > 60 ? "warm" : "cool"}"
-                                      :halign "center"
-                                      :space-evenly false
-                                      :spacing 3
-                                      (label :class "thermo" :text "󰔏")
-                                      (label :text "${cpu-temp}°C")
-                                 )
                             )
                             (box :class "ram-box"
                                  :orientation "v"
@@ -647,10 +715,6 @@
                                         "${round(EWW_RAM.used_mem_perc,0)}%"
                                       )
                                  )
-                                 (box :class "stat-temp empty"
-                                      :halign "center"
-                                      (label :text "--")
-                                 )
                             )
                             (box :class "disk-box"
                                  :orientation "v"
@@ -674,10 +738,6 @@
                                       (box :class "disk02"
                                         "${round(EWW_DISK["/home"].used_perc,0)}%"
                                       )
-                                 )
-                                 (box :class "stat-temp empty"
-                                      :halign "center"
-                                      (label :text "--")
                                  )
                             )
                             )
@@ -706,13 +766,6 @@
                                         "${gpu-usage}%"
                                       )
                                  )
-                                 (box :class "stat-temp ${gpu-temp > 70 ? "hot" : gpu-temp > 60 ? "warm" : "cool"}"
-                                      :halign "center"
-                                      :space-evenly false
-                                      :spacing 3
-                                      (label :class "thermo" :text "󰔏")
-                                      (label :text "${gpu-temp}°C")
-                                 )
                             )
                             (box :class "vram-box"
                                  :orientation "v"
@@ -737,10 +790,6 @@
                                         "${vram-usage}%"
                                       )
                                  )
-                                 (box :class "stat-temp empty"
-                                      :halign "center"
-                                      (label :text "--")
-                                 )
                             )
                             (box :class "disk-box"
                                  :orientation "v"
@@ -764,10 +813,6 @@
                                       (box :class "disk02"
                                         "${round(EWW_DISK["/"].used_perc,0)}%"
                                       )
-                                 )
-                                 (box :class "stat-temp empty"
-                                      :halign "center"
-                                      (label :text "--")
                                  )
                             )
                             )
@@ -853,37 +898,46 @@
   (box :class "cpu-container"
        :orientation "v"
        :space-evenly false
-
-       ;; Titulo
+       
+       ;; Título
        (box :orientation "h"
             :class "cpu-header"
             :space-evenly false
-            (label :class "section-title" :text "CORE DETAIL")
+            (label :text "Core Detail" :style "color:#cdd6f4;font-size:20px;")
        )
 
-       ;; Grid de cores - una fila por grupo emitido por el script, cada core una mini barra
-       (box :class "cores-grid"
+       ;; Uso CPU por core
+       (box :class "graph-container"
             :orientation "v"
             :space-evenly false
-            :spacing 4
-
+            :spacing 8
+            
+            ;; Bucle exterior: crea una fila por cada grupo de núcleos
             (for row in cpu-cores-usage
+                ;; 'box' para la fila, orientada horizontalmente
                 (box :orientation "h"
-                     :space-evenly true
-                     :spacing 4
-
+                     :class "core-label"
+                     :space-evenly "false"
+                     :spacing 15
+                     
+                     ;; Bucle interior: crea una columna por cada núcleo en la fila
                      (for core in row
-                         (box :class "core-bar"
-                              :orientation "v"
-                              :space-evenly false
-                              :valign "end"
-                              (box :class "core-fill"
-                                   :style "min-height: ${core.usage * 0.28}px;")
-                              (label :class "core-pct" :text "${core.usage}%")
-                              (label :class "core-idx" :text "C${core.id}")
+                         (box :class "core-item-column" :hexpand "true" :halign "fill"
+                              (label :halign "start"
+                                     :text "Core ${core.id}: ${core.usage}%")
                          )
                      )
                 )
+            )
+       )
+       ;; Cores y GPU
+       (box :class "minicore-container"
+            :orientation "v"
+            :space-evenly false
+
+            (box :class "minicores"
+                 (label :class "C0" :text "CPU: ${cpu-temp} °C")
+                 (label :class "C0" :text "GPU: ${gpu-temp} °C")
             )
        )
   )
@@ -979,7 +1033,7 @@
     :stacking "bg"
     :geometry (geometry :anchor "top center"
                         :width "99.5%"
-                        :height "15px"
+                        :height "28px"
     )
     :exclusive true
     (bar_1 :workspace_widget workspaces-output-1)
@@ -987,9 +1041,27 @@
 
 ;; === VENTANAS DUPLICADAS PARA MONITOR 1 ===
 ;; Variables para monitor 1
+(defvar menurev_1 false)
 (defvar wifictlrev_1 false)
 (defvar calrev_1 false)
 (defvar ctlrev_1 false)
+
+;; Duplicación de menuctl para monitor 1 (escalado)
+(defwindow menuctl_1
+    :monitor 1
+    :stacking "overlay"
+    :focusable false
+    :geometry (geometry :anchor "top left"
+                        :x "3px"
+                        :y "-4px"
+                        :width "285px"
+                        :height "510px")
+    (box :class "popup-sm" :space-evenly false
+         (revealer :transition "slideright"
+                   :reveal menurev_1
+                   :duration "350ms"
+                   (menu_event)))
+)
 
 ;; Duplicación de wifictl para monitor 1 (escalado)
 (defwindow wifictl_1
@@ -1017,10 +1089,11 @@
     :monitor 1
     :stacking "overlay"
     :focusable false
-    :geometry (geometry :anchor "top center"
-                        :y "-15px"
+    :geometry (geometry :anchor "bottom right"
+                        :x "3px"
+                        :y "-3px"
                         :width "285px"
-                        :height "380px")
+                        :height "510px")
     (box :class "popup-sm" :space-evenly false
          (revealer :transition "slideup"
                    :reveal calrev_1

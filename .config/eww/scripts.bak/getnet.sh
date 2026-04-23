@@ -16,7 +16,7 @@ done
 
 wifi_list=()
 
-while IFS=: read -r inuse ssid freq signal security; do
+while IFS=: read -r inuse ssid; do
     [[ -z "$ssid" ]] && continue
     if [[ -n "${SEEN[$ssid]}" ]]; then
         continue
@@ -29,38 +29,18 @@ while IFS=: read -r inuse ssid freq signal security; do
     autoconnect=false
     [[ -n "${AUTO[$ssid]}" && "${AUTO[$ssid]}" == "yes" ]] && autoconnect=true
 
-    # Derive band from frequency (MHz)
-    if [[ -n "$freq" && "$freq" -ge 4900 ]]; then
-        band="5GHz"
-    elif [[ -n "$freq" && "$freq" -ge 2000 ]]; then
-        band="2.4GHz"
-    else
-        band=""
-    fi
-
-    # Security: empty means Open network
-    [[ -z "$security" ]] && security="Open"
-
-    # Signal strength (default 0 if missing)
-    [[ -z "$signal" ]] && signal=0
 
     wifi_json=$(jq -nc \
         --arg ssid "$ssid" \
         --argjson in_use "$in_use" \
         --argjson autoconnect "$autoconnect" \
-        --arg band "$band" \
-        --arg security "$security" \
-        --argjson strength "$signal" \
         '{
           ssid: $ssid,
           in_use: $in_use,
-          autoconnect: $autoconnect,
-          band: $band,
-          security: $security,
-          strength: $strength
+          autoconnect: $autoconnect
         }')
 
     wifi_list+=("$wifi_json")
-done < <(nmcli -t -f IN-USE,SSID,FREQ,SIGNAL,SECURITY dev wifi list)
+done < <(nmcli -t -f IN-USE,SSID dev wifi list)
 
 jq -nc --argjson arr "$(printf '[%s]' "$(IFS=,; echo "${wifi_list[*]}")")" '$arr'
