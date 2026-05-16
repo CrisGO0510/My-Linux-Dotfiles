@@ -24,8 +24,8 @@ require("lazy").setup({
 		-- ══════════════════════════════════════════════════════
 		-- Stacks de desarrollo: comentar/descomentar según la necesidad
 		-- ══════════════════════════════════════════════════════
-		{ import = "plugins.stacks.angular" },
-		-- { import = "plugins.stacks.vue" },
+		-- { import = "plugins.stacks.angular" },
+		{ import = "plugins.stacks.vue" },
 		-- { import = "plugins.stacks.typescript" },
 		-- { import = "plugins.stacks.csharp" },
 	},
