@@ -5,7 +5,7 @@ return {
 	},
 	config = function()
 		require("codeshot").setup({
-			output = "home/Cris/Pictures/codeshot/CodeShot_${date}-${month}-${year}_${time}.png",
+			output = vim.fn.expand("~/Pictures/codeshot/CodeShot_${date}-${month}-${year}_${time}.png"),
 			author = "CrisGO",
 		})
 	end,

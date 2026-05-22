@@ -1,14 +1,4 @@
-local group = vim.api.nvim_create_augroup("autosave", {})
-
-vim.api.nvim_create_autocmd("User", {
-  pattern = "AutoSaveWritePost",
-  group = group,
-  callback = function(opts)
-    if opts.data.saved_buffer ~= nil then
-      print("AutoSaved at " .. vim.fn.strftime("%H:%M:%S"))
-    end
-  end,
-})
+-- (Sin notificación de autosave: cmdline ruidoso con cada guardado)
 
 return {
   {

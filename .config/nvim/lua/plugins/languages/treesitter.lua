@@ -33,7 +33,6 @@ return {
 			"rust",
 			"markdown",
 			"markdown_inline",
-			"c_sharp",
 		}
 
 		ts.install(parsers)
@@ -56,7 +55,6 @@ return {
 			"python",
 			"rust",
 			"markdown",
-			"cs",
 		}
 
 		vim.api.nvim_create_autocmd("FileType", {

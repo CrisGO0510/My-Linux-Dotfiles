@@ -26,11 +26,8 @@ return {
 			},
 		},
 
-		notifier = {
-			enabled = true,
-			timeout = 3000,
-			style = "compact",
-		},
+		-- notifier deshabilitado: noice + nvim-notify se encargan de vim.notify
+		notifier = { enabled = false },
 		input = {
 			enabled = true,
 		},

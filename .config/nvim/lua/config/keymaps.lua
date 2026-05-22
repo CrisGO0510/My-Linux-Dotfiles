@@ -47,7 +47,7 @@ wk.add({
 		function()
 			vim.wo.wrap = not vim.wo.wrap
 			local status = vim.wo.wrap and "Activado" or "Desactivado"
-			require("snacks").notifier.notify("Word Wrap " .. status, "info", { title = "Interfaz" })
+			vim.notify("Word Wrap " .. status, vim.log.levels.INFO, { title = "Interfaz" })
 		end,
 		desc = "Toggle wrap",
 		mode = "n",
@@ -65,7 +65,7 @@ wk.add({
 		function()
 			local filename = vim.fn.expand("%:t")
 			vim.fn.setreg("+", filename)
-			require("snacks").notifier.notify("Copiado: " .. filename, "info", { title = "Clipboard" })
+			vim.notify("Copiado: " .. filename, vim.log.levels.INFO, { title = "Clipboard" })
 		end,
 		desc = "Copiar nombre del archivo al portapapeles",
 		mode = "n",
@@ -381,7 +381,6 @@ wk.add({
 		function()
 			require("telescope.builtin").buffers({
 				initial_mode = "normal",
-				-- Opcional: para que el buffer actual no aparezca en la lista
 				ignore_current_buffer = true,
 				sort_mru = true,
 			})
@@ -389,46 +388,22 @@ wk.add({
 		desc = "Buffers",
 	},
 	{ "<leader>/", "<cmd>Telescope live_grep<CR>", desc = "Grep" },
-	{
-		"<leader>:",
-		function()
-			require("snacks").picker.command_history()
-		end,
-		desc = "Command History",
-	},
+	{ "<leader>:", "<cmd>Telescope command_history<CR>", desc = "Command History" },
 })
 
 wk.add({
 	{ "<leader>f", group = "find" },
 
-	{
-		"<leader>fb",
-		function()
-			require("snacks").picker.buffers()
-		end,
-		desc = "Buffers",
-	},
+	{ "<leader>fb", "<cmd>Telescope buffers<CR>", desc = "Buffers" },
 	{
 		"<leader>fc",
 		function()
-			require("snacks").picker.files({ cwd = vim.fn.stdpath("config") })
+			require("telescope.builtin").find_files({ cwd = vim.fn.stdpath("config") })
 		end,
 		desc = "Find Config File",
 	},
-	{
-		"<leader>ff",
-		function()
-			require("snacks").picker.files()
-		end,
-		desc = "Find Files",
-	},
-	{
-		"<leader>fg",
-		function()
-			require("snacks").picker.git_files()
-		end,
-		desc = "Find Git Files",
-	},
+	{ "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "Find Files" },
+	{ "<leader>fg", "<cmd>Telescope git_files<CR>", desc = "Find Git Files" },
 	{
 		"<leader>fp",
 		function()
@@ -456,13 +431,7 @@ wk.add({
 wk.add({
 	{ "<leader>g", group = "git" },
 
-	{
-		"<leader>gs",
-		function()
-			require("snacks").git_status()
-		end,
-		desc = "Git Status",
-	},
+	{ "<leader>gs", "<cmd>Telescope git_status<CR>", desc = "Git Status" },
 	{
 		"<leader>gB",
 		function()
@@ -477,45 +446,14 @@ wk.add({
 		end,
 		desc = "Lazygit",
 	},
-	{
-		"<leader>gb",
-		function()
-			require("snacks").picker.git_branches()
-		end,
-		desc = "Git Branches",
-	},
-	{
-		"<leader>gl",
-		function()
-			require("snacks").picker.git_log()
-		end,
-		desc = "Git Log",
-	},
-	{
-		"<leader>gL",
-		function()
-			require("snacks").picker.git_log_line()
-		end,
-		desc = "Git Log Line",
-	},
-	{
-		"<leader>gS",
-		function()
-			require("snacks").picker.git_stash()
-		end,
-		desc = "Git Stash",
-	},
-	{
-		"<leader>gd",
-		function()
-			require("snacks").picker.git_diff()
-		end,
-		desc = "Git Diff (Hunks)",
-	},
+	{ "<leader>gb", "<cmd>Telescope git_branches<CR>", desc = "Git Branches" },
+	{ "<leader>gl", "<cmd>Telescope git_commits<CR>", desc = "Git Log" },
+	{ "<leader>gL", "<cmd>Telescope git_bcommits<CR>", desc = "Git Log (buffer)" },
+	{ "<leader>gS", "<cmd>Telescope git_stash<CR>", desc = "Git Stash" },
 	{
 		"<leader>gf",
 		function()
-			require("snacks").picker.git_log_file()
+			require("telescope.builtin").git_bcommits({ current_file = vim.fn.expand("%") })
 		end,
 		desc = "Git Log File",
 	},
@@ -526,182 +464,41 @@ wk.add({
 wk.add({
 	{ "<leader>s", group = "search" },
 
-	-- Funciones de búsqueda originales
-	{
-		"<leader>sb",
-		function()
-			require("snacks").picker.lines()
-		end,
-		desc = "Buffer Lines",
-	},
+	{ "<leader>sb", "<cmd>Telescope current_buffer_fuzzy_find<CR>", desc = "Buffer Lines" },
 	{
 		"<leader>sB",
 		function()
-			require("snacks").picker.grep_buffers()
+			require("telescope.builtin").live_grep({ grep_open_files = true })
 		end,
 		desc = "Grep Open Buffers",
 	},
-	{
-		"<leader>sg",
-		function()
-			require("snacks").picker.grep()
-		end,
-		desc = "Grep",
-	},
-	{
-		"<leader>sw",
-		function()
-			require("snacks").picker.grep_word()
-		end,
-		desc = "Visual selection or word",
-	},
-	{
-		'<leader>s"',
-		function()
-			require("snacks").picker.registers()
-		end,
-		desc = "Registers",
-	},
-	{
-		"<leader>s/",
-		function()
-			require("snacks").picker.search_history()
-		end,
-		desc = "Search History",
-	},
-	{
-		"<leader>sa",
-		function()
-			require("snacks").picker.autocmds()
-		end,
-		desc = "Autocmds",
-	},
-	{
-		"<leader>sc",
-		function()
-			require("snacks").picker.command_history()
-		end,
-		desc = "Command History",
-	},
-	{
-		"<leader>sC",
-		function()
-			require("snacks").picker.commands()
-		end,
-		desc = "Commands",
-	},
-	{
-		"<leader>sd",
-		function()
-			require("snacks").picker.diagnostics()
-		end,
-		desc = "Diagnostics",
-	},
+	{ "<leader>sg", "<cmd>Telescope live_grep<CR>", desc = "Grep" },
+	{ "<leader>sw", "<cmd>Telescope grep_string<CR>", desc = "Visual selection or word" },
+	{ '<leader>s"', "<cmd>Telescope registers<CR>", desc = "Registers" },
+	{ "<leader>s/", "<cmd>Telescope search_history<CR>", desc = "Search History" },
+	{ "<leader>sa", "<cmd>Telescope autocommands<CR>", desc = "Autocmds" },
+	{ "<leader>sc", "<cmd>Telescope command_history<CR>", desc = "Command History" },
+	{ "<leader>sC", "<cmd>Telescope commands<CR>", desc = "Commands" },
+	{ "<leader>sd", "<cmd>Telescope diagnostics<CR>", desc = "Diagnostics" },
 	{
 		"<leader>sD",
 		function()
-			require("snacks").picker.diagnostics_buffer()
+			require("telescope.builtin").diagnostics({ bufnr = 0 })
 		end,
 		desc = "Buffer Diagnostics",
 	},
-	{
-		"<leader>sh",
-		function()
-			require("snacks").picker.help()
-		end,
-		desc = "Help Pages",
-	},
-	{
-		"<leader>sH",
-		function()
-			require("snacks").picker.highlights()
-		end,
-		desc = "Highlights",
-	},
-	{
-		"<leader>si",
-		function()
-			require("snacks").picker.icons()
-		end,
-		desc = "Icons",
-	},
-	{
-		"<leader>sj",
-		function()
-			require("snacks").picker.jumps()
-		end,
-		desc = "Jumps",
-	},
-	{
-		"<leader>sk",
-		function()
-			require("snacks").picker.keymaps()
-		end,
-		desc = "Keymaps",
-	},
-	{
-		"<leader>sl",
-		function()
-			require("snacks").picker.loclist()
-		end,
-		desc = "Location List",
-	},
-	{
-		"<leader>sm",
-		function()
-			require("snacks").picker.marks()
-		end,
-		desc = "Marks",
-	},
-	{
-		"<leader>sM",
-		function()
-			require("snacks").picker.man()
-		end,
-		desc = "Man Pages",
-	},
-	{
-		"<leader>sp",
-		function()
-			require("snacks").picker.lazy()
-		end,
-		desc = "Search for Plugin Spec",
-	},
-	{
-		"<leader>sq",
-		function()
-			require("snacks").picker.qflist()
-		end,
-		desc = "Quickfix List",
-	},
-	{
-		"<leader>sR",
-		function()
-			require("snacks").picker.resume()
-		end,
-		desc = "Resume",
-	},
-	{
-		"<leader>su",
-		function()
-			require("snacks").picker.undo()
-		end,
-		desc = "Undo History",
-	},
-	{
-		"<leader>ss",
-		function()
-			require("snacks").picker.lsp_symbols()
-		end,
-		desc = "LSP Symbols",
-	},
-	{
-		"<leader>sS",
-		function()
-			require("snacks").picker.lsp_workspace_symbols()
-		end,
-		desc = "LSP Workspace Symbols",
-	},
+	{ "<leader>sh", "<cmd>Telescope help_tags<CR>", desc = "Help Pages" },
+	{ "<leader>sH", "<cmd>Telescope highlights<CR>", desc = "Highlights" },
+	{ "<leader>sj", "<cmd>Telescope jumplist<CR>", desc = "Jumps" },
+	{ "<leader>sk", "<cmd>Telescope keymaps<CR>", desc = "Keymaps" },
+	{ "<leader>sl", "<cmd>Telescope loclist<CR>", desc = "Location List" },
+	{ "<leader>sm", "<cmd>Telescope marks<CR>", desc = "Marks" },
+	{ "<leader>sM", "<cmd>Telescope man_pages<CR>", desc = "Man Pages" },
+	{ "<leader>sp", "<cmd>Lazy<CR>", desc = "Plugin Spec (Lazy UI)" },
+	{ "<leader>sq", "<cmd>Telescope quickfix<CR>", desc = "Quickfix List" },
+	{ "<leader>sR", "<cmd>Telescope resume<CR>", desc = "Resume" },
+	{ "<leader>ss", "<cmd>Telescope lsp_document_symbols<CR>", desc = "LSP Symbols" },
+	{ "<leader>sS", "<cmd>Telescope lsp_dynamic_workspace_symbols<CR>", desc = "LSP Workspace Symbols" },
 })
 
 -- UI
@@ -709,20 +506,8 @@ wk.add({
 wk.add({
 	{ "<leader>u", group = "ui" },
 
-	{
-		"<leader>uC",
-		function()
-			require("snacks").picker.colorschemes()
-		end,
-		desc = "Colorschemes",
-	},
-	{
-		"<leader>un",
-		function()
-			require("snacks").notifier.hide()
-		end,
-		desc = "Dismiss All Notifications",
-	},
+	{ "<leader>uC", "<cmd>Telescope colorscheme<CR>", desc = "Colorschemes" },
+	{ "<leader>un", "<cmd>NoiceDismiss<CR>", desc = "Dismiss All Notifications" },
 })
 
 wk.add({
@@ -747,13 +532,7 @@ wk.add({
 		end,
 		desc = "Toggle Scratch Buffer",
 	},
-	{
-		"<leader>n",
-		function()
-			require("snacks").notifier.show_history()
-		end,
-		desc = "Notification History",
-	},
+	{ "<leader>n", "<cmd>NoiceHistory<CR>", desc = "Notification History" },
 })
 
 
