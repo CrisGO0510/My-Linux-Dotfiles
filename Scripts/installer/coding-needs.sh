@@ -33,6 +33,14 @@ PACKAGES=(
     # Utilidades de dev
     direnv
     base-devel
+
+    # Formatters para nvim (conform.nvim)
+    stylua
+    prettier
+    python-black
+
+    # Treesitter (compila parsers desde main branch)
+    tree-sitter-cli
 )
 
 for pkg in "${PACKAGES[@]}"; do

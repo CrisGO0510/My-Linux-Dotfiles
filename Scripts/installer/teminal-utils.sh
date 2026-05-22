@@ -43,9 +43,12 @@ PACKAGES=(
     unrar
     p7zip
     bsdtar
+    zip               # lfrc usa zip para comprimir
+    trash-cli         # lfrc mapea D a trash-confirm
 
     # System info
     fastfetch
+    btop
 
     # Zsh plugins (paquetes de Arch)
     zsh-completions

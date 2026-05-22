@@ -23,6 +23,8 @@ PACKAGES=(
     hyprlock
     hypridle
     hyprpaper
+    hyprpicker
+    hyprshade
     xdg-desktop-portal-hyprland
 
     # Bar y widgets
@@ -32,6 +34,7 @@ PACKAGES=(
     swaync
     rofi-wayland
     wlogout
+    swayosd-git
 
     # Audio
     pipewire
@@ -57,6 +60,11 @@ PACKAGES=(
     grim
     slurp
     swappy
+    grimblast-git
+    imagemagick
+
+    # Brillo
+    brightnessctl
 
     # Utilidades de sistema
     polkit-kde-agent
@@ -65,12 +73,32 @@ PACKAGES=(
     socat
     lm_sensors
     playerctl
+    qt5ct
     qt6ct
+    nwg-look
+
+    # Monitoreo GPU AMD (widget eww gpu_usage.sh)
+    radeontop
+
+    # Theming (referenciados en hyprland.conf)
+    sweet-gtk-theme-dark
+    candy-icons-git
+    bibata-cursor-theme
+    cantarell-fonts
 
     # Apps
     firefox
     bitwarden
     kitty
+
+    # Multimedia
+    mpv
+    obs-studio
+    cava
+    spotify
+
+    # Comunicacion
+    vesktop
 )
 
 for pkg in "${PACKAGES[@]}"; do
