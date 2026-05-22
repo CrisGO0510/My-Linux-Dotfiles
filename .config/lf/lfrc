@@ -103,7 +103,11 @@ cmd open ${{
             lf -remote "send $id extract_handler"
             ;;
 
-        *) 
+        application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|application/vnd.ms-excel|application/vnd.ms-excel.sheet.macroenabled.12|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|application/vnd.ms-powerpoint|application/vnd.openxmlformats-officedocument.presentationml.presentation|application/vnd.oasis.opendocument.text|application/vnd.oasis.opendocument.spreadsheet|application/vnd.oasis.opendocument.presentation)
+            setsid -f libreoffice26.2 "$f" >/dev/null 2>&1
+            ;;
+
+        *)
             lf -remote "send $id echoerr ' No hay aplicación definida para: $mime'" 
             ;;
     esac
