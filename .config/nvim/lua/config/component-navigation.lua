@@ -11,16 +11,20 @@ local M = {}
 -- Markers para detectar diferentes tipos de proyectos
 local project_markers = {
 	vue = {
-		'vue.config.js', 'vue.config.ts',
-		'vite.config.js', 'vite.config.ts',
-		'nuxt.config.js', 'nuxt.config.ts',
-		'quasar.config.js', 'quasar.config.ts',
+		"vue.config.js",
+		"vue.config.ts",
+		"vite.config.js",
+		"vite.config.ts",
+		"nuxt.config.js",
+		"nuxt.config.ts",
+		"quasar.config.js",
+		"quasar.config.ts",
 	},
 	angular = {
-		'angular.json',
-		'nx.json', 
-		'project.json',
-	}
+		"angular.json",
+		"nx.json",
+		"project.json",
+	},
 }
 
 -- Cache para evitar detecciones repetidas
@@ -29,29 +33,29 @@ local project_type_cache = {}
 -- Detectar tipo de proyecto basado en archivos de configuración
 local function detect_project_type(bufnr)
 	local cwd = vim.fn.getcwd()
-	
+
 	-- Check cache first
 	if project_type_cache[cwd] then
 		return project_type_cache[cwd]
 	end
-	
+
 	-- Check for Vue project first
 	local vue_root = vim.fs.root(bufnr, project_markers.vue)
 	if vue_root then
-		project_type_cache[cwd] = 'vue'
-		return 'vue'
+		project_type_cache[cwd] = "vue"
+		return "vue"
 	end
-	
+
 	-- Check for Angular project
 	local angular_root = vim.fs.root(bufnr, project_markers.angular)
 	if angular_root then
-		project_type_cache[cwd] = 'angular'
-		return 'angular'
+		project_type_cache[cwd] = "angular"
+		return "angular"
 	end
-	
+
 	-- No framework detected
-	project_type_cache[cwd] = 'none'
-	return 'none'
+	project_type_cache[cwd] = "none"
+	return "none"
 end
 
 -- =====================================================================
@@ -63,25 +67,25 @@ local component_patterns = {
 	vue = {
 		-- Vue Separated Components (tu estructura preferida)
 		separated = {
-			template = '.html',
-			component = '.vue', 
-			script = '.ts',
-			style = '.scss',
-			style_alt = '.css',
+			template = ".html",
+			component = ".vue",
+			script = ".ts",
+			style = ".scss",
+			style_alt = ".css",
 		},
 		-- Vue Single File Component (estándar)
 		sfc = {
-			component = '.vue',
-		}
+			component = ".vue",
+		},
 	},
 	angular = {
-		component = '.component.ts',
-		template = '.component.html',
-		style = '.component.scss',
-		style_alt = '.component.css',
-		spec = '.component.spec.ts',
-		module = '.module.ts',
-	}
+		component = ".component.ts",
+		template = ".component.html",
+		style = ".component.scss",
+		style_alt = ".component.css",
+		spec = ".component.spec.ts",
+		module = ".module.ts",
+	},
 }
 
 -- =====================================================================
@@ -92,29 +96,29 @@ local component_patterns = {
 local function get_angular_base_path(filepath)
 	-- Para Angular, necesitamos ser más específicos
 	local base = filepath
-	
+
 	-- Remover extensiones Angular específicas
-	base = base:gsub('%.component%.ts$', '')
-	base = base:gsub('%.component%.html$', '')
-	base = base:gsub('%.component%.scss$', '')
-	base = base:gsub('%.component%.css$', '')
-	base = base:gsub('%.component%.spec%.ts$', '')
-	base = base:gsub('%.module%.ts$', '')
-	
+	base = base:gsub("%.component%.ts$", "")
+	base = base:gsub("%.component%.html$", "")
+	base = base:gsub("%.component%.scss$", "")
+	base = base:gsub("%.component%.css$", "")
+	base = base:gsub("%.component%.spec%.ts$", "")
+	base = base:gsub("%.module%.ts$", "")
+
 	return base
 end
 
 -- Obtener base path del archivo (sin extensiones) - Vue específico
 local function get_vue_base_path(filepath)
 	local base = filepath
-	
+
 	-- Vue patterns
-	base = base:gsub('%.vue$', '')
-	base = base:gsub('%.html$', '')
-	base = base:gsub('%.ts$', '')
-	base = base:gsub('%.scss$', '')
-	base = base:gsub('%.css$', '')
-	
+	base = base:gsub("%.vue$", "")
+	base = base:gsub("%.html$", "")
+	base = base:gsub("%.ts$", "")
+	base = base:gsub("%.scss$", "")
+	base = base:gsub("%.css$", "")
+
 	return base
 end
 
@@ -123,13 +127,13 @@ function M.get_related_files(filepath, project_type)
 	if not filepath then
 		return {}
 	end
-	
+
 	local related_files = {}
-	
-	if project_type == 'vue' then
+
+	if project_type == "vue" then
 		local base_path = get_vue_base_path(filepath)
 		local patterns = component_patterns.vue
-		
+
 		-- Check for separated components first
 		local separated_files = {
 			template = base_path .. patterns.separated.template,
@@ -138,20 +142,18 @@ function M.get_related_files(filepath, project_type)
 			style = base_path .. patterns.separated.style,
 			style_alt = base_path .. patterns.separated.style_alt,
 		}
-		
+
 		-- If we have separated files, use that structure
-		if vim.fn.filereadable(separated_files.template) == 1 or 
-		   vim.fn.filereadable(separated_files.script) == 1 then
+		if vim.fn.filereadable(separated_files.template) == 1 or vim.fn.filereadable(separated_files.script) == 1 then
 			related_files = separated_files
 		else
 			-- Fallback to SFC
 			related_files.component = base_path .. patterns.sfc.component
 		end
-		
-	elseif project_type == 'angular' then
+	elseif project_type == "angular" then
 		local base_path = get_angular_base_path(filepath)
 		local patterns = component_patterns.angular
-		
+
 		related_files = {
 			component = base_path .. patterns.component,
 			template = base_path .. patterns.template,
@@ -161,7 +163,7 @@ function M.get_related_files(filepath, project_type)
 			module = base_path .. patterns.module,
 		}
 	end
-	
+
 	return related_files
 end
 
@@ -174,15 +176,15 @@ function M.navigate_to_file_type(file_type, priority_order)
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
 	local project_type = detect_project_type(bufnr)
-	
-	if project_type == 'none' then
+
+	if project_type == "none" then
 		vim.notify("No se detectó un proyecto Vue o Angular compatible", vim.log.levels.WARN)
 		return
 	end
-	
+
 	local related_files = M.get_related_files(filepath, project_type)
 	local files_to_try = {}
-	
+
 	-- Build priority order for file types
 	if priority_order then
 		for _, file_key in ipairs(priority_order) do
@@ -196,13 +198,13 @@ function M.navigate_to_file_type(file_type, priority_order)
 			table.insert(files_to_try, related_files[file_type])
 		end
 	end
-	
+
 	-- Try to open the first existing file
 	for _, file_path in ipairs(files_to_try) do
 		if vim.fn.filereadable(file_path) == 1 then
 			vim.cmd("edit " .. file_path)
 			-- Special navigation for component files
-			if file_type == 'script' or file_type == 'component' then
+			if file_type == "script" or file_type == "component" then
 				vim.defer_fn(function()
 					-- Try to find main export/class definition
 					local patterns = { "export default", "export class", "@Component" }
@@ -216,7 +218,7 @@ function M.navigate_to_file_type(file_type, priority_order)
 			return
 		end
 	end
-	
+
 	vim.notify("No se encontró archivo " .. file_type .. " para " .. project_type, vim.log.levels.WARN)
 end
 
@@ -225,37 +227,37 @@ function M.show_related_files()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
 	local project_type = detect_project_type(bufnr)
-	
-	if project_type == 'none' then
+
+	if project_type == "none" then
 		vim.notify("No se detectó un proyecto Vue o Angular compatible", vim.log.levels.WARN)
 		return
 	end
-	
+
 	local related_files = M.get_related_files(filepath, project_type)
 	local existing_files = {}
-	
+
 	-- Filter to only existing files
 	for file_type, file_path in pairs(related_files) do
 		if vim.fn.filereadable(file_path) == 1 then
 			table.insert(existing_files, {
 				type = file_type,
 				path = file_path,
-				display = file_type .. ": " .. vim.fn.fnamemodify(file_path, ":t")
+				display = file_type .. ": " .. vim.fn.fnamemodify(file_path, ":t"),
 			})
 		end
 	end
-	
+
 	if #existing_files == 0 then
 		vim.notify("No se encontraron archivos relacionados", vim.log.levels.INFO)
 		return
 	end
-	
+
 	-- Show selection dialog
 	local choices = {}
 	for i, file_info in ipairs(existing_files) do
 		table.insert(choices, i .. ". " .. file_info.display)
 	end
-	
+
 	vim.ui.select(choices, {
 		prompt = "Archivos del componente " .. string.upper(project_type) .. ":",
 	}, function(choice)
@@ -279,7 +281,11 @@ local function find_component_by_tag(tag_name, root)
 	end
 
 	-- PascalCase a kebab-case: "MyHeader" -> "my-header"
-	local kebab = tag_name:gsub("(%u)", function(c) return "-" .. c:lower() end):gsub("^-", "")
+	local kebab = tag_name
+		:gsub("(%u)", function(c)
+			return "-" .. c:lower()
+		end)
+		:gsub("^-", "")
 	-- PascalCase a lowercase: "Header" -> "header"
 	local lower = tag_name:lower()
 
@@ -309,14 +315,17 @@ local function get_tag_under_cursor()
 	local line = vim.api.nvim_get_current_line()
 	local col = vim.api.nvim_win_get_cursor(0)[2] + 1
 
-	-- Buscar <TagName en la línea alrededor del cursor
-	local tag = line:match("<([A-Z][%w%-]*)")
-	if tag then
-		-- Verificar que el cursor está sobre o cerca del tag
-		local start_pos = line:find("<" .. tag)
-		if start_pos and col >= start_pos and col <= start_pos + #tag + 1 then
+	-- Iterar sobre todos los tags en la línea para respetar posición del cursor
+	local start_idx = 1
+	while true do
+		local s, e, tag = line:find("<([A-Z][%w%-]*)", start_idx)
+		if not s then
+			break
+		end
+		if col >= s and col <= e then
 			return tag
 		end
+		start_idx = e + 1
 	end
 
 	-- Fallback: palabra bajo el cursor si es PascalCase
@@ -333,8 +342,8 @@ function M.smart_goto_definition()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
 	local project_type = detect_project_type(bufnr)
 
-	-- En templates HTML (Vue/Angular), intentar buscar componente por tag primero
-	if filepath:match("%.html$") and project_type ~= "none" then
+	-- En templates HTML y .vue (Vue/Angular), intentar buscar componente por tag primero
+	if project_type ~= "none" and (filepath:match("%.html$") or filepath:match("%.vue$")) then
 		local tag = get_tag_under_cursor()
 		if tag then
 			local root = vim.fs.root(bufnr, project_markers[project_type] or {})
@@ -350,21 +359,27 @@ function M.smart_goto_definition()
 
 	-- Intentar LSP go-to-definition
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+	local has_definition_client = false
 	for _, client in ipairs(clients) do
 		if client.server_capabilities.definitionProvider then
+			has_definition_client = true
 			vim.lsp.buf.definition()
 			return
 		end
 	end
 
 	-- Fallback: navegación por archivos de componente
-	if project_type == 'vue' then
-		if filepath:match('%.html$') then
-			M.navigate_to_file_type('script', { 'script', 'component' })
-		end
-	elseif project_type == 'angular' then
-		if filepath:match('%.component%.html$') then
-			M.navigate_to_file_type('component')
+	if not has_definition_client then
+		if project_type == "vue" then
+			if filepath:match("%.vue$") then
+				M.navigate_to_file_type("script", { "script", "component" })
+			elseif filepath:match("%.ts$") then
+				M.navigate_to_file_type("component", { "component", "template" })
+			end
+		elseif project_type == "angular" then
+			if filepath:match("%.component%.html$") then
+				M.navigate_to_file_type("component")
+			end
 		end
 	end
 end
@@ -375,15 +390,24 @@ end
 
 -- Export main functions
 M.detect_project_type = detect_project_type
-M.navigate_to_component = function() M.navigate_to_file_type('component') end
-M.navigate_to_template = function() M.navigate_to_file_type('template') end
-M.navigate_to_script = function() M.navigate_to_file_type('script', { 'script', 'component' }) end
-M.navigate_to_style = function() M.navigate_to_file_type('style', { 'style', 'style_alt' }) end
-M.navigate_to_test = function() 
-	M.navigate_to_file_type('spec')
-	if vim.v.errmsg ~= "" then  -- Si spec falló, probar con test
-		M.navigate_to_file_type('test', { 'test', 'test_alt' })
+M.navigate_to_component = function()
+	M.navigate_to_file_type("component")
+end
+M.navigate_to_template = function()
+	M.navigate_to_file_type("template")
+end
+M.navigate_to_script = function()
+	M.navigate_to_file_type("script", { "script", "component" })
+end
+M.navigate_to_style = function()
+	M.navigate_to_file_type("style", { "style", "style_alt" })
+end
+M.navigate_to_test = function()
+	M.navigate_to_file_type("spec")
+	if vim.v.errmsg ~= "" then -- Si spec falló, probar con test
+		M.navigate_to_file_type("test", { "test", "test_alt" })
 	end
 end
 
 return M
+
