@@ -80,6 +80,8 @@ alias ld='eza -lhD --icons=auto'
 alias lt='eza --icons=auto --tree'
 alias mkdir='/usr/bin/mkdir -p'
 
+alias npm='pnpm'
+
 # Pacman/AUR helpers
 alias un='$aurhelper -Rns'
 alias up='$aurhelper -Syu'
