@@ -80,8 +80,6 @@ alias ld='eza -lhD --icons=auto'
 alias lt='eza --icons=auto --tree'
 alias mkdir='/usr/bin/mkdir -p'
 
-alias npm='pnpm'
-
 # Pacman/AUR helpers
 alias un='$aurhelper -Rns'
 alias up='$aurhelper -Syu'
@@ -120,6 +118,11 @@ if command -v ng &>/dev/null; then
   source <(ng completion script)
 fi
 
+# --- fnm (Node version manager) ---
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
+
 # --- Rust (safe) ---
 if [[ -f "$HOME/.cargo/env" ]]; then
   source "$HOME/.cargo/env" || echo "Error loading Rust environment"
@@ -128,3 +131,4 @@ fi
 export ORACLE_HOME=/opt/oracle/instantclient_23_9
 export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_9:$LD_LIBRARY_PATH
 export PATH=/opt/oracle/instantclient_23_9:$PATH
+
