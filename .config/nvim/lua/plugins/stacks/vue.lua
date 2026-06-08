@@ -1,17 +1,8 @@
--- Stack Vue: Volar (vue_ls) + ts_ls con @vue/typescript-plugin (hybrid mode).
--- Activación manual: descomentar en config/lazy.lua.
--- Instalación de binarios: :MasonInstall vue-language-server typescript-language-server
---
--- Soporta tanto SFC (.vue) como componentes separados (.vue + .html + .ts + .scss).
-
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 local vue_ts_plugin = vim.fn.stdpath("data")
 	.. "/mason/packages/vue-language-server/node_modules/@vue/typescript-plugin"
 
--- Forzar dynamicRegistration = false en ts_ls: si lo dejamos en true, el
--- server registra selectors que excluyen "vue" y supports_method() devuelve
--- false aunque definitionProvider sea true.
 local ts_capabilities = vim.tbl_deep_extend("force", capabilities, {
 	textDocument = {
 		definition = { dynamicRegistration = false },
@@ -36,12 +27,24 @@ local no_inlay_hints = {
 	includeInlayEnumMemberValueHints = false,
 }
 
--- ts_ls atendiendo .vue cargando @vue/typescript-plugin
+local function filter_vue_template_ref_6133(err, result, ctx, config)
+	if result and result.diagnostics and vim.endswith(result.uri or "", ".vue") then
+		result.diagnostics = vim.tbl_filter(function(d)
+			return d.code ~= 6133
+		end, result.diagnostics)
+	end
+	return vim.lsp.handlers["textDocument/publishDiagnostics"](err, result, ctx, config)
+end
+
 vim.lsp.config.ts_ls = {
 	cmd = { "typescript-language-server", "--stdio" },
 	filetypes = {
-		"javascript", "javascriptreact", "javascript.jsx",
-		"typescript", "typescriptreact", "typescript.tsx",
+		"javascript",
+		"javascriptreact",
+		"javascript.jsx",
+		"typescript",
+		"typescriptreact",
+		"typescript.tsx",
 		"vue",
 	},
 	root_markers = { "tsconfig.json", "package.json", "jsconfig.json", ".git" },
@@ -55,6 +58,9 @@ vim.lsp.config.ts_ls = {
 			},
 		},
 	},
+	handlers = {
+		["textDocument/publishDiagnostics"] = filter_vue_template_ref_6133,
+	},
 	on_attach = function(client, bufnr)
 		vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
 		client.server_capabilities.documentFormattingProvider = false
@@ -66,12 +72,15 @@ vim.lsp.config.ts_ls = {
 	},
 }
 
--- Volar: atiende .vue y .html de componentes separados (template files).
 local vue_markers = {
-	"vue.config.js", "vue.config.ts",
-	"vite.config.js", "vite.config.ts",
-	"nuxt.config.js", "nuxt.config.ts",
-	"quasar.config.js", "quasar.config.ts",
+	"vue.config.js",
+	"vue.config.ts",
+	"vite.config.js",
+	"vite.config.ts",
+	"nuxt.config.js",
+	"nuxt.config.ts",
+	"quasar.config.js",
+	"quasar.config.ts",
 }
 
 local function is_vue_component_html(filepath)
@@ -121,8 +130,6 @@ vim.lsp.config.vue_ls = {
 vim.lsp.enable("ts_ls")
 vim.lsp.enable("vue_ls")
 
--- Filter para que Volar solo se active en HTMLs que son componentes Vue separados.
--- (No queremos Volar en HTML genérico.)
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(args)
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
