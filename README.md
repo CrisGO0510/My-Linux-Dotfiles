@@ -80,9 +80,11 @@ Un IDE completo basado en Lua y gestionado con **Lazy.nvim**.
 *   Modularizado en `lua/plugins/` (Categorías: UI, Coding, Editor).
 *   Incluye LSP, Autocompletado, Treesitter y soporte para depuración.
 
-### Eww (`.config/eww`)
-Barra de estado y widgets personalizados.
-*   Usa scripts en `.config/eww/scripts/` para obtener info del sistema (batería, wifi, música).
+### Quickshell — barra (`.config/quickshell/bar`)
+Barra de estado en QML/Qt (reemplaza a Eww). Idéntica en todos los monitores e independiente de resolución.
+*   Datos por servicios nativos reactivos (Pipewire, UPower, MPRIS, SystemTray, Hyprland) y lecturas de `/proc`/`/sys`; sin polling de scripts.
+*   Incluye el **servidor de notificaciones** nativo (reemplaza a swaync): toasts en pantalla + historial en el panel de stats.
+*   Se lanza con `qs -c bar`. El lockscreen vive aparte en `.config/quickshell/lock`.
 
 ### Rofi (`.config/rofi`)
 Lanzador de aplicaciones y menús.

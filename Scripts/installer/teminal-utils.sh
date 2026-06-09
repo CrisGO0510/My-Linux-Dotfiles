@@ -42,7 +42,7 @@ PACKAGES=(
     unzip
     unrar
     p7zip
-    bsdtar
+    libarchive        # provee bsdtar (preview de .iso en lf)
     zip               # lfrc usa zip para comprimir
     trash-cli         # lfrc mapea D a trash-confirm
 

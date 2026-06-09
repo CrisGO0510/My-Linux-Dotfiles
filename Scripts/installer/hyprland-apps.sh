@@ -27,11 +27,10 @@ PACKAGES=(
     hyprshade
     xdg-desktop-portal-hyprland
 
-    # Bar y widgets
-    eww
+    # Barra de estado (Quickshell; también provee el servidor de notificaciones)
+    quickshell
 
-    # Notificaciones y launcher
-    swaync
+    # Launcher y menú de power
     rofi-wayland
     wlogout
     swayosd-git
@@ -77,7 +76,7 @@ PACKAGES=(
     qt6ct
     nwg-look
 
-    # Monitoreo GPU AMD (widget eww gpu_usage.sh)
+    # Monitoreo GPU AMD (opcional)
     radeontop
 
     # Theming (referenciados en hyprland.conf)
