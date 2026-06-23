@@ -19,7 +19,7 @@ return {
 			},
 			pickers = {
 				find_files = {
-					find_command = { "fd", "--type", "f", "--hidden", "--exclude", ".git" },
+					find_command = { "fd", "--type", "f", "--hidden", "--no-ignore-vcs", "--exclude", ".git", "--exclude", "node_modules" },
 				},
 				live_grep = {
 					additional_args = function()
