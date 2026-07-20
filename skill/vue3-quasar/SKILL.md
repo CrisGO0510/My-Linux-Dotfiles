@@ -104,6 +104,12 @@ Adapter (SQLite, API, etc.) — concrete implementation
 - **Stores coordinate use cases** — instantiate use cases with repository, expose actions
 - **Computed vs Getters** — Prefer computed for derived state
 
+### Constants & Configuration
+- **NO magic strings or magic numbers — ever.** No literal with meaning (sizes, limits, keys, statuses, endpoints, breakpoints) may appear inline in templates or logic. Extract it to a named constant.
+- **Reuse existing constants first** — before creating a new one, `grep` for the raw value and for likely names (e.g. `*_SIZE`, `FILE_SIZES`, status enums). Only add a new constant if none exists.
+- **Example** — file/upload sizes belong in a shared table (e.g. `FILE_SIZES.MB_5.value`), not `5242880` inline on a `:max-file-size` prop.
+- **Where they live** — feature-specific constants near the feature; cross-cutting ones in a shared `types/`/`constants/` module.
+
 ### Quasar Best Practices
 - **Platform Detection** — Use `$q.platform` for conditional logic
 - **Responsive Grid** — Leverage Quasar's 12-column grid system
