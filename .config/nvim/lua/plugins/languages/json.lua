@@ -53,26 +53,11 @@ return {
 							enable = true,
 						},
 						
-						-- Schema validation configuration
-						schemaRequest = {
-							enable = true,
-							url = "https://www.schemastore.org/api/json/catalog.json",
-						},
 					},
 				},
-				
-				-- Initialization callback
-				on_init = function(client, initialize_result)
-					vim.defer_fn(function()
-						if client and client.server_capabilities then
-							vim.notify(
-								"📄 JSON LSP activado con schema validation ✅", 
-								vim.log.levels.INFO
-							)
-						end
-					end, 1000)
-				end,
 			}
+
+			vim.lsp.enable("jsonls")
 		end,
 	},
 	

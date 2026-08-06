@@ -95,15 +95,28 @@ wk.add({
 -- cmp keymaps
 local cmp = require("cmp")
 
-local function feed(keys)
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, true, true), "", true)
+-- Alimenta una tecla SIN remapear, para no reentrar en este mismo mapeo.
+local function feed_native(keys)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, true, true), "n", false)
+end
+
+-- Estos mapeos son globales de insert mode, así que pisan teclas nativas de
+-- Vim. Si el menú de cmp no está visible hay que devolver la tecla original,
+-- o se pierden i_CTRL-N, i_CTRL-Y, i_CTRL-F, etc.
+local function cmp_or_native(key, action)
+	return function()
+		if cmp.visible() then
+			action()
+		else
+			feed_native(key)
+		end
+	end
 end
 
 wk.add({
 	{
 		"<C-Space>",
 		function()
-			local cmp = require("cmp")
 			if cmp.visible() then
 				cmp.close()
 			else
@@ -116,44 +129,40 @@ wk.add({
 	-- Navegación por ítems
 	{
 		"<C-n>",
-		function()
-			cmp.select_next_item()
-		end,
-		desc = "Siguiente ítem",
+		cmp_or_native("<C-n>", cmp.select_next_item),
+		desc = "Siguiente ítem / completado nativo",
 		mode = "i",
 	},
 	{
 		"<C-p>",
-		function()
-			cmp.select_prev_item()
-		end,
-		desc = "Ítem anterior",
+		cmp_or_native("<C-p>", cmp.select_prev_item),
+		desc = "Ítem anterior / completado nativo",
 		mode = "i",
 	},
 	{
 		"<C-y>",
-		function()
+		cmp_or_native("<C-y>", function()
 			cmp.confirm({ select = true })
-		end,
-		desc = "Aceptar sugerencia",
+		end),
+		desc = "Aceptar sugerencia / copiar char de arriba",
 		mode = "i",
 	},
 
 	-- Scroll docs
 	{
 		"<C-b>",
-		function()
+		cmp_or_native("<C-b>", function()
 			cmp.scroll_docs(-4)
-		end,
+		end),
 		desc = "Docs atrás",
 		mode = "i",
 	},
 	{
 		"<C-f>",
-		function()
+		cmp_or_native("<C-f>", function()
 			cmp.scroll_docs(4)
-		end,
-		desc = "Docs adelante",
+		end),
+		desc = "Docs adelante / reindentar línea",
 		mode = "i",
 	},
 
@@ -163,10 +172,12 @@ wk.add({
 			if cmp.visible() then
 				cmp.confirm({ select = true })
 			else
-				feed("\n") -- salto de línea normal (arregla tu problema #2)
+				-- Delegar en autopairs: expande llaves/paréntesis al saltar línea.
+				-- autopairs_cr() ya devuelve las teclas escapadas: no re-escapar.
+				vim.api.nvim_feedkeys(require("nvim-autopairs").autopairs_cr(), "n", false)
 			end
 		end,
-		desc = "Confirmar si visible / nueva línea",
+		desc = "Confirmar si visible / nueva línea (autopairs)",
 		mode = "i",
 	},
 })
@@ -601,8 +612,16 @@ wk.add({
 	},
 	{
 		"<leader>e",
-		":Neotree toggle reveal=true position=left dir=" .. vim.fn.expand("%:p:h") .. "<CR>",
-		desc = "Toggle NeoTree at CWD",
+		function()
+			-- El directorio se resuelve al pulsar la tecla, no al cargar este
+			-- archivo: si no, queda congelado al buffer inicial (vacío).
+			local dir = vim.fn.expand("%:p:h")
+			if dir == "" then
+				dir = vim.fn.getcwd()
+			end
+			vim.cmd("Neotree toggle reveal=true position=left dir=" .. vim.fn.fnameescape(dir))
+		end,
+		desc = "Toggle NeoTree en el dir del buffer",
 	},
 	{
 		"<leader>A",
@@ -664,6 +683,42 @@ wk.add({
 		end,
 		desc = "📋 List all component files",
 		mode = "n",
+	},
+})
+
+-- flash.nvim (setup() no crea ningún mapeo por su cuenta)
+wk.add({
+	{
+		"s",
+		function()
+			require("flash").jump()
+		end,
+		desc = "Flash",
+		mode = { "n", "x", "o" },
+	},
+	{
+		"S",
+		function()
+			require("flash").treesitter()
+		end,
+		desc = "Flash Treesitter",
+		mode = { "n", "x", "o" },
+	},
+	{
+		"r",
+		function()
+			require("flash").remote()
+		end,
+		desc = "Remote Flash",
+		mode = "o",
+	},
+	{
+		"R",
+		function()
+			require("flash").treesitter_search()
+		end,
+		desc = "Treesitter Search",
+		mode = { "o", "x" },
 	},
 })
 

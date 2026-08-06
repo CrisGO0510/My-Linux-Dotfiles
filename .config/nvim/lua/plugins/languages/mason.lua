@@ -1,4 +1,5 @@
--- Mason + lua_ls (LSP siempre activo para editar este config).
+-- Mason + los LSPs siempre activos: lua_ls (para editar este config) y
+-- jsonls (definido en plugins/languages/json.lua).
 -- El resto de LSPs viven en plugins/stacks/<lang>.lua y se activan
 -- descomentando su línea en config/lazy.lua.
 --
@@ -16,9 +17,21 @@ return {
 		require("mason").setup()
 
 		require("mason-lspconfig").setup({
-			ensure_installed = { "lua_ls" },
+			ensure_installed = { "lua_ls", "jsonls" },
 			automatic_enable = false,
 		})
+
+		-- mason-lspconfig solo instala language servers. Los formatters hay que
+		-- pedirlos aparte o no existen en una máquina recién clonada.
+		local registry = require("mason-registry")
+		registry.refresh(function()
+			for _, name in ipairs({ "prettierd" }) do
+				local ok, pkg = pcall(registry.get_package, name)
+				if ok and not pkg:is_installed() then
+					pkg:install()
+				end
+			end
+		end)
 
 		local capabilities = require("cmp_nvim_lsp").default_capabilities()
 

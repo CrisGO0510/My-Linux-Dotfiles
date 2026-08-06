@@ -15,7 +15,7 @@ return {
       pre_save = function()
         local ok, conform = pcall(require, "conform")
         if ok then
-          conform.format({ async = false, lsp_fallback = true, timeout_ms = 2000 })
+          conform.format({ async = false, lsp_format = "fallback", timeout_ms = 2000 })
         end
       end,
       condition = function(buf)
@@ -32,7 +32,9 @@ return {
       write_all_buffers = false,
 			noautocmd = true,
       lockmarks = false,
-			debounce_delay = 2000,
+			-- El pre_save formatea síncrono: con un debounce corto el freeze cae
+			-- en medio de una ráfaga de tipeo. 3500ms lo saca de esa ventana.
+			debounce_delay = 3500,
 
     },
   },

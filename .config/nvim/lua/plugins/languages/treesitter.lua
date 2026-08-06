@@ -24,7 +24,6 @@ return {
 			"javascript",
 			"tsx",
 			"json",
-			"jsonc",
 			"jsdoc",
 			"regex",
 			-- Otros lenguajes

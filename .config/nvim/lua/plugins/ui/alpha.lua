@@ -46,12 +46,13 @@ return {
 			"                  ╚══════════════════════════════════╝   ",
 		}
 
-		-- Botones simplificados para evitar conflictos
+		-- Los botones se registran con noremap=true: hay que darles el comando
+		-- real, no un "<leader>xx" (no se remapearía y no haría nada).
 		dashboard.section.buttons.val = {
-			dashboard.button("n", "📄  Nuevo Archivo", ":ene <BAR> startinsert<CR>"),
-			dashboard.button("f", "🔍  Buscar Archivos", "<leader>ff"),
-			dashboard.button("p", "🗂️  Proyectos", "<leader>fp"),
-			dashboard.button("q", "🚪  Salir", ":qa<CR>"),
+			dashboard.button("n", "📄  Nuevo Archivo", "<cmd>ene | startinsert<CR>"),
+			dashboard.button("f", "🔍  Buscar Archivos", "<cmd>Telescope find_files<CR>"),
+			dashboard.button("p", "🗂️  Proyectos", "<cmd>Telescope project<CR>"),
+			dashboard.button("q", "🚪  Salir", "<cmd>qa<CR>"),
 		}
 
 		-- Footer con mensaje filosófico

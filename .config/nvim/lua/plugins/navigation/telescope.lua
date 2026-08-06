@@ -13,6 +13,30 @@ return {
 		local telescope = require("telescope")
 		local themes = require("telescope.themes")
 
+		-- Los directorios varían por máquina (branch laptop vs default).
+		-- Pasar uno inexistente hace que project/frecency tiren error al arrancar.
+		local function existing_dirs(dirs)
+			local found = {}
+			for _, dir in ipairs(dirs) do
+				if vim.fn.isdirectory(vim.fn.expand(dir)) == 1 then
+					table.insert(found, dir)
+				end
+			end
+			return found
+		end
+
+		local function existing_workspaces(map)
+			local found = {}
+			for name, dir in pairs(map) do
+				if vim.fn.isdirectory(vim.fn.expand(dir)) == 1 then
+					found[name] = dir
+				end
+			end
+			return found
+		end
+
+		local repo_dirs = existing_dirs({ "~/Documents/Repo", "~/dotfiles" })
+
 		telescope.setup({
 			defaults = {
 				file_ignore_patterns = { "%.git/" },
@@ -29,10 +53,7 @@ return {
 			},
 			extensions = {
 				project = {
-					base_dirs = {
-						"~/Documents/Repo",
-						"~/dotfiles",
-					},
+					base_dirs = repo_dirs,
 					hidden_files = true,
 					theme = "dropdown",
 					order_by = "recent",
@@ -51,12 +72,12 @@ return {
 					show_unindexed = true, -- Mostrar archivos no indexados
 					ignore_patterns = { "*.git/*", "*/tmp/*", "*/node_modules/*" },
 					default_workspace = "CWD", -- Por directorio actual
-					workspaces = {
+					workspaces = existing_workspaces({
 						["conf"] = "~/.config",
 						["data"] = "~/.local/share",
 						["project"] = "~/Documents/Repo",
 						["dotfiles"] = "~/dotfiles",
-					},
+					}),
 				},
 			},
 		})

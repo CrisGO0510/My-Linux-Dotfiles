@@ -77,6 +77,8 @@ local component_patterns = {
 		sfc = {
 			component = ".vue",
 		},
+		spec = ".spec.ts",
+		spec_alt = ".test.ts",
 	},
 	angular = {
 		component = ".component.ts",
@@ -111,6 +113,11 @@ end
 -- Obtener base path del archivo (sin extensiones) - Vue específico
 local function get_vue_base_path(filepath)
 	local base = filepath
+
+	-- Los sufijos de test van primero: si no, ".ts" convierte
+	-- "Foo.spec.ts" en "Foo.spec" y se pierde el base real.
+	base = base:gsub("%.spec%.[tj]s$", "")
+	base = base:gsub("%.test%.[tj]s$", "")
 
 	-- Vue patterns
 	base = base:gsub("%.vue$", "")
@@ -150,6 +157,9 @@ function M.get_related_files(filepath, project_type)
 			-- Fallback to SFC
 			related_files.component = base_path .. patterns.sfc.component
 		end
+
+		related_files.spec = base_path .. patterns.spec
+		related_files.spec_alt = base_path .. patterns.spec_alt
 	elseif project_type == "angular" then
 		local base_path = get_angular_base_path(filepath)
 		local patterns = component_patterns.angular
@@ -403,10 +413,7 @@ M.navigate_to_style = function()
 	M.navigate_to_file_type("style", { "style", "style_alt" })
 end
 M.navigate_to_test = function()
-	M.navigate_to_file_type("spec")
-	if vim.v.errmsg ~= "" then -- Si spec falló, probar con test
-		M.navigate_to_file_type("test", { "test", "test_alt" })
-	end
+	M.navigate_to_file_type("spec", { "spec", "spec_alt" })
 end
 
 return M
