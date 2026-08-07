@@ -22,6 +22,7 @@ map w drag_files
 map D trash-confirm
 
 map gt cd ~/.local/share/Trash/files
+map gn cd ~/Documents/obsidian
 map ? ${{ glow -p ~/.config/lf/maps.md }}
 map gp dev_project
 

@@ -53,6 +53,8 @@
 | :--- | :--- |
 | `f` | Buscar archivo (FZF) |
 | `F` | Saltar a carpeta (FZF) |
+| `gt` | Ir a la papelera |
+| `gn` | Ir al vault de Obsidian |
 
 ### Operaciones
 

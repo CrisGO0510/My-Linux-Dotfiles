@@ -8,6 +8,7 @@
 
 return {
 	"williamboman/mason.nvim",
+	lazy = false, -- define y habilita los LSP: tiene que correr antes de abrir archivos
 	dependencies = {
 		"williamboman/mason-lspconfig.nvim",
 		"neovim/nvim-lspconfig",

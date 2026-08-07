@@ -2,6 +2,7 @@ return {
 	"catppuccin/nvim",
 	name = "catppuccin",
 	priority = 1000,
+	lazy = true, -- solo se carga si lo elegís desde <leader>uC
 	opts = {
 		flavour = "mocha",
 		background = { light = "latte", dark = "mocha" },

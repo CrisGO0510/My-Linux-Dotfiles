@@ -1,6 +1,7 @@
 local opts = { noremap = true, silent = true }
 local map = vim.keymap.set
 local wk = require("which-key")
+local project_root = require("config.project-root")
 
 -- Navegar por líneas visuales (útil cuando wrap está activo)
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
@@ -93,7 +94,9 @@ wk.add({
 })
 
 -- cmp keymaps
-local cmp = require("cmp")
+-- OJO: nada de require("cmp") en el nivel superior. Este archivo se carga al
+-- arrancar, así que eso forzaría a cmp a cargar siempre y anularía su
+-- lazy-load por InsertEnter. Todos los require van dentro de los callbacks.
 
 -- Alimenta una tecla SIN remapear, para no reentrar en este mismo mapeo.
 local function feed_native(keys)
@@ -105,8 +108,9 @@ end
 -- o se pierden i_CTRL-N, i_CTRL-Y, i_CTRL-F, etc.
 local function cmp_or_native(key, action)
 	return function()
+		local cmp = require("cmp")
 		if cmp.visible() then
-			action()
+			action(cmp)
 		else
 			feed_native(key)
 		end
@@ -117,6 +121,7 @@ wk.add({
 	{
 		"<C-Space>",
 		function()
+			local cmp = require("cmp")
 			if cmp.visible() then
 				cmp.close()
 			else
@@ -129,19 +134,23 @@ wk.add({
 	-- Navegación por ítems
 	{
 		"<C-n>",
-		cmp_or_native("<C-n>", cmp.select_next_item),
+		cmp_or_native("<C-n>", function(cmp)
+			cmp.select_next_item()
+		end),
 		desc = "Siguiente ítem / completado nativo",
 		mode = "i",
 	},
 	{
 		"<C-p>",
-		cmp_or_native("<C-p>", cmp.select_prev_item),
+		cmp_or_native("<C-p>", function(cmp)
+			cmp.select_prev_item()
+		end),
 		desc = "Ítem anterior / completado nativo",
 		mode = "i",
 	},
 	{
 		"<C-y>",
-		cmp_or_native("<C-y>", function()
+		cmp_or_native("<C-y>", function(cmp)
 			cmp.confirm({ select = true })
 		end),
 		desc = "Aceptar sugerencia / copiar char de arriba",
@@ -151,7 +160,7 @@ wk.add({
 	-- Scroll docs
 	{
 		"<C-b>",
-		cmp_or_native("<C-b>", function()
+		cmp_or_native("<C-b>", function(cmp)
 			cmp.scroll_docs(-4)
 		end),
 		desc = "Docs atrás",
@@ -159,7 +168,7 @@ wk.add({
 	},
 	{
 		"<C-f>",
-		cmp_or_native("<C-f>", function()
+		cmp_or_native("<C-f>", function(cmp)
 			cmp.scroll_docs(4)
 		end),
 		desc = "Docs adelante / reindentar línea",
@@ -169,6 +178,7 @@ wk.add({
 	{
 		"<CR>",
 		function()
+			local cmp = require("cmp")
 			if cmp.visible() then
 				cmp.confirm({ select = true })
 			else
@@ -188,6 +198,7 @@ wk.add({
 	{
 		"<Tab>",
 		function()
+			local cmp = require("cmp")
 			if cmp.visible() then
 				cmp.confirm({ select = true })
 			elseif require("copilot.suggestion").is_visible() then
@@ -398,7 +409,13 @@ wk.add({
 		end,
 		desc = "Buffers",
 	},
-	{ "<leader>/", "<cmd>Telescope live_grep<CR>", desc = "Grep" },
+	{
+		"<leader>/",
+		function()
+			require("telescope.builtin").live_grep({ cwd = project_root.get() })
+		end,
+		desc = "Grep",
+	},
 	{ "<leader>:", "<cmd>Telescope command_history<CR>", desc = "Command History" },
 })
 
@@ -413,7 +430,13 @@ wk.add({
 		end,
 		desc = "Find Config File",
 	},
-	{ "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "Find Files" },
+	{
+		"<leader>ff",
+		function()
+			require("telescope.builtin").find_files({ cwd = project_root.get() })
+		end,
+		desc = "Find Files",
+	},
 	{ "<leader>fg", "<cmd>Telescope git_files<CR>", desc = "Find Git Files" },
 	{
 		"<leader>fp",
@@ -483,8 +506,20 @@ wk.add({
 		end,
 		desc = "Grep Open Buffers",
 	},
-	{ "<leader>sg", "<cmd>Telescope live_grep<CR>", desc = "Grep" },
-	{ "<leader>sw", "<cmd>Telescope grep_string<CR>", desc = "Visual selection or word" },
+	{
+		"<leader>sg",
+		function()
+			require("telescope.builtin").live_grep({ cwd = project_root.get() })
+		end,
+		desc = "Grep",
+	},
+	{
+		"<leader>sw",
+		function()
+			require("telescope.builtin").grep_string({ cwd = project_root.get() })
+		end,
+		desc = "Visual selection or word",
+	},
 	{ '<leader>s"', "<cmd>Telescope registers<CR>", desc = "Registers" },
 	{ "<leader>s/", "<cmd>Telescope search_history<CR>", desc = "Search History" },
 	{ "<leader>sa", "<cmd>Telescope autocommands<CR>", desc = "Autocmds" },
@@ -602,26 +637,47 @@ wk.add({
 	},
 })
 
+-- obsidian.nvim
+-- Los comandos van como string: :Obsidian dispara el lazy-load del plugin.
+-- <CR> (acción inteligente) y [o / ]o los registra el propio plugin como
+-- mapeos buffer-local al entrar en una nota del vault.
+wk.add({
+	{ "<leader>o", group = "Obsidian" },
+
+	{ "<leader>oo", "<cmd>Obsidian quick_switch<CR>", desc = "Abrir nota" },
+	{ "<leader>on", "<cmd>Obsidian new<CR>", desc = "Nueva nota" },
+	{ "<leader>os", "<cmd>Obsidian search<CR>", desc = "Buscar en el vault (grep)" },
+	{ "<leader>ot", "<cmd>Obsidian tags<CR>", desc = "Buscar por tag" },
+	{ "<leader>ob", "<cmd>Obsidian backlinks<CR>", desc = "Backlinks de la nota" },
+	{ "<leader>ol", "<cmd>Obsidian links<CR>", desc = "Links de la nota" },
+	{ "<leader>oT", "<cmd>Obsidian toc<CR>", desc = "Tabla de contenidos" },
+	{ "<leader>oc", "<cmd>Obsidian toggle_checkbox<CR>", desc = "Alternar checkbox" },
+	{ "<leader>oi", "<cmd>Obsidian paste_img<CR>", desc = "Pegar imagen del portapapeles" },
+	{ "<leader>or", "<cmd>Obsidian rename<CR>", desc = "Renombrar nota (actualiza backlinks)" },
+	{ "<leader>op", "<cmd>Obsidian open<CR>", desc = "Abrir en la app de Obsidian" },
+
+	{ "<leader>oe", ":Obsidian extract_note<CR>", desc = "Extraer selección a nota nueva", mode = "v" },
+	{ "<leader>ok", ":Obsidian link<CR>", desc = "Enlazar selección a una nota", mode = "v" },
+})
+
 wk.add({
 	{
 		"<leader> ",
 		function()
-			require("telescope.builtin").find_files()
+			require("telescope.builtin").find_files({ cwd = project_root.get() })
 		end,
 		desc = "Find Files",
 	},
 	{
 		"<leader>e",
 		function()
-			-- El directorio se resuelve al pulsar la tecla, no al cargar este
-			-- archivo: si no, queda congelado al buffer inicial (vacío).
-			local dir = vim.fn.expand("%:p:h")
-			if dir == "" then
-				dir = vim.fn.getcwd()
-			end
+			-- La raíz se resuelve al pulsar la tecla, no al cargar este archivo:
+			-- si no, queda congelada al buffer inicial (vacío). reveal deja el
+			-- cursor en el archivo actual sin recortar el árbol a su carpeta.
+			local dir = project_root.get()
 			vim.cmd("Neotree toggle reveal=true position=left dir=" .. vim.fn.fnameescape(dir))
 		end,
-		desc = "Toggle NeoTree en el dir del buffer",
+		desc = "Toggle NeoTree en la raíz del proyecto",
 	},
 	{
 		"<leader>A",

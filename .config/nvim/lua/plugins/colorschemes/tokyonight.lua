@@ -1,6 +1,7 @@
 return {
 	"folke/tokyonight.nvim",
 	priority = 1000,
+	lazy = false, -- es el colorscheme activo: tiene que aplicarse en el arranque
 	opts = {
 		style = "moon",
 		transparent = false,

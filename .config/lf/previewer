@@ -5,6 +5,8 @@ h="$3"
 x="$4"
 y="$5"
 
+GLOW_STYLE="dark"
+
 draw() {
   kitten icat --stdin no --transfer-mode memory --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
   exit 1
@@ -26,6 +28,11 @@ pdf() {
   fi
   
   draw "$thumb"
+}
+
+markdown() {
+  COLORTERM=truecolor glow --style="$GLOW_STYLE" --width="$((w - 2))" "$1" 2>&1
+  exit 0
 }
 
 archive() {
@@ -50,6 +57,12 @@ case "$mime" in
     ;;
   application/pdf)
     pdf "$file"
+    ;;
+esac
+
+case "$file" in
+  *.md|*.markdown)
+    markdown "$file"
     ;;
 esac
 

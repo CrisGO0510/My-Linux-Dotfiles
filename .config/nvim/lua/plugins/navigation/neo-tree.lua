@@ -21,6 +21,10 @@ return {
 			},
 		},
 		filesystem = {
+			-- Por defecto neo-tree hace `tcd` a su raíz cada vez que cambia
+			-- (bind_to_cwd + cwd_target), y eso deja a telescope buscando solo
+			-- dentro de esa carpeta. La raíz se pasa explícita al abrir el árbol.
+			bind_to_cwd = false,
 			filtered_items = {
 				hide_dotfiles = false,
 				hide_by_name = {

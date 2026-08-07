@@ -1,5 +1,6 @@
 return {
 	"SergioRibera/codeshot.nvim",
+	cmd = { "SSSelected", "SSFocused" },
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},

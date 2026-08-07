@@ -1,5 +1,8 @@
 return {
 	"nvim-telescope/telescope.nvim",
+	-- VeryLazy y no cmd: la extensión ui-select reemplaza vim.ui.select, y eso
+	-- tiene que estar registrado antes del primer vim.ui.select del día.
+	event = "VeryLazy",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-telescope/telescope-project.nvim",

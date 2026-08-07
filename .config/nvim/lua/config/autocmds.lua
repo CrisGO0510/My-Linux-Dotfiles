@@ -42,6 +42,23 @@ vim.api.nvim_create_autocmd("BufRead", {
 	end,
 })
 
+-- Modo escritura: en prosa interesa el wrap por palabra y el corrector, y
+-- estorban los listchars (puntitos de trailing) que sí sirven en código.
+local writing = vim.api.nvim_create_augroup("MarkdownWriting", { clear = true })
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "markdown",
+	group = writing,
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.linebreak = true
+		vim.opt_local.breakindent = true
+		vim.opt_local.list = false
+		vim.opt_local.spelllang = "es,en"
+		vim.opt_local.spell = true
+	end,
+})
+
 -- Autocomando para mantener alpha limpio (sin cambios)
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "alpha",

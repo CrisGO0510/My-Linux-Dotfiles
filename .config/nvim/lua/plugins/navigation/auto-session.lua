@@ -1,6 +1,6 @@
 return {
 	"rmagatti/auto-session",
-	lazy = false,
+	lazy = false, -- restaura la sesión en el arranque
 	config = function()
 		-- Configurar sessionoptions óptimo para auto-session
 		vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

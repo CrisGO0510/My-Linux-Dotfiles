@@ -35,6 +35,10 @@ return {
 		words = {
 			enabled = true,
 		},
+		-- Imágenes inline en las notas (kitty graphics protocol).
+		image = {
+			enabled = true,
+		},
 		statuscolumn = {
 			enabled = true,
 		},

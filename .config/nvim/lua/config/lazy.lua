@@ -19,6 +19,7 @@ require("lazy").setup({
 		{ import = "plugins.languages" },
 		{ import = "plugins.code_intelligence" },
 		{ import = "plugins.navigation" },
+		{ import = "plugins.notes" },
 		{ import = "plugins.colorschemes" },
 
 		-- ══════════════════════════════════════════════════════
@@ -30,7 +31,9 @@ require("lazy").setup({
 		-- { import = "plugins.stacks.typescript" },
 		-- { import = "plugins.stacks.rust" },
 	},
-	defaults = { lazy = false },
+	-- Por defecto TODO es lazy: cada spec declara su propio trigger
+	-- (event/cmd/ft) o un lazy=false explícito si hace falta al arrancar.
+	defaults = { lazy = true },
 	install = { colorscheme = { "tokyonight" } },
-	checker = { enabled = true },
+	checker = { enabled = true, notify = false },
 })
