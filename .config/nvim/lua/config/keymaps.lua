@@ -637,29 +637,6 @@ wk.add({
 	},
 })
 
--- obsidian.nvim
--- Los comandos van como string: :Obsidian dispara el lazy-load del plugin.
--- <CR> (acción inteligente) y [o / ]o los registra el propio plugin como
--- mapeos buffer-local al entrar en una nota del vault.
-wk.add({
-	{ "<leader>o", group = "Obsidian" },
-
-	{ "<leader>oo", "<cmd>Obsidian quick_switch<CR>", desc = "Abrir nota" },
-	{ "<leader>on", "<cmd>Obsidian new<CR>", desc = "Nueva nota" },
-	{ "<leader>os", "<cmd>Obsidian search<CR>", desc = "Buscar en el vault (grep)" },
-	{ "<leader>ot", "<cmd>Obsidian tags<CR>", desc = "Buscar por tag" },
-	{ "<leader>ob", "<cmd>Obsidian backlinks<CR>", desc = "Backlinks de la nota" },
-	{ "<leader>ol", "<cmd>Obsidian links<CR>", desc = "Links de la nota" },
-	{ "<leader>oT", "<cmd>Obsidian toc<CR>", desc = "Tabla de contenidos" },
-	{ "<leader>oc", "<cmd>Obsidian toggle_checkbox<CR>", desc = "Alternar checkbox" },
-	{ "<leader>oi", "<cmd>Obsidian paste_img<CR>", desc = "Pegar imagen del portapapeles" },
-	{ "<leader>or", "<cmd>Obsidian rename<CR>", desc = "Renombrar nota (actualiza backlinks)" },
-	{ "<leader>op", "<cmd>Obsidian open<CR>", desc = "Abrir en la app de Obsidian" },
-
-	{ "<leader>oe", ":Obsidian extract_note<CR>", desc = "Extraer selección a nota nueva", mode = "v" },
-	{ "<leader>ok", ":Obsidian link<CR>", desc = "Enlazar selección a una nota", mode = "v" },
-})
-
 wk.add({
 	{
 		"<leader> ",
@@ -675,7 +652,15 @@ wk.add({
 			-- si no, queda congelada al buffer inicial (vacío). reveal deja el
 			-- cursor en el archivo actual sin recortar el árbol a su carpeta.
 			local dir = project_root.get()
-			vim.cmd("Neotree toggle reveal=true position=left dir=" .. vim.fn.fnameescape(dir))
+			local file = vim.api.nvim_buf_get_name(0)
+			local reveal = vim.bo.buftype == "" and file ~= "" and vim.uv.fs_stat(file) ~= nil
+			vim.cmd(
+				string.format(
+					"Neotree toggle position=left reveal=%s dir=%s",
+					tostring(reveal),
+					vim.fn.fnameescape(dir)
+				)
+			)
 		end,
 		desc = "Toggle NeoTree en la raíz del proyecto",
 	},
