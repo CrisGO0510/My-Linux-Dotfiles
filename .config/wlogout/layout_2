@@ -1,13 +1,13 @@
 {
     "label": "lock",
-    "action": "lockscreen.sh",
+    "action": "$HOME/dotfiles/Scripts/hypr/lock.sh",
     "text": "Lock",
     "keybind": "l"
 }
 
 {
     "label": "logout",
-    "action": "hyprctl dispatch exit 0",
+    "action": "$HOME/dotfiles/Scripts/hypr/hyprexit.sh",
     "text": "Logout",
     "keybind": "e"
 }

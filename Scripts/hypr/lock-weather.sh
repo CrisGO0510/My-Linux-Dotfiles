@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clima para hyprlock. Consulta wttr.in y cachea el resultado unos minutos
+# Clima para el lockscreen de Quickshell. Consulta wttr.in y cachea el resultado unos minutos
 # para no golpear la red en cada refresco de las labels del lock.
 # Uso: lock-weather.sh {icon|temp|cond}
 #   icon -> glifo Nerd Font (nf-weather-*) segun la condicion

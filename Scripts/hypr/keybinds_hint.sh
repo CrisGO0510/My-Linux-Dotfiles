@@ -1,86 +1,53 @@
 #!/usr/bin/env bash
 
-# -----------------------------------------------------
-# 1. CONFIGURACIÓN Y COLORES (TUS COLORES)
-# -----------------------------------------------------
-confDir="${XDG_CONFIG_HOME:-$HOME/.config}"
+# Lee los atajos directamente del compositor (hyprctl binds -j) en vez de
+# parsear la config: asi funciona con la config en Lua, donde muchos binds se
+# generan en bucles y no existen como lineas de texto.
+
 font="JetBrainsMono Nerd Font 10"
+rofiConf="$HOME/.config/rofi/keybinds.rasi"
 
-# Buscamos tu archivo de keybindings
-if [ -f "$confDir/hypr/keybinding.conf" ]; then
-    keyconf="$confDir/hypr/keybinding.conf"
-elif [ -f "$confDir/hypr/keybindings.conf" ]; then
-    keyconf="$confDir/hypr/keybindings.conf"
-else
-    keyconf="$confDir/hypr/hyprland.conf"
-fi
-
-# -----------------------------------------------------
-# 2. LÓGICA DE DATOS (EXTRAER ATAJOS)
-# -----------------------------------------------------
+# Anchura de la columna de teclas, para que queden alineadas.
+KEY_COLUMN_WIDTH=25
 
 if pgrep -x "rofi" > /dev/null; then
     pkill rofi
     exit 0
 fi
 
-if [ ! -f "$keyconf" ]; then
-    notify-send "Error" "No config found"
+if ! binds=$(hyprctl binds -j 2>/dev/null); then
+    notify-send "Error" "No se pudieron consultar los atajos a Hyprland"
     exit 1
 fi
 
-awk_script='
-BEGIN { FS=","; }
-/bind/ && /#/ {
-    line = $0;
-    
-    # Separar comentario
-    split(line, parts, "#");
-    desc = parts[2];
-    code = parts[1];
-    
-    # Limpiar espacios
-    gsub(/^\s+|\s+$/, "", desc);
-    gsub(/bind[a-z]*\s*=\s*/, "", code);
-    
-    # Separar teclas
-    split(code, args, ",");
-    mod = args[1];
-    key = args[2];
-    
-    gsub(/^\s+|\s+$/, "", mod);
-    gsub(/^\s+|\s+$/, "", key);
-    
-    # Formato visual de teclas
-    gsub(/\$mainMod/, "SUPER", mod);
-    gsub(/SHIFT/, "Shift", mod);
-    gsub(/CTRL/, "Ctrl", mod);
-    gsub(/ALT/, "Alt", mod);
-    gsub(/slash/, "/", key);
-    gsub(/Return/, "Enter", key);
-    
-    # Solo mostrar si hay tecla definida
-    if (key != "") {
-        if (mod != "") {
-            keys = mod " + " key;
-        } else {
-            keys = key;
-        }
-        
-        # Salida formateada con Pango Markup
-        # %-25s reserva espacio fijo para las teclas para que se vean como columnas
-        printf "<b>%-25s</b>  │  %s\n", keys, desc
-    }
-}'
+# Bits de modmask de Hyprland: Shift 1, Ctrl 4, Alt 8, Super 64.
+jq_script='
+    def bit($m; $b): (($m / $b) | floor) % 2 == 1;
+    def mods($m):
+        [ (if bit($m;64) then "Super" else empty end),
+          (if bit($m;4)  then "Ctrl"  else empty end),
+          (if bit($m;8)  then "Alt"   else empty end),
+          (if bit($m;1)  then "Shift" else empty end) ];
+    def prettyKey($k):
+        if   $k == "slash"  then "/"
+        elif $k == "Return" then "Enter"
+        else $k end;
+    def caption:
+        if (.description // "") != "" then .description
+        else (.dispatcher + (if (.arg // "") != "" then " " + .arg else "" end)) end;
 
-# -----------------------------------------------------
-# 3. EJECUCIÓN
-# -----------------------------------------------------
+    .[]
+    | select((.key // "") != "")
+    | (mods(.modmask) + [prettyKey(.key)] | join(" + ")) + "\t" + caption
+'
 
-awk "$awk_script" "$keyconf" | \
+printf '%s' "$binds" | jq -r "$jq_script" | \
+    while IFS=$'\t' read -r keys desc; do
+        printf '<b>%-*s</b>  │  %s\n' "$KEY_COLUMN_WIDTH" "$keys" "$desc"
+    done | \
 rofi -dmenu \
     -i \
     -markup-rows \
     -p "Atajos" \
-    -config "$HOME/.config/rofi/keybinds.rasi" \
+    -config "$rofiConf" \
     -font "$font"

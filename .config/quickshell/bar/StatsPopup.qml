@@ -125,7 +125,7 @@ PopupWindow {
                             model: [
                                 { icon: "󰌾", cmd: "$HOME/dotfiles/Scripts/hypr/lock.sh" },
                                 { icon: "󰒲", cmd: "systemctl suspend" },
-                                { icon: "󰍃", cmd: "hyprctl dispatch exit" },
+                                { icon: "󰍃", cmd: "$HOME/dotfiles/Scripts/hypr/hyprexit.sh" },
                                 { icon: "󰜉", cmd: "systemctl reboot" },
                                 { icon: "⏻",  cmd: "systemctl poweroff" }
                             ]

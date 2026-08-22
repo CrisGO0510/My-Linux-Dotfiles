@@ -66,10 +66,15 @@ Esto hace que se queden las configuraciones del dotfiles y se vincule sin necesi
 
 La configuración de Hyprland (`.config/hypr/`) es modular y personalizada:
 
-*   **Configuración Base:** `hyprland.conf`, `keybindings.conf`, `monitors.conf`.
-*   **Animaciones:** Ubicadas en `animations/`. Puedes cambiar entre estilos (ej. `fast.conf`, `diablo-1.conf`, `end4.conf`) editando el archivo `hyprland.conf` para incluir el deseado.
-*   **Bloqueo:** `hyprlock/` contiene temas visuales para la pantalla de bloqueo.
-*   **Temas:** Colores y reglas de ventana en `themes/` y `windowrules.conf`.
+Desde Hyprland 0.55 la configuración se escribe en **Lua** (hyprlang está deprecado).
+
+*   **Configuración Base:** `hyprland.lua` es el punto de entrada y carga el resto con `require()`: `keybindings.lua`, `windowrules.lua`, `monitors.lua`.
+*   **Animaciones:** `animations.lua`.
+*   **Temas:** Colores en `themes/theme.lua` y `themes/common.lua`; reglas de ventana en `windowrules.lua`.
+*   **Bloqueo:** la pantalla de bloqueo es una capa viva de Quickshell (`Scripts/hypr/lock.sh`).
+
+Hyprland elige el gestor de configuración **una sola vez al arrancar**: si tocas `hyprland.lua`
+basta con guardarlo (recarga sola), pero crearlo o quitarlo exige reiniciar la sesión.
 
 ---
 
