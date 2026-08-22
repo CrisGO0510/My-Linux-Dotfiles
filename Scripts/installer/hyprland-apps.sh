@@ -20,7 +20,6 @@ yay -Syu --noconfirm
 # === Hyprland core ===
 PACKAGES=(
     hyprland
-    hyprlock
     hypridle
     hyprpaper
     hyprpicker
@@ -79,7 +78,7 @@ PACKAGES=(
     # Monitoreo GPU AMD (opcional)
     radeontop
 
-    # Theming (referenciados en hyprland.conf)
+    # Theming (referenciados en themes/theme.lua)
     sweet-gtk-theme-dark
     candy-icons-git
     bibata-cursor-theme
