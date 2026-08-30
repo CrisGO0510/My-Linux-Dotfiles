@@ -7,9 +7,32 @@ y="$5"
 
 GLOW_STYLE="dark"
 
+# Sobre SSH el terminal corre en la máquina cliente: no puede leer la memoria
+# compartida ni los archivos temporales del host remoto. Hay que mandar los
+# bytes por escape codes (stream). Ver `kitten icat --transfer-mode`.
 draw() {
-  kitten icat --stdin no --transfer-mode memory --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
-  exit 1
+  if [ -z "$SSH_CONNECTION$SSH_CLIENT$SSH_TTY" ]; then
+    kitten icat --stdin no --transfer-mode memory --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
+    exit 1
+  fi
+
+  # Cliente con protocolo gráfico de kitty (kitty, ghostty, wezterm...)
+  case "$TERM$TERM_PROGRAM" in
+    *kitty*|*ghostty*|*[Ww]ez[Tt]erm*)
+      kitten icat --stdin no --transfer-mode stream --place "${w}x${h}@${x}x${y}" "$1" </dev/null >/dev/tty
+      exit 1
+      ;;
+  esac
+
+  # Cliente sin soporte gráfico: degradar a bloques unicode/sixel
+  if command -v chafa >/dev/null 2>&1; then
+    chafa --size="${w}x${h}" "$1"
+    exit 0
+  fi
+
+  echo "Sin previsualización gráfica en este terminal ($TERM)."
+  echo "Instala chafa en el host remoto para ver una versión en texto."
+  exit 0
 }
 
 video() {
