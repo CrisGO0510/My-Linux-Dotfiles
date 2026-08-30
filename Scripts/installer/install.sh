@@ -46,7 +46,8 @@ Se ejecutaran en orden:
   5. zsh-setup.sh          (Oh My Zsh + Powerlevel10k + plugins)
   6. hyprland-apps.sh      (Hyprland + utilidades + multimedia)
   7. coding-needs.sh       (nodejs, rust, python, neovim)
-  8. stow                  (symlinks de dotfiles a \$HOME)
+  8. lid-behavior.sh       (cerrar la tapa no suspende; requiere sudo)
+  9. stow                  (symlinks de dotfiles a \$HOME)
 
 EOF
 read -rp "Continuar? [y/N] " ans
@@ -96,8 +97,9 @@ run_script "teminal-utils.sh" "Utilidades de terminal"
 run_script "zsh-setup.sh"     "Oh My Zsh + Powerlevel10k"
 run_script "hyprland-apps.sh" "Hyprland y apps de escritorio"
 run_script "coding-needs.sh"  "Herramientas de desarrollo"
+run_script "lid-behavior.sh"  "Comportamiento del cierre de tapa"
 
-# === 8. Stow ===
+# === 9. Stow ===
 step "Aplicando symlinks con stow"
 if ! command -v stow &>/dev/null; then
     error "stow no encontrado. Algo fallo en teminal-utils.sh"

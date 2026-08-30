@@ -193,3 +193,20 @@ hl.bind(MOD .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }), { description
 
 hl.bind(MOD .. " + S", hl.dsp.workspace.toggle_special(SPECIAL_WORKSPACE), { description = "Alternar workspace especial" })
 hl.bind(MOD .. " + ALT + S", hl.dsp.window.move({ workspace = SPECIAL_WORKSPACE, follow = false }), { description = "Mover ventana al workspace especial" })
+
+
+-- ▀█▀ ▄▀█ █▀█ ▄▀█   █▀▄ █▀▀ █░░   █▀█ █▀█ █▀█ ▀█▀ ▄▀█ ▀█▀ █ █░░
+-- ░█░ █▀█ █▀▀ █▀█   █▄▀ ██▄ █▄▄   █▀▀ █▄█ █▀▄ ░█░ █▀█ ░█░ █ █▄▄
+--
+-- logind ignora la tapa (ver Scripts/installer/lid-behavior.sh) para que la
+-- sesion siga viva y accesible por SSH. Aca solo apagamos el panel interno:
+-- el resto de monitores y todos los procesos siguen igual.
+-- `locked` es necesario para que tambien actue con la pantalla bloqueada.
+
+local LID_SWITCH     = "Lid Switch"
+local INTERNAL_PANEL = "eDP-1"
+
+hl.bind("switch:on:" .. LID_SWITCH, hl.dsp.dpms("off", INTERNAL_PANEL),
+    { locked = true, description = "Apagar panel interno al cerrar la tapa" })
+hl.bind("switch:off:" .. LID_SWITCH, hl.dsp.dpms("on", INTERNAL_PANEL),
+    { locked = true, description = "Encender panel interno al abrir la tapa" })
