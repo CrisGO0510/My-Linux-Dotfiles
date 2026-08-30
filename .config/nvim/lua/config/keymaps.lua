@@ -190,69 +190,19 @@ wk.add({
 		desc = "Confirmar si visible / nueva línea (autopairs)",
 		mode = "i",
 	},
-})
 
--- copilot.lua
-
-wk.add({
 	{
 		"<Tab>",
 		function()
 			local cmp = require("cmp")
 			if cmp.visible() then
 				cmp.confirm({ select = true })
-			elseif require("copilot.suggestion").is_visible() then
-				require("copilot.suggestion").accept()
 			else
 				-- Si no hay nada, enviamos un Tab real
 				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", false)
 			end
 		end,
-		desc = "Confirmar CMP o aceptar Copilot",
-		mode = "i",
-	},
-	{
-		"<M-l>",
-		function()
-			if require("copilot.suggestion").is_visible() then
-				require("copilot.suggestion").accept_word()
-			end
-		end,
-		desc = "Aceptar palabra de Copilot",
-		mode = "i",
-	},
-	{
-		"<M-j>", -- Te agrego esta, es muy útil para aceptar una línea entera
-		function()
-			if require("copilot.suggestion").is_visible() then
-				require("copilot.suggestion").accept_line()
-			end
-		end,
-		desc = "Aceptar línea de Copilot",
-		mode = "i",
-	},
-	{
-		"<M-n>",
-		function()
-			require("copilot.suggestion").next()
-		end,
-		desc = "Siguiente sugerencia",
-		mode = "i",
-	},
-	{
-		"<M-p>",
-		function()
-			require("copilot.suggestion").prev()
-		end,
-		desc = "Sugerencia anterior",
-		mode = "i",
-	},
-	{
-		"<M-x>",
-		function()
-			require("copilot.suggestion").dismiss()
-		end,
-		desc = "Cerrar sugerencia",
+		desc = "Confirmar CMP",
 		mode = "i",
 	},
 })
@@ -331,53 +281,6 @@ wk.add({
 			vim.cmd("wincmd J")
 		end,
 		desc = "Mover ventana abajo",
-	},
-})
-
-wk.add({
-	{ "<leader>a", group = "AI (CodeCompanion)" },
-
-	-- Chat General
-	{
-		"<leader>ac",
-		"<cmd>CodeCompanionChat Toggle<CR>",
-		desc = "Toggle IA Chat",
-		mode = { "n", "v" },
-	},
-
-	-- Acciones sobre el código (Refactor, Tipos, etc.)
-	-- CodeCompanion usa una paleta de acciones muy potente
-	{
-		"<leader>ap",
-		"<cmd>CodeCompanionActions<CR>",
-		desc = "Paleta de Acciones (Selector)",
-		mode = { "n", "v" },
-	},
-
-	{
-		"<leader>aa",
-		function()
-			local mode = vim.api.nvim_get_mode().mode
-			if mode == "v" or mode == "V" or mode == "" then
-				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(":CodeCompanion ", true, false, true), "n", false)
-			else
-				vim.api.nvim_feedkeys(
-					vim.api.nvim_replace_termcodes(":CodeCompanion #{buffer} ", true, false, true),
-					"n",
-					false
-				)
-			end
-		end,
-		desc = "IA Prompt Rápido (Contextual)",
-		mode = { "n", "v" },
-	},
-
-	-- Documentar y Tipos
-	{
-		"<leader>ad",
-		"<cmd>CodeCompanion Añade tipos y documentación<CR>",
-		desc = "Agregar tipos y Docs",
-		mode = { "v" }, -- Importante: Selecciona el código en modo visual y presiona el atajo
 	},
 })
 
