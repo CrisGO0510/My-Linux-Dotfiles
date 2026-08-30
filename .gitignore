@@ -29,9 +29,5 @@ foo.*
 *.log
 data
 
-# Ignored config files
-.config/opencode/bun.lock
-.config/opencode/package.json
-
 # Artefactos de brainstorming (companion visual)
 .superpowers/
