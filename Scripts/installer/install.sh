@@ -47,7 +47,9 @@ Se ejecutaran en orden:
   6. hyprland-apps.sh      (Hyprland + utilidades + multimedia)
   7. coding-needs.sh       (nodejs, rust, python, neovim)
   8. lid-behavior.sh       (cerrar la tapa no suspende; requiere sudo)
-  9. stow                  (symlinks de dotfiles a \$HOME)
+  9. suspend-deep.sh       (suspension S3 en vez de s2idle; requiere sudo)
+ 10. hibernate-setup.sh  (swapfile + suspend-then-hibernate; requiere sudo)
+ 11. stow                  (symlinks de dotfiles a \$HOME)
 
 EOF
 read -rp "Continuar? [y/N] " ans
@@ -98,8 +100,10 @@ run_script "zsh-setup.sh"     "Oh My Zsh + Powerlevel10k"
 run_script "hyprland-apps.sh" "Hyprland y apps de escritorio"
 run_script "coding-needs.sh"  "Herramientas de desarrollo"
 run_script "lid-behavior.sh"  "Comportamiento del cierre de tapa"
+run_script "suspend-deep.sh"  "Modo de suspension S3"
+run_script "hibernate-setup.sh" "Hibernacion y suspend-then-hibernate"
 
-# === 9. Stow ===
+# === 11. Stow ===
 step "Aplicando symlinks con stow"
 if ! command -v stow &>/dev/null; then
     error "stow no encontrado. Algo fallo en teminal-utils.sh"

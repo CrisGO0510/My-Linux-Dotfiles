@@ -14,7 +14,7 @@
 
 {
     "label": "suspend",
-    "action": "$HOME/dotfiles/Scripts/hypr/lock.sh & disown && systemctl suspend",
+    "action": "$HOME/dotfiles/Scripts/hypr/lock.sh & disown && systemctl suspend-then-hibernate",
     "text": "Suspend",
     "keybind": "u"
 }
