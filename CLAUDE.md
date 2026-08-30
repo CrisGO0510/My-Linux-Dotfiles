@@ -66,4 +66,4 @@ Oh My Zsh + Powerlevel10k. Includes a custom `command_not_found_handler` that qu
 
 - Comments and docs in this repo are in **Spanish** — match that when editing.
 - `lazy-lock.json` is gitignored (see `.gitignore`), so nvim plugin versions are not pinned across machines.
-- `Scripts/.env` and `Scripts/globalProtect.sh` are gitignored — don't expect them committed.
+- Any `.env` file is gitignored (see `.gitignore`) — don't expect secrets committed.
