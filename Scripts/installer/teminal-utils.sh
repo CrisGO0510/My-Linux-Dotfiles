@@ -54,7 +54,6 @@ PACKAGES=(
     zsh-completions
 
     # Utilidades
-    thefuck
     pokemon-colorscripts-git
 
     # Fuentes

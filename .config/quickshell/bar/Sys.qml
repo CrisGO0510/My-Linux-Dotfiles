@@ -13,6 +13,25 @@ Singleton {
     property real netUp: 0     // KB/s
     property int  uptimeSec: 0
 
+    // --- GPU (NVIDIA) ---
+    // hasGpu se queda en false si nvidia-smi no existe o muere al arrancar;
+    // el panel usa eso para no dibujar la card de GPU en máquinas sin ella.
+    property bool   hasGpu: false
+    property string gpuName: ""
+    property int    gpuPct: 0
+    property int    gpuTemp: 0
+    property int    vramUsedMB: 0
+    property int    vramTotalMB: 0
+    readonly property int vramPct: vramTotalMB > 0
+        ? Math.round(vramUsedMB / vramTotalMB * 100) : 0
+
+    // La GPU no expone unidades individuales como los núcleos del CPU, así que
+    // el gráfico de barras del panel mide tiempo, no paralelismo: una barra por
+    // muestra, ~1 min de historial. Arranca en ceros para que el ancho de las
+    // barras no cambie mientras se llena.
+    readonly property int gpuHistoryLen: 30
+    property var gpuHistory: new Array(root.gpuHistoryLen).fill(0)
+
     // --- estado interno para deltas ---
     property var _prevCpu: null      // [idle, total]
     property var _prevNet: null      // [rx, tx]
@@ -21,13 +40,38 @@ Singleton {
     property var coresPct: []        // [%, %, ...] uno por núcleo
     property var _prevCores: ({})    // idx -> [idle, total]
 
+    // El sensor de CPU depende de la máquina (k10temp en AMD, coretemp en Intel)
+    // y el índice de hwmon no es estable entre arranques, así que se resuelve al
+    // arrancar. thermal_zone0 queda como último recurso: en algunas placas es
+    // acpitz y reporta una temperatura que no es la del CPU.
+    readonly property var tempSensors: ["k10temp", "zenpower", "coretemp", "cpu_thermal"]
+    property string tempPath: "/sys/class/thermal/thermal_zone0/temp"
+
     // FileView estáticos con blockLoading: lectura síncrona sin subprocesos.
     // /proc y /sys son diminutos => el bloqueo es despreciable.
     FileView { id: memFile;  path: "/proc/meminfo"; blockLoading: true; printErrors: false }
     FileView { id: statFile; path: "/proc/stat";    blockLoading: true; printErrors: false }
-    FileView { id: tempFile; path: "/sys/class/thermal/thermal_zone0/temp"; blockLoading: true; printErrors: false }
+    FileView { id: tempFile; path: root.tempPath; blockLoading: true; printErrors: false }
     FileView { id: netFile;  path: "/proc/net/dev"; blockLoading: true; printErrors: false }
     FileView { id: upFile;   path: "/proc/uptime";  blockLoading: true; printErrors: false }
+    FileView { id: probeFile; blockLoading: true; printErrors: false }
+
+    // Busca el primer hwmon cuyo nombre esté en tempSensors, por orden de
+    // preferencia. Sólo corre una vez, al inicio.
+    function resolveTempPath() {
+        for (const wanted of root.tempSensors) {
+            for (let i = 0; i < 16; i++) {
+                const dir = "/sys/class/hwmon/hwmon" + i;
+                try {
+                    probeFile.path = dir + "/name";
+                    if (probeFile.text().trim() === wanted) {
+                        root.tempPath = dir + "/temp1_input";
+                        return;
+                    }
+                } catch (e) {}
+            }
+        }
+    }
 
     function refresh() {
         memFile.reload(); statFile.reload(); tempFile.reload(); upFile.reload();
@@ -75,7 +119,7 @@ Singleton {
             root.coresPct = cores;
         } catch (e) {}
 
-        // Temp CPU: primera zona térmica tipo x86_pkg_temp o la zona 0
+        // Temp CPU desde el sensor resuelto en resolveTempPath()
         try {
             const tRaw = tempFile.text();
             root.cpuTemp = Math.round(parseInt(tRaw) / 1000);
@@ -111,7 +155,48 @@ Singleton {
         } catch (e) {}
     }
 
+    // nvidia-smi en modo loop (-l 2): un unico proceso persistente que emite una
+    // línea cada 2s, en vez de un fork+exec por refresco. El resto de métricas
+    // salen de /proc, pero el driver propietario no publica utilización ni VRAM
+    // en sysfs, así que aquí no hay alternativa sin subproceso.
+    Process {
+        id: gpuProc
+        running: true
+        command: ["nvidia-smi",
+                  "--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu",
+                  "--format=csv,noheader,nounits", "-l", "2"]
+        stdout: SplitParser { onRead: data => root.parseGpu(data) }
+        onExited: {
+            // Si nunca llegó un dato es que no hay GPU NVIDIA: no se reintenta.
+            // Si ya la había, el proceso murió por un hipo del driver (suspend,
+            // recarga de módulos) y vale la pena volver a levantarlo.
+            if (root.hasGpu) gpuRetry.restart();
+        }
+    }
+    Timer { id: gpuRetry; interval: 10000; onTriggered: gpuProc.running = true }
+
+    function parseGpu(line) {
+        const f = line.split(",").map(s => s.trim());
+        if (f.length < 5) return;
+        const util = parseInt(f[1]), used = parseInt(f[2]),
+              total = parseInt(f[3]), temp = parseInt(f[4]);
+        // "[N/A]" en cualquier campo numérico => línea inservible, se descarta.
+        if (isNaN(util) || isNaN(used) || isNaN(total) || isNaN(temp)) return;
+
+        root.gpuName = f[0];
+        root.gpuPct = util;
+        root.vramUsedMB = used;
+        root.vramTotalMB = total;
+        root.gpuTemp = temp;
+
+        const h = root.gpuHistory.slice(1);
+        h.push(util);
+        root.gpuHistory = h;   // reasignar el array es lo que notifica al binding
+
+        root.hasGpu = true;
+    }
+
     Timer { interval: 2000; running: true; repeat: true; onTriggered: root.refresh() }
     Timer { interval: 3000; running: true; repeat: true; onTriggered: root.refreshNet() }
-    Component.onCompleted: { refresh(); refreshNet(); }
+    Component.onCompleted: { resolveTempPath(); refresh(); refreshNet(); }
 }

@@ -71,6 +71,16 @@ hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.env("GDK_SCALE", "1")
 
+-- NVIDIA (RTX 4070, driver propietario).
+--
+-- GBM_BACKEND=nvidia-drm se omite a proposito: con los drivers actuales ya no
+-- hace falta y rompe la aceleracion de Firefox y Chromium. Tampoco hace falta
+-- tocar cursor:no_hardware_cursors, que explicit sync dejo obsoleto.
+hl.env("LIBVA_DRIVER_NAME", "nvidia")            -- VA-API sobre NVDEC
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")    -- GLX via libglvnd, no Mesa
+hl.env("NVD_BACKEND", "direct")                  -- nvidia-vaapi-driver sin X
+hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")   -- Electron nativo en Wayland
+
 -- El mapeo que SDL trae para el Acer NGR200 (0502:1305) asume el modo X-Input.
 -- En modo APP el pad expone otros indices, asi que se sobreescribe con el real.
 hl.env("SDL_GAMECONTROLLERCONFIG",

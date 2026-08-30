@@ -142,6 +142,84 @@ PopupWindow {
                 }
             }
 
+            // ===== Card de GPU =====
+            // Sólo aparece si nvidia-smi respondió al menos una vez; en un
+            // equipo sin NVIDIA la Column simplemente no la mide.
+            Rectangle {
+                visible: Sys.hasGpu
+                width: parent.width
+                implicitHeight: gpuCol.implicitHeight + 28
+                radius: 14; color: Theme.islandBg; border.color: Theme.purple; border.width: 1
+
+                Column {
+                    id: gpuCol
+                    anchors.fill: parent; anchors.margins: 14; spacing: 10
+
+                    // cabecera: título a la izquierda, modelo de la GPU a la derecha
+                    Item {
+                        width: parent.width; height: gpuTitle.implicitHeight
+                        Text {
+                            id: gpuTitle
+                            anchors.left: parent.left
+                            text: "GPU DETAIL"; color: Theme.cyan; opacity: 0.85
+                            font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx - 3
+                        }
+                        Text {
+                            anchors.right: parent.right; anchors.baseline: gpuTitle.baseline
+                            width: parent.width - gpuTitle.width - 8
+                            horizontalAlignment: Text.AlignRight; elide: Text.ElideLeft
+                            text: Sys.gpuName; color: Theme.muted
+                            font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx - 3
+                        }
+                    }
+
+                    // Mismo gráfico que CORE DETAIL, pero el eje X es tiempo: una
+                    // barra por muestra de Sys.gpuHistory. El model es la longitud
+                    // (constante) y no el array, para que los delegates sobrevivan
+                    // al refresco y el Behavior anime el desplazamiento.
+                    Row {
+                        id: gpuRow
+                        width: parent.width; height: 52; spacing: 2
+                        Repeater {
+                            model: Sys.gpuHistoryLen
+                            delegate: Item {
+                                required property int index
+                                readonly property int pct: Sys.gpuHistory[index] || 0
+                                width: (gpuRow.width - (Sys.gpuHistoryLen - 1) * gpuRow.spacing)
+                                       / Math.max(1, Sys.gpuHistoryLen)
+                                height: gpuRow.height
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    width: parent.width
+                                    height: Math.max(2, gpuRow.height * parent.pct / 100)
+                                    radius: 2
+                                    color: parent.pct > 75 ? Theme.hot
+                                         : (parent.pct > 45 ? Theme.cyan : Theme.purple)
+                                    Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                                }
+                            }
+                        }
+                    }
+                    Rectangle { width: parent.width; height: 1; color: Theme.purple; opacity: 0.4 }
+
+                    Row {
+                        width: parent.width
+                        Text { width: parent.width / 3; horizontalAlignment: Text.AlignHCenter
+                               text: "VRAM " + Sys.vramPct + "%"; color: Theme.textBase
+                               font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx
+                               HoverHandler { id: vramHover }
+                               NeonTooltip { visible: vramHover.hovered
+                                             text: Sys.vramUsedMB + " / " + Sys.vramTotalMB + " MiB" } }
+                        Text { width: parent.width / 3; horizontalAlignment: Text.AlignHCenter
+                               text: "GPU " + Sys.gpuPct + "%"; color: Theme.textBase
+                               font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx }
+                        Text { width: parent.width / 3; horizontalAlignment: Text.AlignHCenter
+                               text: Sys.gpuTemp + "°"; color: Theme.textBase
+                               font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx }
+                    }
+                }
+            }
+
             // ===== Card de notificaciones (lista real) =====
             Rectangle {
                 width: parent.width

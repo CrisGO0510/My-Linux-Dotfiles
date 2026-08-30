@@ -4,6 +4,17 @@ import Quickshell.Services.UPower
 Item {
     id: root
     readonly property var dev: UPower.displayDevice
+
+    // En el desktop no hay bateria: UPower igual expone un displayDevice, asi
+    // que sin este chequeo el widget se queda con el icono de bateria vacia.
+    // Si la version de Quickshell no trae isLaptopBattery caemos al porcentaje,
+    // que en una maquina sin bateria es 0.
+    readonly property bool present: {
+        if (!dev) return false;
+        if (dev.isLaptopBattery !== undefined) return dev.isLaptopBattery;
+        return dev.percentage > 0;
+    }
+
     readonly property int pct: dev ? Math.round(dev.percentage * 100) : 0
     readonly property bool charging: dev ? (dev.state === UPowerDeviceState.Charging) : false
 
@@ -17,7 +28,8 @@ Item {
         return 0;
     }
 
-    implicitWidth: icon.implicitWidth
+    visible: root.present
+    implicitWidth: root.present ? icon.implicitWidth : 0
     implicitHeight: icon.implicitHeight
 
     function batIcon(p, ch) {
