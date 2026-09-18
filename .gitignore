@@ -30,3 +30,6 @@ data
 
 # Artefactos de brainstorming (companion visual)
 .superpowers/
+
+# Caché de skills sincronizadas por Claude Code (~/.claude/skills -> skill/)
+skill/synced/

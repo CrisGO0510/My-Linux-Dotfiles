@@ -96,9 +96,12 @@ hl.bind("ALT + Return", hl.dsp.window.fullscreen(), { description = "Alternar pa
 hl.bind(MOD .. " + ESCAPE", hl.dsp.exec_cmd(SCR_PATH .. "/lock.sh"), { description = "Bloquear pantalla" })
 hl.bind(MOD .. " + SHIFT + F", togglePin, { description = "Fijar ventana" })
 hl.bind(MOD .. " + Backspace", hl.dsp.exec_cmd(SCR_PATH .. "/logoutlaunch.sh"), { description = "Menu de cierre de sesion" })
-hl.bind("CTRL + ALT + W",
-    hl.dsp.exec_cmd("if qs list --all 2>/dev/null | grep -q quickshell/bar/shell.qml; then qs -c bar kill; else qs -c bar; fi"),
-    { description = "Alternar barra Quickshell" })
+-- El wallpaper se lanza aparte: `qs -c bar` se queda en primer plano y
+-- bloquearia cualquier comando encadenado detras.
+hl.bind("CTRL + ALT + W", function()
+    hl.exec_cmd("if qs list --all 2>/dev/null | grep -q quickshell/bar/shell.qml; then qs -c bar kill; else qs -c bar; fi")
+    hl.exec_cmd(SCR_PATH .. "/wallpaper.sh")
+end, { description = "Alternar barra Quickshell y refrescar wallpaper" })
 
 
 -- ▄▀█ █▀█ █░░ █ █▀▀ ▄▀█ █▀▀ █ █▀█ █▄░█ █▀▀ █▀
