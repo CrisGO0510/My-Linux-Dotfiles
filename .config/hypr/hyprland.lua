@@ -105,6 +105,11 @@ hl.config({
         touchpad = {
             natural_scroll = true,
         },
+
+        -- Modo relativo: mueve el cursor como un mouse en vez de mapear la superficie a los monitores.
+        tablet = {
+            relative_input = true,
+        },
     },
 
     dwindle = {
