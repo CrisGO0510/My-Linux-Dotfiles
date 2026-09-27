@@ -156,6 +156,13 @@ floatTitles({
 hl.window_rule({ match = { initial_title = "^(Open File)$" }, float = true })
 
 
+-- █▀▀ █░█ █▀▀ █▄░█ ▀█▀ █▀█ █▀
+-- ██▄ ▀▄▀ ██▄ █░▀█ ░█░ █▄█ ▄█
+
+-- Desde kitty 0.49 la ventana pide maximizarse al abrir y rompe el tiling.
+hl.window_rule({ match = { class = "^(kitty)$" }, suppress_event = "maximize" })
+
+
 -- █░░ ▄▀█ █▄█ █▀▀ █▀█ █▀
 -- █▄▄ █▀█ ░█░ ██▄ █▀▄ ▄█
 
