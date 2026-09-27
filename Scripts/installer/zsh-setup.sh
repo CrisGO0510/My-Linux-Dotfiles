@@ -17,15 +17,16 @@ if ! command -v zsh &>/dev/null; then
 fi
 
 # === Oh My Zsh ===
-if [[ -d "$HOME/.oh-my-zsh" ]]; then
-    warn "Oh My Zsh ya esta instalado en ~/.oh-my-zsh"
+OMZ_DIR="${ZSH:-$HOME/.oh-my-zsh}"
+if [[ -d "$OMZ_DIR" ]]; then
+    warn "Oh My Zsh ya esta instalado en $OMZ_DIR"
 else
     info "Instalando Oh My Zsh..."
     RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     info "Oh My Zsh instalado"
 fi
 
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+ZSH_CUSTOM="${ZSH_CUSTOM:-$OMZ_DIR/custom}"
 
 # === Powerlevel10k ===
 if [[ -d "$ZSH_CUSTOM/themes/powerlevel10k" ]]; then
@@ -65,7 +66,7 @@ fi
 
 echo ""
 info "=== Setup completo ==="
-info "  - Oh My Zsh: ~/.oh-my-zsh"
+info "  - Oh My Zsh: $OMZ_DIR"
 info "  - Powerlevel10k: $ZSH_CUSTOM/themes/powerlevel10k"
 info "  - Plugins: zsh-syntax-highlighting, zsh-autosuggestions, zsh-256color"
 info "  - Shell por defecto: zsh"

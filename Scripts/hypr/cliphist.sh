@@ -5,7 +5,7 @@ scrDir=$(dirname "$(realpath "$0")")
 source "$scrDir/config.sh"
 # Updated to use Azure Dreams unified config instead of specialized clipboard.rasi
 roconf="${confDir}/rofi/config.rasi"
-favoritesFile="${HOME}/.cliphist_favorites"
+favoritesFile="${XDG_STATE_HOME:-$HOME/.local/state}/cliphist/favorites"
 
 # Set rofi scaling
 [[ "${rofiScale}" =~ ^[0-9]+$ ]] || rofiScale=10

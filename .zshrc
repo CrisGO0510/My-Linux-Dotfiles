@@ -19,7 +19,7 @@ fi
 # ==============================================================================
 ZSH_EVAL_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/eval"
 ANDROID_SDK_DIR="$HOME/Android/Sdk"
-CARGO_ENV_FILE="$HOME/.cargo/env"
+CARGO_ENV_FILE="${CARGO_HOME:-$HOME/.cargo}/env"
 PACMAN_BIN="/usr/bin/pacman"
 
 [[ -d $ZSH_EVAL_CACHE_DIR ]] || mkdir -p $ZSH_EVAL_CACHE_DIR
@@ -39,7 +39,8 @@ path=(
 # ==============================================================================
 # Oh My Zsh
 # ==============================================================================
-export ZSH="$HOME/.oh-my-zsh"
+# La ruta real la fija .zshenv (XDG); el fallback cubre una instalacion recien hecha.
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # zsh-syntax-highlighting va antes de zsh-autosuggestions (requisito del plugin)
@@ -52,10 +53,11 @@ plugins=(
 
 [[ -f "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
-# Para reconfigurar el prompt: `p10k configure` o editar ~/.p10k.zsh
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+# Para reconfigurar el prompt: `p10k configure` o editar ~/.config/zsh/p10k.zsh
+P10K_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/p10k.zsh"
+[[ -f $P10K_CONFIG ]] && source $P10K_CONFIG
 
-# Va despues del source: ~/.p10k.zsh define INSTANT_PROMPT=verbose y ganaria.
+# Va despues del source: p10k.zsh define INSTANT_PROMPT=verbose y ganaria.
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
 # ==============================================================================
