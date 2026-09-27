@@ -108,6 +108,7 @@ end, { description = "Alternar barra Quickshell y refrescar wallpaper" })
 -- █▀█ █▀▀ █▄▄ █ █▄▄ █▀█ █▄▄ █ █▄█ █░▀█ ██▄ ▄█
 
 hl.bind(MOD .. " + T", hl.dsp.exec_cmd(TERM), { description = "Terminal" })
+hl.bind(MOD .. " + SHIFT + T", hl.dsp.exec_cmd(SCR_PATH .. "/remote-term.sh"), { description = "Terminal en la otra máquina (SSH)" })
 hl.bind(MOD .. " + E", hl.dsp.exec_cmd(FILES), { description = "Gestor de archivos" })
 hl.bind(MOD .. " + C", hl.dsp.exec_cmd(EDITOR), { description = "Editor de texto" })
 hl.bind(MOD .. " + F", hl.dsp.exec_cmd(BROWSER), { description = "Navegador" })
