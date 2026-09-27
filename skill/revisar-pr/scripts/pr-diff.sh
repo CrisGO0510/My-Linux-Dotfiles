@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Obtiene el diff a revisar (PR de Azure DevOps o rama local) y lo deja en --out.
 # Uso:
-#   pr-diff.sh <pr-id> --out <dir>
+#   pr-diff.sh <pr-id> [--force] --out <dir>
 #   pr-diff.sh [--base <rama>] --out <dir>
+# Un PR en DRAFT se rechaza salvo que se pase --force.
 set -euo pipefail
 
 ORG="https://dev.azure.com/Linktic"
@@ -12,12 +13,14 @@ EXCLUDES=(':(exclude)dist/**' ':(exclude)public/**' ':(exclude)coverage/**' ':(e
 PR_ID=""
 BASE="$DEFAULT_BASE"
 OUT=""
+FORCE=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base) BASE="$2"; shift 2 ;;
     --out) OUT="$2"; shift 2 ;;
-    -h|--help) sed -n '2,5p' "$0"; exit 0 ;;
+    --force) FORCE=1; shift ;;
+    -h|--help) sed -n '2,6p' "$0"; exit 0 ;;
     *)
       if [[ "$1" =~ ^[0-9]+$ ]]; then PR_ID="$1"; shift
       else echo "error: argumento no reconocido: $1" >&2; exit 2; fi ;;
@@ -48,6 +51,14 @@ if [[ -n "$PR_ID" ]]; then
   PR_REPO="$(jq -r '.repository.name' <<<"$PR_JSON")"
   [[ "$PR_REPO" == "$PROJECT_NAME" ]] || { echo "error: el PR $PR_ID pertenece al repo '$PR_REPO', no a '$PROJECT_NAME'" >&2; exit 1; }
 
+  IS_DRAFT="$(jq -r '.isDraft // false' <<<"$PR_JSON")"
+  if [[ "$IS_DRAFT" == "true" && "$FORCE" -ne 1 ]]; then
+    echo "PR #$PR_ID está en DRAFT: no se revisa." >&2
+    echo "El autor todavía lo está armando; espera a que lo publique." >&2
+    echo "sugerencia: si aun así quieres revisarlo, repite con --force" >&2
+    exit 3
+  fi
+
   SRC="$(jq -r '.sourceRefName' <<<"$PR_JSON" | sed 's#^refs/heads/##')"
   TGT="$(jq -r '.targetRefName' <<<"$PR_JSON" | sed 's#^refs/heads/##')"
   TITLE="$(jq -r '.title' <<<"$PR_JSON")"
@@ -73,6 +84,7 @@ else
   DESCRIPTION=""
   REF="WORKTREE"
   BASE_REF="$MERGE_BASE"
+  IS_DRAFT="false"
 
   git diff "$MERGE_BASE" -- . "${EXCLUDES[@]}" > "$OUT/diff.patch"
   git diff --name-status "$MERGE_BASE" -- . "${EXCLUDES[@]}" > "$OUT/files.txt"
@@ -88,9 +100,12 @@ jq -n \
   --arg project "$PROJECT_NAME" --arg azProject "$AZ_PROJECT" --arg mode "$MODE" \
   --arg prId "$PR_ID" --arg title "$TITLE" --arg source "$SRC" --arg target "$TGT" \
   --arg ref "$REF" --arg baseRef "$BASE_REF" --arg repoRoot "$REPO_ROOT" --arg description "$DESCRIPTION" \
-  '{project:$project, azProject:$azProject, mode:$mode, prId:$prId, title:$title, source:$source, target:$target, ref:$ref, baseRef:$baseRef, repoRoot:$repoRoot, description:$description}' \
+  --argjson isDraft "$IS_DRAFT" \
+  '{project:$project, azProject:$azProject, mode:$mode, prId:$prId, title:$title, source:$source, target:$target, ref:$ref, baseRef:$baseRef, repoRoot:$repoRoot, isDraft:$isDraft, description:$description}' \
   > "$OUT/meta.json"
 
 FILES="$(grep -c . "$OUT/files.txt" || true)"
-echo "$PROJECT_NAME · modo $MODE${PR_ID:+ · PR #$PR_ID} · $SRC → $TGT · $FILES archivos ·${STAT:- sin cambios}"
+DRAFT_TAG=""
+if [[ "$IS_DRAFT" == "true" ]]; then DRAFT_TAG=" · DRAFT (revisado con --force)"; fi
+echo "$PROJECT_NAME · modo $MODE${PR_ID:+ · PR #$PR_ID}$DRAFT_TAG · $SRC → $TGT · $FILES archivos ·${STAT:- sin cambios}"
 echo "salida: $OUT (meta.json, files.txt, diff.patch)"

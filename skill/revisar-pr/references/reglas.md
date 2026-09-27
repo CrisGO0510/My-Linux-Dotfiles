@@ -18,13 +18,13 @@ Severidades: 🔴 bloqueante (rompe una regla dura) · 🟡 mejora (convención 
 | `ENDPOINTS-CENTRAL` | 🔴 | INFRASTRUCTURE_LAYER, CLAUDE.md | URL o `/api/...` fuera de `infrastructure/api/endpoints.ts`. | Agregar la constante en `ENDPOINTS` y usarla. |
 | `DI-INJECT` | 🔴 | CLAUDE.md, documentation.md §8 | `new XRepositoryImpl(...)` o `new XUseCase(...)` en presentation. | `inject(XUseCaseKey)` en el composable; la instancia se crea en el provider del feature. |
 | `HTTP-CLIENT` | 🔴 | CLAUDE.md csj | `import axios` fuera de `infrastructure/api/`. | Recibir el `HttpClient` por constructor. |
-| `SFC-TYPES` | 🔴 | CLAUDE.md bac | `interface`/`type` declarado dentro del `<script>` de un `.vue`. | Mover a `types/*.types.ts` del feature. |
+| `SFC-TYPES` | 🔴 | CLAUDE.md bac | `interface`/`type` declarado dentro del `<script>` de un `.vue`. | Mover a `types/<kebab-case>.ts` del feature. |
 | `ERROR-HANDLING` (mecánica) | 🔴 | patrón del repo | `catch {}` vacío o con solo un comentario; `try/finally` sin `catch`. | Ver la regla de criterio más abajo. |
 | `NO-CONSOLE` | 🟡 | eslint.config | `console.*` fuera de tests. | Quitar o usar `useNotification`. |
 | `NO-TODO` | 🟡 | CLAUDE.md global | `TODO`/`FIXME` en comentarios. | Lo pendiente va en el ticket, no en el código. |
 | `ALIAS-IMPORTS` | 🟡 | CODING_STANDARDS | `from '../../...'`. | Usar `@/…` o los alias por capa. |
-| `PROPS-TYPED` | 🟡 | PRESENTATION_LAYER | `defineProps([...])` / `defineEmits([...])` sin genérico. | `defineProps<{...}>()` con tipo del `*.types.ts`. |
-| `NAMING` | 🟡 | CODING_STANDARDS, documentation.md §10 | Archivo nuevo que no sigue el patrón de su carpeta (`I*Repository.ts`, `*UseCase.ts`, `*RepositoryImpl.ts`, `*Mapper.ts`, `use*.ts`, `*Store.ts`, `kebab-case.types.ts`, `PascalCase.vue`). | Renombrar. |
+| `PROPS-TYPED` | 🟡 | PRESENTATION_LAYER | `defineProps([...])` / `defineEmits([...])` sin genérico. | `defineProps<{...}>()` con tipo del archivo de `types/`. |
+| `NAMING` | 🟡 | CODING_STANDARDS, documentation.md §10 | Archivo nuevo que no sigue el patrón de su carpeta (`I*Repository.ts`, `*UseCase.ts`, `*RepositoryImpl.ts`, `*Mapper.ts`, `use*.ts`, `*Store.ts`, `kebab-case.ts`, `PascalCase.vue`). | Renombrar. |
 | `DOMAIN-NO-DTO` | 🟡 | documentation.md §10 | Sufijo `DTO` en `domain/`. Los `dto/` de application son re-exports. | Nombrar `XRequest` / `XResponse`. |
 | `TEST-AAA` | 🟡 | CLAUDE.md | La unidad es el bloque `it`: cuenta si un `it` nuevo o tocado por el diff no tiene `// Arrange` / `// Act` / `// Assert`. Los `it` no tocados sin AAA van a deuda previa. | Añadir los tres marcadores en cada `it`. |
 | `FEATURE-SLICE` | 🟡 | CLAUDE.md, documentation.md §11 | Feature **nuevo** al que le falta alguna de las 5 carpetas (`domain/feature/<f>`, `application/features/<f>`, `infrastructure/features/<f>`, `core/providers/features/<f>`, `presentation/features/<f>`). Legítimo si es solo-presentación y reutiliza use cases de otro feature: en ese caso no reportar. | Completar el slice. |
@@ -59,31 +59,77 @@ nombres de ruta, formatos de fecha, códigos, `rowsPerPage`, timeouts.
 
 ### `ERROR-HANDLING` 🔴 — patrón real del repo
 
-Patrón canónico aceptado en composables:
+Patrón canónico aceptado en composables (el de `closing-schedule`, `notification-templates`, `portal-schedules`): solo se
+notifica el `ValidationError`; lo HTTP ya lo notificó el interceptor y el use case lo convierte en `undefined`.
 
 ```ts
 try {
   loader.show()
   const result = await xUseCase?.execute(data)
+  if (!result) return
   ...
 } catch (e) {
-  if (e instanceof Error) error(e.message)
+  if (e instanceof ValidationError) error(e.message)
 } finally {
   loader.hide()
 }
 ```
 
-Reportar:
+Reportar en composables:
 - 🔴 `await xUseCase?.execute(...)` en un composable **sin `try/catch`** alrededor (ni en el llamador directo).
 - 🔴 `catch` que no notifica ni relanza: no llama `error(...)`, `notify`, `throw`, ni `handleError`.
 - 🔴 Loader/`loading = true` antes del `await` que **no se apaga** si hay error (no está en `finally` ni en el `catch`).
 - 🟡 Loader que sí se apaga en todos los caminos pero fuera de `finally`: no sigue el patrón canónico.
-- 🔴 Use case que envuelve el repositorio en `try/catch` y devuelve `null`/`[]`/`undefined` tragando el error,
-  incluido el patrón `catch (e) { if (e instanceof ValidationError) throw e }` sin `else throw` (existe en ~40 use cases
-  del repo; sigue siendo hallazgo: el retorno queda `| void` y el composable nunca se entera del fallo).
 
-No reportar: `catch` que relanza; `catch` que notifica con `error(e.message)`; `catch` que hace fallback documentado
-y **además** notifica. No se exige `useErrorHandler` (existe pero las features no lo usan).
+Patrón canónico en use cases (161 de 206 en csj, 311 de 361 en bac): validar y llamar al servicio/repositorio dentro
+del `try`, relanzar solo `ValidationError` y dejar que lo demás termine en `undefined`. El error HTTP ya lo notificó el
+interceptor y el composable corta con `if (!res) return`.
+
+```ts
+async execute(payload: XPayload): Promise<XResponse | void> {
+  try {
+    const validator = validate(payload)
+    validator.field('id', 'ID').required().string()
+    validator.validate()
+    return await this.repository.x(payload)
+  } catch (error) {
+    if (error instanceof ValidationError) throw error
+  }
+}
+```
+
+Reportar en use cases:
+- 🔴 Use case nuevo, o cuyo `execute` toca el diff, **sin `try/catch`**: el error HTTP llega al composable y cambia su
+  flujo respecto al resto de la app (p. ej. su `catch` cierra el modal donde antes `if (!res) return` lo dejaba abierto).
+  Si el diff **quita** el `try/catch` de un use case existente, comparar con `baseRef` y reportarlo igual.
+  Sugerencia: el patrón canónico.
+- 🔴 `catch` de use case que relanza otras clases además de `ValidationError` (`|| error instanceof DomainError`,
+  `ApplicationError`, etc.): no es el patrón. Sugerencia: relanzar solo `ValidationError`.
+- 🟡 `catch` que devuelve un valor de relleno (`null`, `[]`, `{}`) en vez de dejar `undefined`: el composable no puede
+  distinguir el fallo de una respuesta vacía.
+
+No reportar: el patrón canónico del use case (retorno `| void` incluido); `catch` que relanza; `catch` de composable que notifica
+el `ValidationError` con `error(e.message)`; `catch` que hace fallback documentado y **además** notifica.
+No se exige `useErrorHandler` (existe pero las features no lo usan).
+
+### `COMPOSABLE-SCOPE` 🔴 — regla del usuario
+
+**En un composable, fuera de `export const useX = () => { ... }` solo quedan los `import`.** Nada de
+declaraciones a nivel de módulo: constantes, mapas, `Record`s de configuración, helpers, arrays de nombres de
+filtro. Todo va dentro de la función. No es negociable y no depende del tamaño ni de que el valor sea un
+literal puro.
+
+Reportar cualquier `const` / `let` / `var` / `function` declarado entre los imports y el `export const useX`.
+
+- **No renombrar al moverlos.** Las constantes conservan sus MAYÚSCULAS (`FILTER_NAMES`, `COLUMN_SORT_FIELDS`)
+  dentro de la función; no pasarlas a camelCase por estar en un scope de función.
+- **Cuidado con el orden**: al moverlas dentro hay que declararlas antes de su primer uso. Un `FILTER_NAMES`
+  que alimenta un `reactive([...])` del cuerpo del composable va al principio de la función, no al final.
+- Lo que se **comparte entre archivos** sigue en `constants/` y se importa: esta regla es sobre lo declarado
+  *en* el archivo del composable, y no contradice `MAGIC-VALUES`.
+- Aplica a **todos** los composables: de feature, de `shared/composables/` y los colocados junto a un
+  componente (`useXComponent.ts`).
+- Si el composable ya existía y las constantes fuera del export vienen de `baseRef`, va a 📎 Deuda previa.
 
 ### `SFC-CLEAN` 🔴 — CLAUDE.md bac
 
@@ -170,6 +216,40 @@ Use case o composable nuevo sin test en `__tests__/` o `__test__/` junto al cód
 ### `ESPAÑOL` 🟡 — CLAUDE.md
 
 Textos de UI, mensajes de error o comentarios en inglés. Nombres de código (variables, funciones) van en inglés y no cuentan.
+
+### `TRANSVERSAL` 🔀 — obligatoria, no cuenta en los contadores
+
+Todo cambio del diff que toque un archivo compartido **se reporta**, aunque no incumpla ninguna regla del
+catálogo. El revisor lee el PR como "feature X" y estos cambios se le pasan; el valor aquí no es cazar
+infracciones sino avisar del radio de impacto.
+
+Cuentan como transversales: `core/`, `presentation/shared/`, `domain/shared/`, `infrastructure/api/`
+(salvo `endpoints.ts`, ver abajo) y cualquier composable/componente de otro feature que el PR modifique.
+
+**No cuentan** (cableado de rutina de un feature nuevo, es esperado): `core/providers/appProvider.ts`,
+`core/providers/injectionKeys.ts`, `presentation/router/index.ts`, las entradas nuevas de
+`infrastructure/api/endpoints.ts` y `LOOKUPS`, y el menú nuevo en `useDrawer.ts`.
+
+Separar en dos grupos, porque el riesgo es muy distinto:
+
+- **Cambian comportamiento existente** → tabla `Archivo | Qué cambia | A quién afecta`. Aquí va lo que altera
+  código que ya corría: modificar un `catch` de `ErrorHandler`, el flujo de un composable compartido, cómo
+  renderiza `DrawerComponent`, cambiar la firma de un `I*Repository` existente, corregir un texto de `ErrorUI`.
+  En "A quién afecta" dar el alcance real ("toda petición HTTP", "todo módulo con clave transaccional"),
+  no el nombre del archivo otra vez.
+- **Aditivos** → una línea separada por `·`. Regla nueva en `useFormRules`, icono, mime, valor nuevo en una
+  union de tipos, constante nueva, tipo nuevo exportado. Casi nunca rompen nada.
+
+Un refactor que no cambia el resultado (extraer una plantilla a un helper) se menciona como "refactor puro"
+**solo si se verificó** que produce lo mismo; si no se verificó, va como cambio de comportamiento.
+
+Comprobaciones antes de escribir la sección:
+- ¿El cambio existe en el repo hermano (`core_web_bac` / `core_web_csj`)? Si el PR es una migración, decir si
+  el cambio viene del original o es propio. Un arreglo que el original no tiene suele significar que allá el
+  bug sigue vivo: vale la pena decirlo.
+- ¿El arreglo cubre todos los casos equivalentes? (p. ej. un helper que sólo contempla `ArrayBuffer` deja fuera
+  `responseType: 'blob'`). Si queda a medias, decirlo.
+- Sugerir que estos cambios queden en la descripción del PR.
 
 ### `PR-TEMPLATE` ℹ️ — pull_request_template.md (solo modo PR)
 

@@ -17,8 +17,13 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
    Ejecutar desde el repo a revisar (`cd` al clone correcto si el usuario nombra el otro proyecto).
 
 2. **Diff**: `$SCRIPTS/pr-diff.sh [<id>] [--base <rama>] --out $OUT`.
-   Deja `meta.json` (proyecto, modo, ramas, `ref`, `baseRef`, descripción del PR), `files.txt`, `diff.patch`.
+   Deja `meta.json` (proyecto, modo, ramas, `ref`, `baseRef`, `isDraft`, descripción del PR), `files.txt`, `diff.patch`.
    Mostrar al usuario la línea de resumen que imprime. Si falla, mostrar el error y parar.
+
+   **PR en DRAFT → no se revisa.** El script sale con código 3 y no genera el diff. Decírselo al usuario en
+   una línea (el PR sigue en borrador, el autor todavía lo está armando) y **parar ahí**: no leer archivos,
+   no reportar nada. Solo continuar si el usuario insiste explícitamente; entonces repetir con `--force` y
+   dejar claro en la cabecera del reporte que el PR estaba en draft.
 
 3. **Pre-scan**: `$SCRIPTS/pre-scan.py --out $OUT` → `ruta:línea [ID] fragmento`. Son candidatos, no hallazgos.
    Solo analiza **líneas añadidas** del diff (más nombres de archivos nuevos, tests tocados y `catch` de archivos
@@ -37,6 +42,10 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
      en zsh `$REF:src/...` se interpreta como modificador de historial incluso entre comillas. Igual con `baseRef`.
 
    Si hay más de 40 archivos en `src/`, priorizar: composables, use cases, repositorios, `.vue`, y decir cuáles quedaron sin leer.
+
+   **Marcar de paso los transversales**: todo archivo tocado bajo `core/`, `presentation/shared/`,
+   `domain/shared/` o `infrastructure/api/` que no sea cableado de rutina va a la sección
+   "🔀 Cambios transversales", tenga o no hallazgos. Ver la regla `TRANSVERSAL`.
 
 6. **Confirmar** cada candidato del pre-scan con su contexto; descartar falsos positivos en silencio.
 
@@ -74,6 +83,15 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
 ## ℹ️ Informativo
 - PR-TEMPLATE: <qué falta>
 
+## 🔀 Cambios transversales (no cuentan)
+### Cambian comportamiento existente
+| Archivo | Qué cambia | A quién afecta |
+|---|---|---|
+| <ruta>:<línea> | <una línea> | <alcance real> |
+
+### Aditivos
+<lista corta separada por " · ">
+
 ## 📎 Deuda previa (fuera del diff, no cuenta)
 - <ruta>:<línea> <ID> — <una línea>
 
@@ -86,6 +104,9 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
   además compara un literal → `SFC-CLEAN`, y la constante se menciona en la sugerencia).
 - En "📎 Deuda previa" se admite el id `OBS` para observaciones fuera del catálogo (código muerto, cobertura
   faltante de un composable existente que el PR modifica). Nunca en las secciones que cuentan.
+- La sección "🔀 Cambios transversales" es **obligatoria** siempre que el diff toque `core/`,
+  `presentation/shared/`, `domain/shared/` o `infrastructure/api/` fuera del cableado de rutina, aunque no haya
+  ni un hallazgo. Ver la regla `TRANSVERSAL` en `references/reglas.md`.
 - Agrupar por regla, dentro de cada regla por archivo. Omitir secciones vacías.
 - `ruta:línea` siempre relativa al repo (clickable). Fragmento corto, sin repetir el archivo entero.
 - En "✅ Sin hallazgos" listar solo las reglas que aplicaban al diff y se revisaron sin hallazgos; omitir las que
@@ -97,7 +118,10 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
 | Situación | Qué hacer |
 |---|---|
 | `pr-diff.sh` falla por `az` | Mostrar el error; sugerir `az login` / `az devops login`. No intentar otra vía. |
+| `pr-diff.sh` sale con código 3 (DRAFT) | Decir que el PR está en borrador y parar. No revisar salvo que el usuario lo pida de nuevo (`--force`). |
 | PR de otro repo | El script lo detecta; decirle al usuario en qué clone ejecutarlo. |
 | Rama local sin cambios (`0 archivos`) | Decirlo y parar; probablemente está en `develop`. |
 | `mask` en `shared/components` | Es la definición del prop, no un uso: no es hallazgo. |
 | Test existente al que solo se tocó una línea y no tiene AAA | Reportar `TEST-AAA` como 🟡 aclarando que es deuda previa. |
+| Cambio en `core/` o `shared/` que no rompe ninguna regla | Va igual en "🔀 Cambios transversales". No omitirlo por no ser hallazgo. |
+| PR que es migración del repo hermano | Antes de reportar, comparar contra `core_web_bac` / `core_web_csj`. Si el código es port fiel del original, no es hallazgo: decirlo y bajar la severidad. |

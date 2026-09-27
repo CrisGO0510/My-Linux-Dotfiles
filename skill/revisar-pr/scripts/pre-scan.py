@@ -28,6 +28,9 @@ ADDED_LINE_RULES = [
     ("SFC-TYPES", r"\.vue$", r"^\s*(export\s+)?(interface\s+[A-Z]\w*\s*[{<]|type\s+[A-Z]\w*\s*(<[^>]*>)?\s*=)", None),
     ("PROPS-TYPED", r"\.vue$", r"\bdefine(Props|Emits)\(\s*\[", None),
     ("DOMAIN-NO-DTO", r"^src/domain/", r"\b(interface|type|class)\s+\w+DTO\b", None),
+    # Declaración a nivel de módulo en un composable: el contenido conserva la indentación
+    # original, así que anclar en columna 0 basta para saber que está fuera del `export const useX`.
+    ("COMPOSABLE-SCOPE", r"^src/presentation/.*/use[A-Z]\w*\.ts$", r"^(const|let|var|function)\s", r"(__tests?__|\.(spec|test)\.ts$)"),
 ]
 
 NAMING_RULES = [
@@ -38,7 +41,8 @@ NAMING_RULES = [
     (r"^src/.*/mappers/[^/]+\.ts$", r"^[A-Z]\w*Mapper\.ts$", "mapper: <Feature>Mapper.ts"),
     (r"^src/.*/composables/[^/]+\.ts$", r"^use[A-Z]\w*\.ts$", "composable: use<Nombre>.ts"),
     (r"^src/.*/stores/[^/]+\.ts$", r"^\w+Store\.ts$", "store: <nombre>Store.ts"),
-    (r"^src/presentation/.*/types/[^/]+\.ts$", r"^[a-z0-9]+(-[a-z0-9]+)*\.types\.ts$", "tipos de presentación: kebab-case.types.ts"),
+    # Ambos repos usan kebab-case.ts a secas (0 de 37 archivos con sufijo .types): no exigirlo.
+    (r"^src/presentation/.*/types/[^/]+\.ts$", r"^[a-z0-9]+(-[a-z0-9]+)*\.ts$", "tipos de presentación: kebab-case.ts"),
     (r"^src/.*\.vue$", r"^[A-Z][A-Za-z0-9]*\.vue$", "componente/vista: PascalCase.vue"),
     (r"^src/domain/.*\.ts$", r"^(?!.*DTO\.ts$).*$", "en domain no se usa el sufijo DTO"),
 ]
