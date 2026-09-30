@@ -26,4 +26,13 @@ ShellRoot {
         function skip(): void { Pomo.skip() }
         function stop(): void { Pomo.stop() }
     }
+
+    // IPC del volumen por workspace (Scripts/hypr/workspace-volume.sh)
+    IpcHandler {
+        target: "wsvol"
+        // state: on | mute | none (sin audio en ese workspace)
+        function osd(ws: string, pct: int, state: string): void { WsAudio.osdRequested(ws, pct, state) }
+        // volcado para depurar el emparejamiento
+        function dump(): string { return JSON.stringify(WsAudio.groups) }
+    }
 }

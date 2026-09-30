@@ -129,6 +129,12 @@ hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd(SCR_PATH .. "/volumecontrol.sh -i m"
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(SCR_PATH .. "/volumecontrol.sh -o d"), { locked = true, repeating = true, description = "Bajar volumen" })
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(SCR_PATH .. "/volumecontrol.sh -o i"), { locked = true, repeating = true, description = "Subir volumen" })
 
+-- Con MOD solo afectan al audio del workspace activo (reuniones en paralelo).
+hl.bind(MOD .. " + XF86AudioMute", hl.dsp.exec_cmd(SCR_PATH .. "/workspace-volume.sh mute"), { locked = true, description = "Silenciar audio del workspace" })
+hl.bind(MOD .. " + XF86AudioLowerVolume", hl.dsp.exec_cmd(SCR_PATH .. "/workspace-volume.sh down"), { locked = true, repeating = true, description = "Bajar volumen del workspace" })
+hl.bind(MOD .. " + XF86AudioRaiseVolume", hl.dsp.exec_cmd(SCR_PATH .. "/workspace-volume.sh up"), { locked = true, repeating = true, description = "Subir volumen del workspace" })
+hl.bind(MOD .. " + O", hl.dsp.exec_cmd("pkill -x rofi || " .. SCR_PATH .. "/workspace-volume.sh menu"), { description = "Volumen por workspace" })
+
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Reproducir / pausar" })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Reproducir / pausar" })
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true, description = "Siguiente pista" })
@@ -143,6 +149,7 @@ hl.bind("Print", hl.dsp.exec_cmd(SCR_PATH .. "/screenshot.sh p"), { description 
 
 hl.bind(MOD .. " + V", hl.dsp.exec_cmd("pkill -x rofi || " .. SCR_PATH .. "/cliphist.sh c"), { description = "Portapapeles" })
 hl.bind(MOD .. " + SHIFT + V", hl.dsp.exec_cmd("pkill -x rofi || " .. SCR_PATH .. "/cliphist.sh"), { description = "Gestor del portapapeles" })
+hl.bind(MOD .. " + CTRL + V", hl.dsp.exec_cmd(SCR_PATH .. "/remote-paste-img.sh"), { description = "Pegar imagen en la otra máquina (SSH)" })
 hl.bind(MOD .. " + space", hl.dsp.exec_cmd(SCR_PATH .. "/keyboardswitch.sh"), { description = "Cambiar distribucion de teclado" })
 hl.bind(MOD .. " + slash", hl.dsp.exec_cmd("pkill -x rofi || " .. SCR_PATH .. "/keybinds_hint.sh c"), { description = "Ayuda de atajos" })
 

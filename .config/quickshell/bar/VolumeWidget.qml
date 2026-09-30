@@ -61,6 +61,20 @@ MouseArea {
     onMutedChanged: showOsd(false)
     onMicMutedChanged: showOsd(true)
 
+    // OSD del volumen por workspace (mod + teclas de volumen, via IPC "wsvol")
+    property string osdWsText: ""
+    Connections {
+        target: WsAudio
+        function onOsdRequested(ws, pct, state) {
+            if (!root.osdEnabled) return;
+            const label = ws === "esp" ? "Hidden" : "WS " + ws;
+            root.osdWsText = label + " · " + (state === "none" ? "sin audio"
+                                             : state === "mute" ? "silenciado" : pct + "%");
+            osdWs.restart();
+        }
+    }
+    Timer { id: osdWs; interval: 1400; onTriggered: root.osdWsText = "" }
+
     Text {
         id: icon
         text: root.volIcon(root.pct, root.muted)
@@ -85,9 +99,17 @@ MouseArea {
         }
     }
 
+    // hover: popup de audio (master + ventanas que suenan)
+    AudioPopup {
+        anchorItem: root
+        visible: root.hoverTip
+    }
+
+    // OSD de los binds: burbuja simple, salvo si el popup ya esta abierto
     NeonTooltipPopup {
         anchorItem: root
-        visible: root.hoverTip || osd.running
-        text: osd.running && root.osdMic ? root.micText : root.sinkText
+        visible: !root.hoverTip && (osd.running || osdWs.running)
+        text: osdWs.running ? root.osdWsText
+            : osd.running && root.osdMic ? root.micText : root.sinkText
     }
 }
