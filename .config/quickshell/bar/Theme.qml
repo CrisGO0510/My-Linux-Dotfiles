@@ -10,6 +10,8 @@ Singleton {
     readonly property color cyan:      "#22d3ee"
     readonly property color textBase:  "#b9a4ff"
     readonly property color clockText: "#c9bbff"
+    readonly property color textBright: "#e6ddff"   // títulos de notificación
+    readonly property color deepBg:    "#0b0916"   // texto sobre botón relleno
     readonly property color islandBg:  Qt.rgba(18/255, 16/255, 36/255, 0.85)
     readonly property color muted:     "#6b5e8f"   // texto atenuado
     readonly property color dim:       "#2a1f3d"   // fondo tenue (avatar, carátula)

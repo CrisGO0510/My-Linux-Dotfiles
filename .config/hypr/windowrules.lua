@@ -167,6 +167,9 @@ hl.window_rule({ match = { class = "^(kitty)$" }, suppress_event = "maximize" })
 -- █▄▄ █▀█ ░█░ ██▄ █▀▄ ▄█
 
 -- Capas de Quickshell: barra, notificaciones y lockscreen.
-for _, namespace in ipairs({ "quickshell-lock", "quickshell-bar", "quickshell-notif" }) do
+for _, namespace in ipairs({ "quickshell-lock", "quickshell-bar" }) do
     hl.layer_rule({ match = { namespace = namespace }, blur = true, ignore_alpha = 0 })
 end
+-- Notificaciones: el halo del glow es semitransparente; con ignore_alpha alto
+-- el blur queda solo bajo la tarjeta y no dibuja un "marco" borroso alrededor.
+hl.layer_rule({ match = { namespace = "quickshell-notif" }, blur = true, ignore_alpha = 0.5 })

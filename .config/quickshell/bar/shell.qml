@@ -16,6 +16,8 @@ ShellRoot {
         target: "notifs"
         function toggleDnd(): void { Notifs.toggleDnd() }
         function panel(): void { Notifs.panelRequested() }
+        // volcado para depurar la resolución de ventana/workspace
+        function dump(): string { return JSON.stringify(Notifs.meta) }
     }
 
     // IPC del pomodoro (mod+P)

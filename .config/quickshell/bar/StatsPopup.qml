@@ -278,46 +278,18 @@ PopupWindow {
                     ListView {
                         visible: Notifs.model.values.length > 0
                         width: parent.width
-                        height: Math.min(contentHeight, 200)
+                        height: Math.min(contentHeight, 320)
                         clip: true
                         spacing: 6
-                        model: Notifs.model
-                        delegate: Rectangle {
+                        // pila: la más reciente arriba (trackedNotifications viene de vieja a nueva)
+                        model: Notifs.model.values.slice().reverse()
+                        delegate: NotificationCard {
                             required property var modelData
+                            notif: modelData
+                            compact: true
                             width: ListView.view.width
-                            implicitHeight: itemCol.implicitHeight + 14
-                            radius: 8
-                            color: Qt.rgba(139/255, 92/255, 246/255, 0.10)
-                            border.color: Qt.rgba(139/255, 92/255, 246/255, 0.35); border.width: 1
-
-                            Column {
-                                id: itemCol
-                                anchors.left: parent.left; anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.margins: 7
-                                anchors.rightMargin: 22
-                                spacing: 2
-                                Text {
-                                    width: parent.width
-                                    text: (modelData.appName ? modelData.appName + " · " : "") + (modelData.summary || "")
-                                    color: Theme.cyan; elide: Text.ElideRight
-                                    font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx - 2; font.bold: true
-                                }
-                                Text {
-                                    width: parent.width
-                                    visible: (modelData.body || "") !== ""
-                                    text: modelData.body || ""
-                                    color: Theme.textBase; wrapMode: Text.WordWrap; maximumLineCount: 3; elide: Text.ElideRight
-                                    font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx - 3
-                                }
-                            }
-                            Text {
-                                anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 6
-                                text: "✕"; color: Theme.muted
-                                font.family: Theme.monoFamily; font.pixelSize: Theme.fontPx - 1
-                                MouseArea { anchors.fill: parent; anchors.margins: -5
-                                            cursorShape: Qt.PointingHandCursor; onClicked: Notifs.dismiss(modelData) }
-                            }
+                            // ir a la ventana o pulsar un botón cierra el panel
+                            onActivated: root.visible = false
                         }
                     }
                 }
