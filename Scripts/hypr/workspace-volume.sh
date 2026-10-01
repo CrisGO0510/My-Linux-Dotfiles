@@ -13,7 +13,9 @@
 #   Firefox comparte PID entre ventanas, así que se compara el título: `media.name` del
 #   stream contra el título de la ventana, ambos normalizados (sin " — Firefox…" ni el
 #   contador "(8) " de Teams/Meet/YouTube). Si no hay título que case, se prueba por PID
-#   cuando ese PID tiene una sola ventana. Lo que no casa queda "sin ubicar" (?).
+#   cuando ese PID tiene una sola ventana. Último intento: `application.name` contra la
+#   class de la ventana, si es única (Spotify: sin PID en el nodo y el título es la
+#   canción). Lo que no casa queda "sin ubicar" (?).
 #
 # Se usa pw-dump y no `pactl -f json`: pactl devuelve (null) con títulos no ASCII (ñ, tildes).
 
@@ -34,7 +36,10 @@ list_streams() {
         | ([$cl[] | select($key != "" and (.title | norm) == $key)] | first) as $byTitle
         | ([$cl[] | select((.pid | tostring) == ($p["application.process.id"] // ""))]
             | if length == 1 then .[0] else null end) as $byPid
-        | ($byTitle // $byPid) as $w
+        | ([$cl[] | select(($p["application.name"] // "" | ascii_downcase) as $an
+                             | $an != "" and (.class | ascii_downcase) == $an)]
+            | if length == 1 then .[0] else null end) as $byClass
+        | ($byTitle // $byPid // $byClass) as $w
         | (.info.params.Props // [{}] | map(select(.channelVolumes)) | first // {}) as $pr
         | [ .id,
             ($w.workspace.id // ""),

@@ -50,6 +50,14 @@ Singleton {
                 const same = tops.filter(t => t.lastIpcObject && String(t.lastIpcObject.pid) === pid);
                 if (same.length === 1) win = same[0];
             }
+            // Spotify y similares: el nodo no trae PID y el título es la canción;
+            // se compara application.name con la class, si hay una sola ventana
+            if (!win) {
+                const an = (p["application.name"] || "").toLowerCase();
+                const same = tops.filter(t => an !== "" && t.lastIpcObject
+                                         && (t.lastIpcObject.class || "").toLowerCase() === an);
+                if (same.length === 1) win = same[0];
+            }
 
             const a = n.audio;
             out.push({
