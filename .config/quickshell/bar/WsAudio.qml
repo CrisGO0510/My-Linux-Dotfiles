@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 
@@ -10,7 +11,14 @@ import Quickshell.Services.Pipewire
 //   Firefox comparte PID entre ventanas, asi que se compara `media.name` del stream con
 //   el titulo de la ventana, ambos sin " — Firefox…" ni el contador "(8) " del inicio.
 //   Si no casa, se prueba por PID cuando ese PID tiene una sola ventana. Si tampoco,
-//   el stream queda sin ubicar (ws = null).
+//   Si no, se usa la ultima ventana conocida del stream (memoria, ver abajo). Si
+//   tampoco, el stream queda sin ubicar (ws = null).
+//
+// Memoria: una pestaña de Firefox en segundo plano sigue sonando pero ya no es el
+// titulo de su ventana, y si Firefox tiene varias ventanas el PID tampoco decide. Por
+// eso se recuerda object.serial del stream -> address de la ventana cada vez que casa
+// por titulo/PID/class, y se guarda en $XDG_RUNTIME_DIR/wsvol-memo.tsv, que tambien
+// lee y escribe el script. Se guarda la ventana, no el workspace: si se mueve, sigue.
 Singleton {
     id: root
 
@@ -25,6 +33,49 @@ Singleton {
     // el pid de las ventanas vive en lastIpcObject, que solo se llena al refrescar
     Component.onCompleted: Hyprland.refreshToplevels()
     onOutNodesChanged: Hyprland.refreshToplevels()
+
+    readonly property string memoPath: Quickshell.env("XDG_RUNTIME_DIR") + "/wsvol-memo.tsv"
+    // { serial: address } (address sin "0x"). Se muta dentro del binding de `streams`
+    // sin notificar, para no reevaluarlo; solo se reasigna al cargar el archivo.
+    property var memo: ({})
+    property bool memoDirty: false
+
+    FileView {
+        id: memoFile
+        path: root.memoPath
+        printErrors: false
+        atomicWrites: true
+        onLoaded: {
+            const m = {};
+            for (const line of text().split("\n")) {
+                const f = line.split("\t");
+                if (f.length === 2 && f[0] !== "") m[f[0]] = f[1];
+            }
+            root.memo = m;
+        }
+    }
+
+    // escritura diferida: el binding solo marca memoDirty
+    Timer {
+        id: memoSave
+        interval: 500
+        onTriggered: {
+            // se podan los streams que ya no existen
+            const live = root.outNodes.map(n => root.serialOf(n));
+            const out = [];
+            for (const k of Object.keys(root.memo))
+                if (live.includes(k)) out.push(k + "\t" + root.memo[k]);
+            memoFile.setText(out.join("\n") + (out.length ? "\n" : ""));
+        }
+    }
+    onStreamsChanged: if (memoDirty) { memoDirty = false; memoSave.restart(); }
+
+    function serialOf(n) {
+        return String(n.properties["object.serial"] || n.id);
+    }
+    function addrOf(t) {
+        return String(t.address || "").replace(/^0x/, "");
+    }
 
     function norm(s) {
         return (s || "").replace(/ [—–-] (Mozilla )?Firefox.*$/, "")
@@ -57,6 +108,17 @@ Singleton {
                 const same = tops.filter(t => an !== "" && t.lastIpcObject
                                          && (t.lastIpcObject.class || "").toLowerCase() === an);
                 if (same.length === 1) win = same[0];
+            }
+
+            const serial = serialOf(n);
+            if (win) {
+                if (root.memo[serial] !== addrOf(win)) {
+                    root.memo[serial] = addrOf(win);
+                    root.memoDirty = true;
+                }
+            } else if (root.memo[serial]) {
+                const addr = root.memo[serial];
+                win = tops.find(t => addrOf(t) === addr) || null;
             }
 
             const a = n.audio;

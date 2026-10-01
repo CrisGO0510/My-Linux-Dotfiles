@@ -15,18 +15,25 @@
 #   contador "(8) " de Teams/Meet/YouTube). Si no hay título que case, se prueba por PID
 #   cuando ese PID tiene una sola ventana. Último intento: `application.name` contra la
 #   class de la ventana, si es única (Spotify: sin PID en el nodo y el título es la
-#   canción). Lo que no casa queda "sin ubicar" (?).
+#   canción). Si nada casa se usa la última ventana conocida del stream (memoria en
+#   $XDG_RUNTIME_DIR/wsvol-memo.tsv, compartida con la barra): una pestaña de Firefox
+#   en segundo plano sigue sonando pero ya no es el título de su ventana. Lo que ni así
+#   casa queda "sin ubicar" (?).
 #
 # Se usa pw-dump y no `pactl -f json`: pactl devuelve (null) con títulos no ASCII (ñ, tildes).
 
 shopt -s extglob
 scrDir=$(dirname "$(realpath "$0")")
 
+memo=${XDG_RUNTIME_DIR:-/tmp}/wsvol-memo.tsv
+
 # Lista de streams: id \t ws \t volumen(0-1) \t mudo(0/1) \t título   (ws vacío = sin ubicar)
+# De paso actualiza la memoria (serial del stream \t address de la ventana, sin "0x").
 list_streams() {
-    local clients
+    local clients mem
     clients=$(hyprctl clients -j) || return 1
-    pw-dump 2>/dev/null | jq -r --argjson cl "$clients" '
+    mem=$(jq -Rn '[inputs | split("\t") | select(length == 2) | {(.[0]): .[1]}] | add // {}' "$memo" 2>/dev/null) || mem='{}'
+    pw-dump 2>/dev/null | jq -r --argjson cl "$clients" --argjson mem "$mem" '
         def norm: sub(" [—–-] (Mozilla )?Firefox.*$"; "") | sub("^\\(\\d+\\)\\s*"; "") | gsub("^\\s+|\\s+$"; "");
         .[]
         | select(.type == "PipeWire:Interface:Node" and .info.props["media.class"] == "Stream/Output/Audio")
@@ -39,15 +46,29 @@ list_streams() {
         | ([$cl[] | select(($p["application.name"] // "" | ascii_downcase) as $an
                              | $an != "" and (.class | ascii_downcase) == $an)]
             | if length == 1 then .[0] else null end) as $byClass
-        | ($byTitle // $byPid // $byClass) as $w
+        | ($p["object.serial"] // .id | tostring) as $serial
+        | ($byTitle // $byPid // $byClass) as $direct
+        | ($direct // ([$cl[] | select((.address | ltrimstr("0x")) == $mem[$serial])] | first)) as $w
         | (.info.params.Props // [{}] | map(select(.channelVolumes)) | first // {}) as $pr
-        | [ .id,
+        | [ $serial,
+            ($direct.address // "" | ltrimstr("0x")),
+            .id,
             ($w.workspace.id // ""),
             # channelVolumes es lineal; wpctl y pavucontrol muestran la raíz cúbica
             (($pr.channelVolumes // [1]) | max | pow(.; 1/3) * 100 | round / 100),
             (if $pr.mute then 1 else 0 end),
             (if $mn == "" then ($p["application.name"] // "audio") else $mn end)
-          ] | @tsv'
+          ] | @tsv' |
+    # las dos primeras columnas son para la memoria: se conserva lo que ya se sabía de
+    # los streams vivos que ahora no casan y se poda lo de streams que ya no existen
+    awk -F'\t' -v memo="$memo" '
+        BEGIN { OFS = FS; while ((getline l < memo) > 0) { split(l, f, "\t"); old[f[1]] = f[2] } }
+        { m[$1] = $2 != "" ? $2 : old[$1]; print $3, $4, $5, $6, $7 }
+        END {
+            tmp = memo ".tmp"; printf "" > tmp
+            for (k in m) if (m[k] != "") print k, m[k] > tmp
+            close(tmp); system("mv -f \"" tmp "\" \"" memo "\"")
+        }'
 }
 
 # Workspace visible en el monitor enfocado (el especial gana si está abierto)
