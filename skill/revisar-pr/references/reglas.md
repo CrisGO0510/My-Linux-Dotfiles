@@ -4,6 +4,8 @@ Cada regla tiene: id, severidad, fuente, qué revisar, cómo confirmarlo y qué 
 mecánicas ya vienen detectadas por `pre-scan.py`; aquí solo se indica cómo confirmar cada hallazgo.
 Las reglas de criterio se aplican leyendo completo cada archivo tocado bajo `src/`.
 
+Todas las reglas aplican a **ambos repos**: la columna/fuente indica dónde está escrita la convención, no a qué repo se limita.
+
 Severidades: 🔴 bloqueante (rompe una regla dura) · 🟡 mejora (convención blanda) · ℹ️ informativo · ⚠️ funcional grave.
 
 ## Reglas mecánicas (confirmar contexto antes de reportar)
@@ -23,22 +25,33 @@ Severidades: 🔴 bloqueante (rompe una regla dura) · 🟡 mejora (convención 
 | `NO-CONSOLE` | 🟡 | eslint.config | `console.*` fuera de tests. | Quitar o usar `useNotification`. |
 | `NO-TODO` | 🟡 | CLAUDE.md global | `TODO`/`FIXME` en comentarios. | Lo pendiente va en el ticket, no en el código. |
 | `ALIAS-IMPORTS` | 🟡 | CODING_STANDARDS | `from '../../...'`. | Usar `@/…` o los alias por capa. |
-| `PROPS-TYPED` | 🟡 | PRESENTATION_LAYER | `defineProps([...])` / `defineEmits([...])` sin genérico. | `defineProps<{...}>()` con tipo del archivo de `types/`. |
+| `PROPS-TYPED` | 🟡 | PRESENTATION_LAYER | `defineProps([...])` / `defineProps({...})` (y lo mismo con `defineEmits`) sin genérico. | `defineProps<{...}>()` con tipo del archivo de `types/`. |
 | `NAMING` | 🟡 | CODING_STANDARDS, documentation.md §10 | Archivo nuevo que no sigue el patrón de su carpeta (`I*Repository.ts`, `*UseCase.ts`, `*RepositoryImpl.ts`, `*Mapper.ts`, `use*.ts`, `*Store.ts`, `kebab-case.ts`, `PascalCase.vue`). | Renombrar. |
 | `DOMAIN-NO-DTO` | 🟡 | documentation.md §10 | Sufijo `DTO` en `domain/`. Los `dto/` de application son re-exports. | Nombrar `XRequest` / `XResponse`. |
-| `TEST-AAA` | 🟡 | CLAUDE.md | La unidad es el bloque `it`: cuenta si un `it` nuevo o tocado por el diff no tiene `// Arrange` / `// Act` / `// Assert`. Los `it` no tocados sin AAA van a deuda previa. | Añadir los tres marcadores en cada `it`. |
+| `TEST-AAA` | 🟡 | CLAUDE.md | La unidad es el bloque `it`: cuenta si un `it` nuevo o tocado por el diff no tiene `// Arrange` / `// Act` / `// Assert`. Los `it` no tocados sin AAA van a 📎 Deuda previa (el pre-scan ya no los lista). | Añadir los tres marcadores en cada `it`. |
 | `FEATURE-SLICE` | 🟡 | CLAUDE.md, documentation.md §11 | Feature **nuevo** al que le falta alguna de las 5 carpetas (`domain/feature/<f>`, `application/features/<f>`, `infrastructure/features/<f>`, `core/providers/features/<f>`, `presentation/features/<f>`). Legítimo si es solo-presentación y reutiliza use cases de otro feature: en ese caso no reportar. | Completar el slice. |
 
 ## Reglas de criterio
+
+El pre-scan también marca **candidatos** de algunas reglas de criterio; no son hallazgos hasta confirmarlos, y
+no cubren todos los casos (la lectura completa de cada archivo sigue siendo obligatoria):
+`SFC-CLEAN` (`computed`/`watch`/`ref`/hooks/funciones/use cases/stores en el `<script>`), `TABLE-SORT` (`<TableList`
+sin `@update-sort`), `VALIDATION-RULES` (regex inline con `.test`/`.match`, closures `=> … || 'mensaje'`),
+`COMMENTS` (cabeceras de sección y código comentado), `ENTITY-IMMUTABLE` (propiedad sin `readonly` en una clase de
+`entities/`), `TESTS-MISSING` (use case o composable nuevo sin test con su nombre) y `DI-WIRING` (`XUseCaseKey`
+sin declarar, sin `provide` o sin `inject`; el registro del provider en `appProvider.ts` y las rutas se siguen
+verificando a mano).
 
 ### `MAGIC-VALUES` 🔴 — CLAUDE.md global, bac y csj
 
 Literales con significado inline en templates o lógica: tamaños, límites, estados, claves, breakpoints,
 nombres de ruta, formatos de fecha, códigos, `rowsPerPage`, timeouts.
 
-- **Solo se reporta si el literal aparece 2 o más veces** (en el diff o en el árbol del proyecto).
+- Se reporta si se cumple **cualquiera** de dos condiciones:
+  1. ya existe una constante/enum con ese valor y no se usó — basta **un solo uso**;
+  2. el literal aparece 2 o más veces (en el diff o en el árbol del proyecto), sin contar la definición de una constante.
   Confirmar con grep del valor exacto (`grep -rn "'ACTIVO'" src` en local; `git grep -n "'ACTIVO'" <ref> -- src` en modo PR).
-- **Un literal usado una sola vez no se reporta.**
+- **Un literal usado una sola vez y sin constante existente no se reporta.**
 - Severidad: 🔴 si el PR mismo repite el literal (2+ en el diff) o si ya existe una constante y no se usó;
   🟡 si la repetición es solo contra código previo del repo que tampoco tiene constante (deuda transversal,
   p. ej. `limit: 10` en cientos de archivos). Si aplican ambos criterios, prevalece 🔴: el PR está agregando

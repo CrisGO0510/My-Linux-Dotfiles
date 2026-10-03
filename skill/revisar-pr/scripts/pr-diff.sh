@@ -29,6 +29,7 @@ done
 
 [[ -n "$OUT" ]] || { echo "error: falta --out <dir>" >&2; exit 2; }
 mkdir -p "$OUT"
+OUT="$(cd "$OUT" && pwd)"
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: no estás dentro de un repositorio git" >&2; exit 1; }
 cd "$REPO_ROOT"
@@ -42,9 +43,10 @@ esac
 
 if [[ -n "$PR_ID" ]]; then
   MODE="pr"
-  PR_JSON="$(az repos pr show --id "$PR_ID" --organization "$ORG" -o json 2>&1)" || {
+  # stderr aparte: los WARNING de az mezclados con el JSON rompen jq.
+  PR_JSON="$(az repos pr show --id "$PR_ID" --organization "$ORG" -o json 2>"$OUT/az.err")" || {
     echo "error: no se pudo obtener el PR $PR_ID desde Azure DevOps:" >&2
-    echo "$PR_JSON" | tail -3 >&2
+    tail -3 "$OUT/az.err" >&2
     echo "sugerencia: verifica el id o ejecuta 'az login' / 'az devops login'" >&2
     exit 1
   }
@@ -72,7 +74,6 @@ if [[ -n "$PR_ID" ]]; then
   BASE_REF="$(git merge-base "origin/$TGT" "origin/$SRC")"
   git diff "$RANGE" -- . "${EXCLUDES[@]}" > "$OUT/diff.patch"
   git diff --name-status "$RANGE" -- . "${EXCLUDES[@]}" > "$OUT/files.txt"
-  STAT="$(git diff --shortstat "$RANGE" -- . "${EXCLUDES[@]}")"
 else
   MODE="local"
   git fetch --quiet origin "$BASE" 2>/dev/null || true
@@ -93,7 +94,6 @@ else
     git diff --no-index -- /dev/null "$untracked" >> "$OUT/diff.patch" || true
     printf 'A\t%s\n' "$untracked" >> "$OUT/files.txt"
   done < <(git ls-files --others --exclude-standard -- . "${EXCLUDES[@]}")
-  STAT="$(git diff --shortstat "$MERGE_BASE" -- . "${EXCLUDES[@]}")"
 fi
 
 jq -n \
@@ -105,6 +105,8 @@ jq -n \
   > "$OUT/meta.json"
 
 FILES="$(grep -c . "$OUT/files.txt" || true)"
+# Del propio patch, para que cuente también los archivos no rastreados del modo local.
+STAT="$(git apply --numstat "$OUT/diff.patch" 2>/dev/null | awk '{a+=$1; d+=$2} END {if (NR) printf " +%d/−%d", a, d}')"
 DRAFT_TAG=""
 if [[ "$IS_DRAFT" == "true" ]]; then DRAFT_TAG=" · DRAFT (revisado con --force)"; fi
 echo "$PROJECT_NAME · modo $MODE${PR_ID:+ · PR #$PR_ID}$DRAFT_TAG · $SRC → $TGT · $FILES archivos ·${STAT:- sin cambios}"

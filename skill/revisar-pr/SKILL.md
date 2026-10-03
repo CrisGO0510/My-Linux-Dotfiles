@@ -26,12 +26,14 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
    dejar claro en la cabecera del reporte que el PR estaba en draft.
 
 3. **Pre-scan**: `$SCRIPTS/pre-scan.py --out $OUT` → `ruta:línea [ID] fragmento`. Son candidatos, no hallazgos.
-   Solo analiza **líneas añadidas** del diff (más nombres de archivos nuevos, tests tocados y `catch` de archivos
-   tocados); lo que ya existía en el archivo no aparece aquí.
+   Analiza **líneas añadidas** del diff, más nombres de archivos nuevos o renombrados, los `it` tocados, los
+   `catch`/`try` de archivos tocados y, para use cases/composables nuevos, si tienen test y cableado DI en el árbol.
+   Incluye candidatos de algunas reglas de criterio (ver `reglas.md`). Un mismo fragmento puede salir con dos IDs:
+   se reporta bajo el más específico.
 
 4. **Reglas**: leer `references/reglas.md` completo.
 
-5. **Lectura dirigida**: para cada archivo de `files.txt` bajo `src/` (estado A o M), leer el archivo completo con
+5. **Lectura dirigida**: para cada archivo de `files.txt` bajo `src/` (estado A, M o R), leer el archivo completo con
    `$SCRIPTS/show-file.sh --out $OUT <ruta>` (en modo PR lee de la rama origen, nunca del working tree)
    y aplicar las reglas de criterio. Excepción: archivos de cableado (`appProvider.ts`, `injectionKeys.ts`,
    `router/index.ts`, `endpoints.ts`) con hunks de pocas líneas se revisan por su hunk en `diff.patch`.
@@ -44,7 +46,8 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
    Si hay más de 40 archivos en `src/`, priorizar: composables, use cases, repositorios, `.vue`, y decir cuáles quedaron sin leer.
 
    **Marcar de paso los transversales**: todo archivo tocado bajo `core/`, `presentation/shared/`,
-   `domain/shared/` o `infrastructure/api/` que no sea cableado de rutina va a la sección
+   `domain/shared/` o `infrastructure/api/`, y todo composable/componente de **otro feature** que el PR modifique,
+   que no sea cableado de rutina va a la sección
    "🔀 Cambios transversales", tenga o no hallazgos. Ver la regla `TRANSVERSAL`.
 
 6. **Confirmar** cada candidato del pre-scan con su contexto; descartar falsos positivos en silencio.
@@ -60,7 +63,7 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
 ## Prohibido
 
 - Modificar archivos del proyecto, hacer `git checkout`, `commit`, `push`, o comentar en Azure DevOps.
-- Reportar `MAGIC-VALUES` para un literal que aparece una sola vez.
+- Reportar `MAGIC-VALUES` para un literal que aparece una sola vez y no tiene constante existente.
 - Especular sobre bugs: `FUNCIONAL-GRAVE` es solo para lo evidente.
 - Correr `lint`, `type-check` o tests: ya lo hace el pipeline.
 
@@ -105,7 +108,7 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
 - En "📎 Deuda previa" se admite el id `OBS` para observaciones fuera del catálogo (código muerto, cobertura
   faltante de un composable existente que el PR modifica). Nunca en las secciones que cuentan.
 - La sección "🔀 Cambios transversales" es **obligatoria** siempre que el diff toque `core/`,
-  `presentation/shared/`, `domain/shared/` o `infrastructure/api/` fuera del cableado de rutina, aunque no haya
+  `presentation/shared/`, `domain/shared/`, `infrastructure/api/` o código de otro feature fuera del cableado de rutina, aunque no haya
   ni un hallazgo. Ver la regla `TRANSVERSAL` en `references/reglas.md`.
 - Agrupar por regla, dentro de cada regla por archivo. Omitir secciones vacías.
 - `ruta:línea` siempre relativa al repo (clickable). Fragmento corto, sin repetir el archivo entero.
@@ -122,6 +125,6 @@ Directorio de trabajo: el scratchpad de la sesión (`OUT=<scratchpad>/revisar-pr
 | PR de otro repo | El script lo detecta; decirle al usuario en qué clone ejecutarlo. |
 | Rama local sin cambios (`0 archivos`) | Decirlo y parar; probablemente está en `develop`. |
 | `mask` en `shared/components` | Es la definición del prop, no un uso: no es hallazgo. |
-| Test existente al que solo se tocó una línea y no tiene AAA | Reportar `TEST-AAA` como 🟡 aclarando que es deuda previa. |
+| Test existente sin AAA en un archivo que el PR toca | Solo cuentan los `it` nuevos o tocados por el diff (🟡). Los `it` no tocados van a 📎 Deuda previa. |
 | Cambio en `core/` o `shared/` que no rompe ninguna regla | Va igual en "🔀 Cambios transversales". No omitirlo por no ser hallazgo. |
 | PR que es migración del repo hermano | Antes de reportar, comparar contra `core_web_bac` / `core_web_csj`. Si el código es port fiel del original, no es hallazgo: decirlo y bajar la severidad. |

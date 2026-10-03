@@ -1,0 +1,28 @@
+core_web_bac · modo local · feat/test → develop · 11 archivos · +70/−0
+-- 26 hallazgos mecánicos
+src/*/features/z:1 [FEATURE-SLICE] feature nuevo; faltan: src/infrastructure/features/z, src/core/providers/features/z, src/presentation/features/z
+src/application/features/x/use-cases/getx.ts:1 [NAMING] caso de uso: <Feature><Accion>UseCase.ts
+src/application/features/z/use-cases/GetZUseCase.ts:1 [DI-WIRING] falta: declarar GetZUseCaseKey, app.provide(GetZUseCaseKey, ...), inject(GetZUseCaseKey)
+src/application/features/z/use-cases/GetZUseCase.ts:1 [TESTS-MISSING] sin test para GetZUseCase
+src/application/features/z/use-cases/SaveZUseCase.ts:1 [DI-WIRING] falta: inject(SaveZUseCaseKey)
+src/domain/feature/z/entities/Z.ts:3 [ENTITY-IMMUTABLE] name: string
+src/domain/feature/z/entities/Z.ts:4 [ENTITY-IMMUTABLE] constructor(public code: string, private readonly ok: string) {}
+src/presentation/features/x/composables/__tests__/useY.spec.ts:12 [TEST-AAA] faltan marcadores // Arrange, // Act, // Assert
+src/presentation/features/x/composables/plus.ts:1 [NAMING] composable: use<Nombre>.ts
+src/presentation/features/x/composables/plus.ts:3 [NO-ANY] const b: any = 2
+src/presentation/features/x/composables/useY.ts:2 [COMPOSABLE-SCOPE] export const FOO = 1
+src/presentation/features/x/composables/useY.ts:3 [COMPOSABLE-SCOPE] async function helper() {}
+src/presentation/features/x/composables/useY.ts:4 [COMPOSABLE-SCOPE] enum Estado { A }
+src/presentation/features/x/composables/useY.ts:6 [NO-ANY] const x: Record<string, any> = {}
+src/presentation/features/x/composables/useY.ts:8 [NO-ANY] const g = (a: number) => any
+src/presentation/features/x/composables/useY.ts:19 [ERROR-HANDLING] try/finally sin catch
+src/presentation/features/x/views/XView.vue:2 [SFC-TYPES] interface Props extends Base {
+src/presentation/features/x/views/ZList.vue:2 [COMMENTS] // Props
+src/presentation/features/x/views/ZList.vue:3 [PROPS-TYPED] const props = defineProps({ id: String })
+src/presentation/features/x/views/ZList.vue:5 [SFC-CLEAN] const total = computed(() => rows.length)
+src/presentation/features/x/views/ZList.vue:6 [SFC-CLEAN] const save = async () => {}
+src/presentation/features/x/views/ZList.vue:7 [COMMENTS] // const old = 1
+src/presentation/features/x/views/ZList.vue:8 [SFC-CLEAN] const rule = (val) => !!val || 'Requerido'
+src/presentation/features/x/views/ZList.vue:8 [VALIDATION-RULES] const rule = (val) => !!val || 'Requerido'
+src/presentation/features/x/views/ZList.vue:12 [TABLE-SORT] TableList sin @update-sort
+src/presentation/features/x/views/ZList.vue:13 [VALIDATION-RULES] <q-input :rules="[(val) => /^\d+$/.test(val) || 'Solo números']" />

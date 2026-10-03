@@ -1,0 +1,2 @@
+# Renombrados que aplica la rama: <origen> <destino>
+src/application/features/x/use-cases/GetXUseCase.ts src/application/features/x/use-cases/getx.ts
