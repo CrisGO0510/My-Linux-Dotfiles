@@ -106,14 +106,24 @@ vol_icon() {
     else echo "󰕾"; fi
 }
 
+# Spotify guarda su propio volumen (el de MPRIS) y lo vuelve a aplicar al stream en
+# cada canción, pisando lo que se haya puesto con wpctl. Tras cambiar el volumen de un
+# stream de Spotify se copia el valor a MPRIS para que la siguiente canción lo respete.
+sync_mpris() {
+    local id=$1 vol
+    wpctl inspect "$id" 2>/dev/null | grep -qi 'application.name = "spotify"' || return 0
+    vol=$(wpctl get-volume "$id" 2>/dev/null | awk '{ print $2 }')
+    [ -n "$vol" ] && playerctl -p spotify volume "$vol" 2>/dev/null
+}
+
 # Aplica una acción de wpctl a los ids recibidos
 apply() {
     local action=$1 step=$2 id
     shift 2
     for id in "$@"; do
         case $action in
-            up)     wpctl set-mute "$id" 0; wpctl set-volume -l 1.0 "$id" "${step}%+" ;;
-            down)   wpctl set-volume "$id" "${step}%-" ;;
+            up)     wpctl set-mute "$id" 0; wpctl set-volume -l 1.0 "$id" "${step}%+"; sync_mpris "$id" ;;
+            down)   wpctl set-volume "$id" "${step}%-"; sync_mpris "$id" ;;
             mute)   wpctl set-mute "$id" 1 ;;
             unmute) wpctl set-mute "$id" 0 ;;
         esac
@@ -218,7 +228,7 @@ rofi_mode() {
     # r: todas las ventanas al 100 % y sin silencio, desde cualquier fila; el master no se toca
     if [ "${ROFI_RETV:-0}" = 15 ]; then
         while read -r id; do
-            wpctl set-mute "$id" 0; wpctl set-volume "$id" 1.0
+            wpctl set-mute "$id" 0; wpctl set-volume "$id" 1.0; sync_mpris "$id"
         done < <(cut -f1 <<<"$streams") 2>/dev/null
     elif [[ $ROFI_INFO == ws:* ]]; then
         mapfile -t ids < <(ws_ids "$key" <<<"$streams")
