@@ -146,3 +146,4 @@ alias lt='eza --icons=auto --tree'
 alias lsd="$HOME/Scripts/docker-pretty-print"
 
 alias claude='claude --dangerously-skip-permissions'
+export ANTHROPIC_MODEL=opus

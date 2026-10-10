@@ -13,10 +13,10 @@
 }
 
 {
-    "label": "suspend",
-    "action": "$HOME/dotfiles/Scripts/hypr/lock.sh & disown && systemctl suspend-then-hibernate",
-    "text": "Suspend",
-    "keybind": "u"
+    "label": "hibernate",
+    "action": "$HOME/dotfiles/Scripts/hypr/lock.sh & disown && systemctl hibernate",
+    "text": "Hibernate",
+    "keybind": "h"
 }
 
 {

@@ -5,7 +5,7 @@
 # (HandleLidSwitch=suspend). Aca lo desactivamos para que la laptop siga
 # ejecutando todo con la tapa cerrada y siga accesible por SSH.
 #
-# La suspension manual no se toca: wlogout sigue llamando a `systemctl suspend`.
+# La accion manual no se toca: wlogout sigue llamando a `systemctl hibernate`.
 # El apagado del panel al cerrar lo hace Hyprland (ver keybindings.lua).
 
 set -e

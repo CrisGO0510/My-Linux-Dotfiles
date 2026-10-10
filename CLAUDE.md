@@ -8,7 +8,7 @@ Personal Arch Linux dotfiles for a keyboard-driven **Hyprland** (Wayland) deskto
 
 The repo **must** live at `~/dotfiles` — many configs and scripts hardcode `$HOME/dotfiles/Scripts/...` paths (e.g. `SCR_PATH` in `hyprland.lua`). Cloning elsewhere breaks Hyprland's `exec-once` startup scripts.
 
-The current checked-out branch is `laptop` (a machine-specific branch); `default` is the main branch. Machine-specific divergence (e.g. `monitors.conf`) is expected.
+`default` is the only branch: all machines (desktop and laptop) share it. There is no machine-specific divergence — `monitors.lua` auto-detects the profile by reading `/sys/class/drm`, and the Quickshell widgets hide themselves when the hardware isn't there (battery, NVIDIA GPU). If something needs to differ per machine, resolve it with runtime detection, not with a branch.
 
 ## Deploying changes
 

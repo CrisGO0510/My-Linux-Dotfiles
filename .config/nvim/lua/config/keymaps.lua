@@ -340,6 +340,18 @@ wk.add({
 		end,
 		desc = "Find Files",
 	},
+	{
+		"<leader>fF",
+		function()
+			require("telescope.builtin").find_files({
+				cwd = project_root.get(),
+				find_command = { "fd", "--type", "f", "--hidden", "--no-ignore", "--exclude", ".git" },
+				file_ignore_patterns = {},
+				prompt_title = "Find All Files",
+			})
+		end,
+		desc = "Find All Files (sin ignores)",
+	},
 	{ "<leader>fg", "<cmd>Telescope git_files<CR>", desc = "Find Git Files" },
 	{
 		"<leader>fp",
@@ -415,6 +427,18 @@ wk.add({
 			require("telescope.builtin").live_grep({ cwd = project_root.get() })
 		end,
 		desc = "Grep",
+	},
+	{
+		"<leader>sG",
+		function()
+			require("telescope.builtin").live_grep({
+				cwd = project_root.get(),
+				additional_args = { "--hidden", "--no-ignore", "--glob", "!.git/" },
+				file_ignore_patterns = {},
+				prompt_title = "Grep All Files",
+			})
+		end,
+		desc = "Grep All Files (sin ignores)",
 	},
 	{
 		"<leader>sw",

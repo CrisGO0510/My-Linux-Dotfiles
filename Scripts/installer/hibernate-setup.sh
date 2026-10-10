@@ -34,6 +34,8 @@ HIBERNATE_DELAY="10min"
 FSTAB="/etc/fstab"
 GRUB_DEFAULTS="/etc/default/grub"
 GRUB_CFG="/boot/grub/grub.cfg"
+KERNEL_CMDLINE="/etc/kernel/cmdline"   # cmdline que mkinitcpio embebe en el UKI
+UKI="/boot/EFI/Linux/arch-linux.efi"
 MKINITCPIO_CONF="/etc/mkinitcpio.conf"
 INITRAMFS="/boot/initramfs-linux.img"
 SLEEP_DROPIN_DIR="/etc/systemd/sleep.conf.d"
@@ -117,7 +119,7 @@ fi
 
 
 # === 2. resume= y resume_offset= en el cmdline ===
-step "Parametros de reanudacion en GRUB"
+step "Parametros de reanudacion en el cmdline"
 
 resume_offset=$(sudo filefrag -v "$SWAPFILE" | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
 if [[ -z "$resume_offset" || ! "$resume_offset" =~ ^[0-9]+$ ]]; then
@@ -139,6 +141,24 @@ else
         -e "s|^(GRUB_CMDLINE_LINUX_DEFAULT=\")(.*)(\")|\1\2 resume=UUID=$root_uuid resume_offset=$resume_offset\3|" \
         "$GRUB_DEFAULTS"
     grep -E "^GRUB_CMDLINE_LINUX_DEFAULT" "$GRUB_DEFAULTS"
+fi
+
+# El UKI arranca directo desde el firmware sin pasar por GRUB: su cmdline sale
+# de este archivo, no de $GRUB_DEFAULTS.
+if [[ -f "$KERNEL_CMDLINE" ]]; then
+    if grep -q "resume=UUID=$root_uuid" "$KERNEL_CMDLINE" && \
+       grep -q "resume_offset=$resume_offset" "$KERNEL_CMDLINE"; then
+        info "$KERNEL_CMDLINE ya tiene los parametros correctos."
+    else
+        info "Actualizando $KERNEL_CMDLINE (backup en $KERNEL_CMDLINE$BACKUP_SUFFIX)"
+        sudo cp "$KERNEL_CMDLINE" "$KERNEL_CMDLINE$BACKUP_SUFFIX"
+        sudo sed -i -E \
+            -e 's/[[:space:]]*resume=[^ ]*//g' \
+            -e 's/[[:space:]]*resume_offset=[^ ]*//g' \
+            -e "s|$| resume=UUID=$root_uuid resume_offset=$resume_offset|" \
+            "$KERNEL_CMDLINE"
+        cat "$KERNEL_CMDLINE"
+    fi
 fi
 
 
@@ -174,13 +194,17 @@ info "Escrito $SLEEP_DROPIN"
 
 
 # === 5. Regenerar initramfs y grub.cfg ===
-step "Regenerando initramfs y grub.cfg"
+step "Regenerando initramfs, UKI y grub.cfg"
 
 # Solo existe el preset 'default' (sin fallback): sin copia de seguridad, un
 # initramfs malo dejaria el equipo sin forma de arrancar.
 if [[ -f "$INITRAMFS" ]]; then
     info "Backup del initramfs actual en $INITRAMFS$BACKUP_SUFFIX"
     sudo cp "$INITRAMFS" "$INITRAMFS$BACKUP_SUFFIX"
+fi
+if [[ -f "$UKI" ]]; then
+    info "Backup del UKI actual en $UKI$BACKUP_SUFFIX"
+    sudo cp "$UKI" "$UKI$BACKUP_SUFFIX"
 fi
 
 sudo mkinitcpio -P
@@ -209,7 +233,7 @@ Si algo sale mal, los backups de esta ejecucion tienen el sufijo:
 Para revertir por completo:
   sudo swapoff $SWAPFILE && sudo rm $SWAPFILE
   sudo rm $SLEEP_DROPIN
-  restaura $FSTAB, $GRUB_DEFAULTS y $MKINITCPIO_CONF desde sus backups
+  restaura $FSTAB, $GRUB_DEFAULTS, $KERNEL_CMDLINE y $MKINITCPIO_CONF desde sus backups
   sudo mkinitcpio -P && sudo grub-mkconfig -o $GRUB_CFG
 
 EOF
