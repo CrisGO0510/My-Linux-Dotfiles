@@ -28,6 +28,9 @@ Editing a deployed config and editing the repo file are the same action (it's a 
 - **`.config/`** — per-app configs, the bulk of the repo. Each subdir is one app (hypr, nvim, eww, rofi, kitty, lf, swaync, wlogout, fastfetch, systemd).
 - **`Scripts/`** — runtime automation. `Scripts/hypr/*.sh` are invoked by Hyprland keybinds and `exec-once` (wallpaper, screenshot, volume, clipboard, etc.). `Scripts/installer/` is setup-time only.
 - **`assets/`** — wallpapers, lockscreen images, icons referenced by configs.
+- **`claude/`** — global Claude Code config shared by all machines: `CLAUDE.md` (personal rules) and `agents/` (subagents). Excluded from stow; linked by hand as `~/.claude/CLAUDE.md` and `~/.claude/agents`.
+
+`.stow-local-ignore` keeps `claude/` and this `CLAUDE.md` out of `$HOME`: a `~/CLAUDE.md` would be loaded by Claude Code in every project under the home directory.
 
 ### Hyprland (`.config/hypr/`)
 
