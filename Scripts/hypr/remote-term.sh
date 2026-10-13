@@ -18,4 +18,10 @@ if ! timeout 3 bash -c "</dev/tcp/$peer/22" 2>/dev/null; then
     exit 1
 fi
 
-exec kitty kitten ssh "$peer"
+# Cada argumento es un puerto de la otra máquina que queda accesible en localhost de esta
+forwards=()
+for port in "$@"; do
+    forwards+=(-L "$port:localhost:$port")
+done
+
+exec kitty kitten ssh "${forwards[@]}" "$peer"
