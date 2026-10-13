@@ -46,6 +46,24 @@ refresh() {
     done
 }
 
+# tmux reparte el ancho en proporción al cambiar el tamaño de la ventana; la barra debe conservar el suyo
+fit() {
+    local u
+    for u in $(ui list-sessions -F '#{session_name}' 2>/dev/null); do
+        ui resize-pane -t "$u:.{left}" -x "$(ui display -p -t "$u" '#{@width}')"
+    done
+}
+
+widen() {
+    local w max
+    w=$(($(ui display -p -t "$CMUX_UI" '#{@width}') + $1))
+    max=$(($(ui display -p -t "$CMUX_UI" '#{window_width}') - 20))
+    ((w > max)) && w=$max
+    ((w < 12)) && w=12
+    ui set -t "$CMUX_UI" @width "$w"
+    fit
+}
+
 move() {
     local ids i cur
     mapfile -t ids < <(sessions | cut -d'|' -f1)
@@ -87,6 +105,8 @@ key() {
             ;;
         j) ((menu)) && move 1 ;;
         k) if ((menu)); then move -1; else visual cursor-up; fi ;;
+        narrow) widen -4 ;;
+        widen) widen 4 ;;
         v) visual ;;
         C-u) visual halfpage-up ;;
         n)
@@ -124,11 +144,12 @@ modesync() {
 }
 
 draw() {
-    local shown cur menu id path name branch mark sgr line out found=
+    local shown cur menu id path name branch mark sgr line out w found=
     local -A seen=()
     shown=$(chat '#{session_id}')
     cur=$(cursor)
     menu=$(ui display -p -t "$CMUX_UI" '#{&&:#{pane_at_left},#{==:#{@mode},NORMAL}}')
+    w=$(ui display -p -t "$CMUX_UI:.{left}" '#{pane_width}')
     out=$'\e[H\e[2m sesiones\e[0m\e[K\n\e[K\n'
     while IFS='|' read -r id path; do
         name=${path##*/}
@@ -138,10 +159,10 @@ draw() {
         [[ $id == "$shown" ]] && mark='▸'
         sgr=
         [[ $id == "$cur" ]] && found=1 && ((menu)) && sgr=$'\e[7m'
-        printf -v line ' %s %-22.22s' "$mark" "$name"
+        printf -v line ' %s %-*.*s' "$mark" $((w - 4)) $((w - 4)) "$name"
         out+="$sgr$line"$'\e[0m\e[K\n'
         if [[ -n $branch ]]; then
-            printf -v line '     %-20.20s' "$branch"
+            printf -v line '     %-*.*s' $((w - 6)) $((w - 6)) "$branch"
             out+=$'\e[2m'"$sgr$line"$'\e[0m\e[K\n'
         fi
     done < <(sessions)
@@ -183,6 +204,10 @@ case ${1-} in
         ;;
     _modesync) modesync ;;
     _refresh) refresh ;;
+    _fit)
+        fit
+        refresh
+        ;;
     *)
         echo "uso: cmux [claude [args de claude...] | active]" >&2
         exit 2
