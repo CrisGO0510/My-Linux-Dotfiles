@@ -10,6 +10,7 @@
 
 ## Comentarios
 - **No agregues comentarios innecesarios.** No escribas comentarios que repiten lo que el código ya dice; el código debe ser autoexplicativo.
+- **Un comentario solo se justifica si explica algo que no se deduce de la línea:** una razón, un gotcha del entorno o una decisión con alternativa descartada. Copia la densidad de las líneas vecinas: si las de alrededor no llevan comentario, la nueva tampoco.
 - **Tampoco dejes comentarios `TODO`/`FIXME`** en el código. Lo pendiente se rastrea fuera del código (tickets, PR, etc.), no como comentario.
 - No agregues comentarios solo para narrar los cambios que hiciste.
 
