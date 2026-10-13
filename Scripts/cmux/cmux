@@ -83,7 +83,6 @@ visual() {
     focus right
     mode VISUAL root
     core copy-mode -t "$pane"
-    (($#)) && core send-keys -t "$pane" -X "$@"
 }
 
 key() {
@@ -104,11 +103,10 @@ key() {
             focus right
             ;;
         j) ((menu)) && move 1 ;;
-        k) if ((menu)); then move -1; else visual cursor-up; fi ;;
+        k) ((menu)) && move -1 ;;
         narrow) widen -4 ;;
         widen) widen 4 ;;
         v) visual ;;
-        C-u) visual halfpage-up ;;
         n)
             ui command-prompt -t "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
                 -p 'carpeta:' -I "$(core display -p -t "$(cursor)" '#{session_path}')" \
