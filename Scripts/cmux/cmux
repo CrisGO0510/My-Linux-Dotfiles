@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+
+# cmux: varias sesiones de Claude Code en una ventana, sobre dos servidores tmux ocultos.
+#   cmux     las sesiones, una por Claude; sobreviven al cierre de la ventana
+#   cmux-ui  una sesión por ventana abierta: barra lateral + cliente anidado de la sesión elegida
+
+self=$(realpath "$0")
+dir=${self%/*}
+export CMUX_BIN=$self
+# Los dos servidores se anidan a propósito y todos los destinos van explícitos
+unset TMUX TMUX_PANE
+
+core() { tmux -L cmux -f "$dir/core.conf" "$@"; }
+ui() { tmux -L cmux-ui -f "$dir/ui.conf" "$@"; }
+
+sessions() {
+    core list-sessions -F '#{session_id}|#{session_path}' 2>/dev/null | sort -t'$' -k2n
+}
+
+# Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail)
+new_session() {
+    local d=$1
+    shift
+    core new-session -dP -F '#{session_id}' -c "$d" -e CMUX=1 -- zsh -ic 'claude "$@"' cmux "$@"
+}
+
+open_ui() {
+    local name=ui$$
+    exec tmux -L cmux-ui -f "$dir/ui.conf" new-session -s "$name" -e "CMUX_UI=$name" \
+        "exec env -u TMUX tmux -L cmux attach -t '$1'" \; \
+        split-window -hbd -l 26 "exec '$self' _sidebar" \; \
+        set @cursor "$1"
+}
+
+chat_tty() { ui display -p -t "$CMUX_UI:.{right}" '#{pane_tty}'; }
+chat() { core display -p -c "$(chat_tty)" "$1"; }
+cursor() { ui show -qv -t "$CMUX_UI" @cursor; }
+mode() { ui set -t "$CMUX_UI" @mode "$1" \; set -t "$CMUX_UI" key-table "$2"; }
+focus() { ui select-pane -t "$CMUX_UI:.{$1}"; }
+show() { core switch-client -c "$(chat_tty)" -t "$1"; }
+
+refresh() {
+    local pid
+    for pid in $(ui list-sessions -F '#{@sidebar_pid}' 2>/dev/null); do
+        kill -USR1 "$pid" 2>/dev/null
+    done
+}
+
+move() {
+    local ids i cur
+    mapfile -t ids < <(sessions | cut -d'|' -f1)
+    cur=$(cursor)
+    for i in "${!ids[@]}"; do
+        [[ ${ids[i]} == "$cur" ]] && break
+    done
+    i=$((i + $1))
+    ((i < 0)) && i=0
+    ((i >= ${#ids[@]})) && i=$((${#ids[@]} - 1))
+    ui set -t "$CMUX_UI" @cursor "${ids[i]}"
+}
+
+visual() {
+    local pane
+    pane=$(chat '#{pane_id}')
+    focus right
+    mode VISUAL root
+    core copy-mode -t "$pane"
+    (($#)) && core send-keys -t "$pane" -X "$@"
+}
+
+key() {
+    local menu d
+    menu=$(ui display -p -t "$CMUX_UI" '#{pane_at_left}')
+    case $1 in
+        esc)
+            [[ $(chat '#{pane_in_mode}') == 1 ]] && core send-keys -t "$(chat '#{pane_id}')" -X cancel
+            mode NORMAL normal
+            ;;
+        i)
+            focus right
+            mode INSERTAR root
+            ;;
+        h) focus left ;;
+        l)
+            ((menu)) && show "$(cursor)"
+            focus right
+            ;;
+        j) ((menu)) && move 1 ;;
+        k) if ((menu)); then move -1; else visual cursor-up; fi ;;
+        v) visual ;;
+        C-u) visual halfpage-up ;;
+        n)
+            ui command-prompt -t "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
+                -p 'carpeta:' -I "$(core display -p -t "$(cursor)" '#{session_path}')" \
+                "run-shell \"'$self' _key new '$CMUX_UI' '%%'\""
+            ;;
+        new)
+            d=${2/#\~/$HOME}
+            if [[ -d $d ]]; then
+                d=$(new_session "$d")
+                ui set -t "$CMUX_UI" @cursor "$d"
+                show "$d"
+                focus right
+                mode INSERTAR root
+            else
+                ui display-message -t "$CMUX_UI" "cmux: no existe la carpeta $d"
+            fi
+            ;;
+        d) core kill-session -t "$(cursor)" ;;
+        Q)
+            core kill-server
+            ui kill-server
+            ;;
+    esac
+    refresh
+}
+
+# Al salir del modo de copia (y, Esc) la ventana que estaba en VISUAL vuelve a NORMAL
+modesync() {
+    for CMUX_UI in $(ui list-sessions -F '#{session_name}' 2>/dev/null); do
+        [[ $(ui show -qv -t "$CMUX_UI" @mode) == VISUAL && $(chat '#{pane_in_mode}') != 1 ]] && mode NORMAL normal
+    done
+    refresh
+}
+
+draw() {
+    local shown cur menu id path name branch mark sgr line out found=
+    local -A seen=()
+    shown=$(chat '#{session_id}')
+    cur=$(cursor)
+    menu=$(ui display -p -t "$CMUX_UI" '#{&&:#{pane_at_left},#{==:#{@mode},NORMAL}}')
+    out=$'\e[H\e[2m sesiones\e[0m\e[K\n\e[K\n'
+    while IFS='|' read -r id path; do
+        name=${path##*/}
+        ((++seen[$name] > 1)) && name+=" (${seen[$name]})"
+        branch=$(git -C "$path" branch --show-current 2>/dev/null)
+        mark=' '
+        [[ $id == "$shown" ]] && mark='▸'
+        sgr=
+        [[ $id == "$cur" ]] && found=1 && ((menu)) && sgr=$'\e[7m'
+        printf -v line ' %s %-22.22s' "$mark" "$name"
+        out+="$sgr$line"$'\e[0m\e[K\n'
+        if [[ -n $branch ]]; then
+            printf -v line '     %-20.20s' "$branch"
+            out+=$'\e[2m'"$sgr$line"$'\e[0m\e[K\n'
+        fi
+    done < <(sessions)
+    printf '%s\e[J' "$out"
+    [[ -n $found ]] || ui set -t "$CMUX_UI" @cursor "$shown"
+}
+
+sidebar() {
+    trap : USR1
+    ui set -t "$CMUX_UI" @sidebar_pid $$
+    printf '\e[?25l'
+    while :; do
+        # Sin panel de chat (se cerró el último Claude) la ventana ya no tiene nada que mostrar
+        (($(ui list-panes -t "$CMUX_UI" | wc -l) > 1)) || exec tmux -L cmux-ui kill-session -t "$CMUX_UI"
+        draw
+        sleep 2 &
+        wait $!
+    done
+}
+
+case ${1-} in
+    '')
+        if [[ -n ${CMUX-} ]]; then
+            echo "cmux: ya estás dentro de cmux" >&2
+            exit 1
+        fi
+        id=$(sessions | tail -1 | cut -d'|' -f1)
+        open_ui "${id:-$(new_session "$PWD")}"
+        ;;
+    claude)
+        shift
+        open_ui "$(new_session "$PWD" "$@")"
+        ;;
+    active) core has-session 2>/dev/null ;;
+    _sidebar) sidebar ;;
+    _key)
+        CMUX_UI=$3
+        key "$2" "${4-}"
+        ;;
+    _modesync) modesync ;;
+    _refresh) refresh ;;
+    *)
+        echo "uso: cmux [claude [args de claude...] | active]" >&2
+        exit 2
+        ;;
+esac

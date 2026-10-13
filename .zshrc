@@ -145,8 +145,16 @@ alias ld='eza -lhD --icons=auto'
 alias lt='eza --icons=auto --tree'
 alias lsd="$HOME/Scripts/docker-pretty-print"
 
+alias cmux="$HOME/dotfiles/Scripts/cmux/cmux"
+
 # En Linktic el alcance lo fija la HU: ponytail arranca en full en vez del ultra por defecto.
+# Con cmux activo, un claude interactivo nace como sesión suya; subcomandos y -p siguen directos.
 function claude {
+  if [[ -z $CMUX && -t 0 && -t 1 && ( $# -eq 0 || $1 == (-c|--continue|-r|--resume) ) ]] \
+    && "$HOME/dotfiles/Scripts/cmux/cmux" active; then
+    "$HOME/dotfiles/Scripts/cmux/cmux" claude "$@"
+    return
+  fi
   if [[ $PWD == $HOME/Documents/linktic(|/*) ]]; then
     PONYTAIL_DEFAULT_MODE=full command claude --dangerously-skip-permissions "$@"
   else
