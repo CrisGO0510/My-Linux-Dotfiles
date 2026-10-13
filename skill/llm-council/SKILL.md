@@ -1,8 +1,10 @@
 ---
+
 name: llm-council
-description: "Run a question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final verdict. Based on Karpathy's LLM Council methodology. Only runs when the user explicitly invokes /llm-council."
-disable-model-invocation: true
-argument-hint: "<decisión> — opciones, contexto, restricciones, qué está en juego"
+
+
+description: "Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final verdict. Based on Karpathy's LLM Council methodology. MANDATORY TRIGGERS: 'council this', 'run the council', 'war room this', 'pressure-test this', 'stress-test this', 'debate this'. STRONG TRIGGERS (use when combined with a real decision or tradeoff): 'should I X or Y', 'which option', 'what would you do', 'is this the right move', 'validate this', 'get multiple perspectives', 'I can't decide', 'I'm torn between'. Do NOT trigger on simple yes/no questions, factual lookups, or casual 'should I' without a meaningful tradeoff (e.g. 'should I use markdown' is not a council question). DO trigger when the user presents a genuine decision with stakes, multiple options, and context that suggests they want it pressure-tested from multiple angles."
+
 ---
 
 
@@ -98,7 +100,7 @@ Only cares about one thing: can this actually be done, and what's the fastest pa
 ### step 1: frame the question (with context enrichment)
 
 
-When the user invokes /llm-council, do two things before framing:
+When the user says "council this" (or any trigger phrase), do two things before framing:
 
 
 **A. Scan the workspace for context.** The user's question is often just the tip of the iceberg. Their Claude setup likely contains files that would dramatically improve the council's output. Before framing, quickly scan for and read any relevant context files:
@@ -133,7 +135,7 @@ Use `Glob` and quick `Read` calls to find these. Don't spend more than 30 second
 Don't add your own opinion. Don't steer it. But DO make sure each advisor has enough context to give a specific, grounded answer rather than generic advice.
 
 
-If the question is too vague ("/llm-council mi negocio"), ask one clarifying question. Just one. Then proceed.
+If the question is too vague ("council this: my business"), ask one clarifying question. Just one. Then proceed.
 
 
 Save the framed question for the transcript.
