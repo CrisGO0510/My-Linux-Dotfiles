@@ -145,5 +145,12 @@ alias ld='eza -lhD --icons=auto'
 alias lt='eza --icons=auto --tree'
 alias lsd="$HOME/Scripts/docker-pretty-print"
 
-alias claude='claude --dangerously-skip-permissions'
+# En Linktic el alcance lo fija la HU: ponytail arranca en full en vez del ultra por defecto.
+function claude {
+  if [[ $PWD == $HOME/Documents/linktic(|/*) ]]; then
+    PONYTAIL_DEFAULT_MODE=full command claude --dangerously-skip-permissions "$@"
+  else
+    command claude --dangerously-skip-permissions "$@"
+  fi
+}
 export ANTHROPIC_MODEL=opus
