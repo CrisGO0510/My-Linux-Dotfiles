@@ -14,7 +14,7 @@ core() { tmux -L cmux -f "$dir/core.conf" "$@"; }
 ui() { tmux -L cmux-ui -f "$dir/ui.conf" "$@"; }
 
 sessions() {
-    core list-sessions -F '#{session_id}|#{session_path}' 2>/dev/null | sort -t'$' -k2n
+    core list-sessions -F '#{session_id}|#{session_path}|#{@name}' 2>/dev/null | sort -t'$' -k2n
 }
 
 # Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail)
@@ -124,6 +124,15 @@ key() {
                 ui display-message -t "$CMUX_UI" "cmux: no existe la carpeta $d"
             fi
             ;;
+        r)
+            if ((menu)); then d=$(cursor); else d=$(chat '#{session_id}'); fi
+            ui set -t "$CMUX_UI" @target "$d"
+            ui command-prompt -t "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
+                -p 'nombre:' -I "$(core display -p -t "$d" '#{?@name,#{@name},#{b:session_path}}')" \
+                "run-shell \"'$self' _key rename '$CMUX_UI' '%%'\""
+            ;;
+        # Un nombre vacío devuelve la sesión al nombre de su carpeta
+        rename) core set -t "$(ui show -qv -t "$CMUX_UI" @target)" @name "$2" ;;
         d) core kill-session -t "$(cursor)" ;;
         Q)
             core kill-server
@@ -142,15 +151,15 @@ modesync() {
 }
 
 draw() {
-    local shown cur menu id path name branch mark sgr line out w found=
+    local shown cur menu id path custom name branch mark sgr line out w found=
     local -A seen=()
     shown=$(chat '#{session_id}')
     cur=$(cursor)
     menu=$(ui display -p -t "$CMUX_UI" '#{&&:#{pane_at_left},#{==:#{@mode},NORMAL}}')
     w=$(ui display -p -t "$CMUX_UI:.{left}" '#{pane_width}')
     out=$'\e[H\e[2m sesiones\e[0m\e[K\n\e[K\n'
-    while IFS='|' read -r id path; do
-        name=${path##*/}
+    while IFS='|' read -r id path custom; do
+        name=${custom:-${path##*/}}
         ((++seen[$name] > 1)) && name+=" (${seen[$name]})"
         branch=$(git -C "$path" branch --show-current 2>/dev/null)
         mark=' '
