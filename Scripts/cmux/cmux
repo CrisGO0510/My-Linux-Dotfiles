@@ -119,9 +119,8 @@ key() {
         widen) widen 4 ;;
         v) visual ;;
         n)
-            ui command-prompt -t "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
-                -p 'carpeta:' -I "$(core display -p -t "$(cursor)" '#{session_path}')" \
-                "run-shell \"'$self' _key new '$CMUX_UI' '%%'\""
+            ui display-popup -E -c "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
+                -w 60% -h 50% "'$self' _pick '$CMUX_UI'"
             ;;
         new)
             d=${2/#\~/$HOME}
@@ -151,6 +150,18 @@ key() {
             ;;
     esac
     refresh
+}
+
+# Lista la carpeta de la sesión marcada y los repos bajo ~; una ruta escrita que no coincide con nada se usa tal cual
+pick() {
+    local d
+    d=$({
+        core display -p -t "$(cursor)" '#{session_path}'
+        fd -H -t d -d 4 '^\.git$' "$HOME" -E .cache -E .local --format '{//}'
+    } | awk '!seen[$0]++' | sed "s|^$HOME|~|" |
+        fzf --print-query --reverse --tiebreak=index --prompt 'carpeta: ')
+    d=${d##*$'\n'}
+    [[ -n $d ]] && key new "$d"
 }
 
 # Al salir del modo de copia (y, Esc) la ventana que estaba en VISUAL vuelve a NORMAL
@@ -243,6 +254,10 @@ case ${1-} in
     _key)
         CMUX_UI=$3
         key "$2" "${4-}"
+        ;;
+    _pick)
+        CMUX_UI=$2
+        pick
         ;;
     _modesync) modesync ;;
     _refresh) refresh ;;
