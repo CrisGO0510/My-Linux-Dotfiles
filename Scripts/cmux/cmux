@@ -77,6 +77,17 @@ move() {
     ui set -t "$CMUX_UI" @cursor "${ids[i]}"
 }
 
+# En el menú j/k solo mueven el cursor; en el chat cambian de sesión directamente
+step() {
+    if ((menu)); then
+        move "$1"
+    else
+        ui set -t "$CMUX_UI" @cursor "$(chat '#{session_id}')"
+        move "$1"
+        show "$(cursor)"
+    fi
+}
+
 visual() {
     local pane
     pane=$(chat '#{pane_id}')
@@ -102,8 +113,8 @@ key() {
             ((menu)) && show "$(cursor)"
             focus right
             ;;
-        j) ((menu)) && move 1 ;;
-        k) ((menu)) && move -1 ;;
+        j) step 1 ;;
+        k) step -1 ;;
         narrow) widen -4 ;;
         widen) widen 4 ;;
         v) visual ;;
@@ -151,13 +162,37 @@ modesync() {
 }
 
 draw() {
-    local shown cur menu id path custom name branch mark sgr line out w found=
+    local shown cur menu id path custom name branch mark sgr line out w rows top pad found=
     local -A seen=()
     shown=$(chat '#{session_id}')
     cur=$(cursor)
     menu=$(ui display -p -t "$CMUX_UI" '#{&&:#{pane_at_left},#{==:#{@mode},NORMAL}}')
     w=$(ui display -p -t "$CMUX_UI:.{left}" '#{pane_width}')
-    out=$'\e[H\e[2m sesiones\e[0m\e[K\n\e[K\n'
+    # Las letras de bloque miden 22 columnas; en una barra más estrecha el título cae a una línea
+    if ((w >= 24)); then
+        top=3
+        printf -v pad '%*s' $(((w - 22) / 2)) ''
+        out=$'\e[H'"$pad"$'█▀▀      █▄ ▄█ █ █ █ █\e[K\n'
+        out+="$pad"$'█        █ ▀ █ █ █  █ \e[K\n'
+        out+="$pad"$'█▄▄ \e[2mriko\e[0m █   █ █▄█ █ █\e[K\n\e[K\n'
+    else
+        top=1
+        printf -v out '\e[H%*s\e[1mC\e[22;2mʳⁱᵏᵒ\e[22;1m mux\e[0m\e[K\n\e[K\n' $(((w - 9) / 2)) ''
+    fi
+    if [[ $(ui list-clients -t "$CMUX_UI" -F '#{client_termname}') == xterm-kitty ]]; then
+        # El icono son celdas de texto que tmux conserva: solo se retransmite al cambiar el ancho.
+        # Sin --transfer-mode fijo icat consulta a la terminal y la respuesta caería en el panel activo.
+        # icat comprueba allow-passthrough con `tmux show`, así que necesita el TMUX que el script borra.
+        rows=$(((w - 2) * 2 / 5))
+        if [[ $w != "${iconw-}" ]]; then
+            printf '\e[2J'
+            TMUX=$(ui display -p '#{socket_path}') TMUX_PANE=$(ui display -p -t "$CMUX_UI:.{left}" '#{pane_id}') \
+                kitten icat --stdin=no --passthrough=tmux --transfer-mode=stream \
+                --place "$((w - 2))x$rows@1x$((top + 1))" "$dir/../../assets/cmux/icono.png" 2>/dev/null
+            iconw=$w
+        fi
+        out+=$'\e['$((rows + top + 3))'H'
+    fi
     while IFS='|' read -r id path custom; do
         name=${custom:-${path##*/}}
         ((++seen[$name] > 1)) && name+=" (${seen[$name]})"
