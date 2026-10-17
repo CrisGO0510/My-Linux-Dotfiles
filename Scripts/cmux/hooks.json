@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "tmux set -t \"$TMUX_PANE\" @state working; \"$CMUX_BIN\" _refresh" }] }],
+    "PostToolUse": [{ "hooks": [{ "type": "command", "command": "tmux set -t \"$TMUX_PANE\" @state working; \"$CMUX_BIN\" _refresh" }] }],
+    "PreToolUse": [{ "matcher": "AskUserQuestion|ExitPlanMode", "hooks": [{ "type": "command", "command": "tmux set -t \"$TMUX_PANE\" @state waiting; \"$CMUX_BIN\" _refresh" }] }],
+    "Notification": [{ "matcher": "permission_prompt|elicitation_dialog", "hooks": [{ "type": "command", "command": "tmux set -t \"$TMUX_PANE\" @state waiting; \"$CMUX_BIN\" _refresh" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "tmux set -t \"$TMUX_PANE\" @state done; \"$CMUX_BIN\" _refresh" }] }]
+  }
+}

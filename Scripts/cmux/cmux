@@ -14,14 +14,15 @@ core() { tmux -L cmux -f "$dir/core.conf" "$@"; }
 ui() { tmux -L cmux-ui -f "$dir/ui.conf" "$@"; }
 
 sessions() {
-    core list-sessions -F '#{session_id}|#{session_path}|#{@name}' 2>/dev/null | sort -t'$' -k2n
+    core list-sessions -F '#{session_id}|#{session_path}|#{@name}|#{@state}' 2>/dev/null | sort -t'$' -k2n
 }
 
-# Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail)
+# Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail).
+# hooks.json marca en @state si el Claude trabaja, espera respuesta o terminó.
 new_session() {
     local d=$1
     shift
-    core new-session -dP -F '#{session_id}' -c "$d" -e CMUX=1 -- zsh -ic 'claude "$@"' cmux "$@"
+    core new-session -dP -F '#{session_id}' -c "$d" -e CMUX=1 -- zsh -ic 'claude --settings "$0" "$@"' "$dir/hooks.json" "$@"
 }
 
 open_ui() {
@@ -178,7 +179,7 @@ modesync() {
 }
 
 draw() {
-    local shown cur menu id path custom name branch mark sgr line out w rows top pad found=
+    local shown cur menu id path custom state name branch mark icon sgr line out w rows top pad found=
     local -A seen=()
     shown=$(chat '#{session_id}')
     cur=$(cursor)
@@ -209,7 +210,7 @@ draw() {
         fi
         out+=$'\e['$((rows + top + 3))'H'
     fi
-    while IFS='|' read -r id path custom; do
+    while IFS='|' read -r id path custom state; do
         name=${custom:-${path##*/}}
         ((++seen[$name] > 1)) && name+=" (${seen[$name]})"
         branch=$(git -C "$path" branch --show-current 2>/dev/null)
@@ -217,8 +218,14 @@ draw() {
         [[ $id == "$shown" ]] && mark='▸'
         sgr=
         [[ $id == "$cur" ]] && found=1 && ((menu)) && sgr=$'\e[7m'
-        printf -v line ' %s %-*.*s' "$mark" $((w - 4)) $((w - 4)) "$name"
-        out+="$sgr$line"$'\e[0m\e[K\n'
+        case $state in
+            working) icon=$'\e[33m●' ;;
+            waiting) icon=$'\e[31m?' ;;
+            done) icon=$'\e[32m✓' ;;
+            *) icon=' ' ;;
+        esac
+        printf -v line ' %s %-*.*s ' "$mark" $((w - 6)) $((w - 6)) "$name"
+        out+="$sgr$line$icon"$'\e[0m\e[K\n'
         if [[ -n $branch ]]; then
             printf -v line '     %-*.*s' $((w - 6)) $((w - 6)) "$branch"
             out+=$'\e[2m'"$sgr$line"$'\e[0m\e[K\n'
