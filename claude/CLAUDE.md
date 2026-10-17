@@ -16,7 +16,7 @@
 
 ## Delegación
 
-Trabaja tú en el modelo de la sesión y delega solo cuando la parte sea grande o autocontenida; un cambio chico se hace directo.
+La delegación es obligatoria, no una sugerencia. Tú coordinas desde el modelo de la sesión; el trabajo lo hacen los agentes. "La parte es chica" no es excusa cuando se cumple un disparador.
 
 - `explorador` (Sonnet): buscar archivos, símbolos y usos; leer y resumir código que no conoces.
 - `ejecutor` (Sonnet): correr tests y builds y reportar fallos; cambios mecánicos ya especificados.
@@ -24,9 +24,19 @@ Trabaja tú en el modelo de la sesión y delega solo cuando la parte sea grande 
 - `impacto` (Opus): determinar qué otros módulos afecta un cambio.
 - `arquitecto` (Opus): decisiones de diseño con trade-offs reales; convoca un consejo técnico y devuelve una recomendación.
 
+Disparadores (se comprueban antes de cada acción; si uno aplica, se lanza el agente ANTES de hacer nada tú):
+
+1. **`impacto`, sin excepción por tamaño.** Antes de editar código compartido: `core/**`, `shared/**`, `infrastructure/api/**`, un tipo de dominio que use más de un feature, o un composable, store o componente compartido. Incluye agregar una constante de una línea. Y otra vez sobre el diff al terminar, antes de dejar en stage.
+2. **`explorador`** en cuanto una pregunta necesite más de una búsqueda (`rg`/`fd`) o leer más de un archivo que no conoces: recorrer un feature, contar usos, comparar patrones entre módulos, verificar un documento contra el repo. Tú solo haces una búsqueda puntual de un dato que ya sabes dónde está.
+3. **`ejecutor`** para toda verificación: `lint`, `type-check`, `test -- --run`, `prettier`, `git apply --check`; y para cambios mecánicos ya especificados (reemplazos repetidos, renombres).
+4. **`implementador`** cuando el diseño está decidido y el cambio pasa de un archivo o de un bloque grande: reescribir un documento completo, un feature, varias secciones acordadas.
+5. **`arquitecto`** cuando hay más de una forma razonable y equivocarse sale caro (p.ej. enum vs `as const`, dónde van las constantes, cómo manejar errores o notificaciones). No lo decidas solo ni presentes opciones sin haberlo consultado.
+
+Lo que sí haces tú: un `Edit` puntual sobre un archivo ya leído, una búsqueda de un dato concreto, responderme, y lo que necesite ida y vuelta conmigo. Los agentes independientes se lanzan en paralelo; mientras uno corre, no dupliques su trabajo ni predigas su resultado.
+
 Reglas:
 
-- **Impacto antes y después.** Antes de tocar código compartido (composables, stores, componentes base, utilidades, tipos de dominio) lanza `impacto` con el cambio propuesto. Al terminar una implementación que tocó código compartido, lánzalo otra vez sobre el diff.
+- **Impacto antes y después.** Antes de tocar código compartido (composables, stores, componentes base, utilidades, constantes, tipos de dominio) lanza `impacto` con el cambio propuesto. Al terminar una implementación que tocó código compartido, lánzalo otra vez sobre el diff.
 - **El encargo es todo lo que el agente sabe.** No ve esta conversación: incluye el objetivo, los archivos relevantes, las decisiones ya tomadas y qué debe devolver.
 - **Revisa el diff de `implementador` y `ejecutor`**, no te fíes del resumen.
 - Lo que necesite ida y vuelta conmigo lo haces tú; ningún agente puede preguntarme nada.
