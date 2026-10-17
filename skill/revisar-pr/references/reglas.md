@@ -26,7 +26,7 @@ Severidades: 🔴 bloqueante (rompe una regla dura) · 🟡 mejora (convención 
 | `NO-TODO` | 🟡 | CLAUDE.md global | `TODO`/`FIXME` en comentarios. | Lo pendiente va en el ticket, no en el código. |
 | `ALIAS-IMPORTS` | 🟡 | CODING_STANDARDS | `from '../../...'`. | Usar `@/…` o los alias por capa. |
 | `PROPS-TYPED` | 🟡 | PRESENTATION_LAYER | `defineProps([...])` / `defineProps({...})` (y lo mismo con `defineEmits`) sin genérico. | `defineProps<{...}>()` con tipo del archivo de `types/`. |
-| `NAMING` | 🟡 | CODING_STANDARDS, documentation.md §10 | Archivo nuevo que no sigue el patrón de su carpeta (`I*Repository.ts`, `*UseCase.ts`, `*RepositoryImpl.ts`, `*Mapper.ts`, `use*.ts`, `*Store.ts`, `kebab-case.ts`, `PascalCase.vue`). | Renombrar. |
+| `NAMING` | 🟡 | CODING_STANDARDS, documentation.md §10 | Archivo nuevo que no sigue el patrón de su carpeta (`I*Repository.ts`, `*UseCase.ts`, `*RepositoryImpl.ts`, `*MockRepositoryImpl.ts`, `*Constants.ts`, `*InjectionKeys.ts`, `*Provider.ts`, `use*.ts`, `*Store.ts`, `types/<feature>.ts` y `shared/types/<componente>.ts` en `kebab-case.ts` sin sufijo `.types`, `PascalCase.vue`). `*Mapper.ts` solo en features que ya lo tenían. | Renombrar. |
 | `DOMAIN-NO-DTO` | 🟡 | documentation.md §10 | Sufijo `DTO` en `domain/`. Los `dto/` de application son re-exports. | Nombrar `XRequest` / `XResponse`. |
 | `TEST-AAA` | 🟡 | CLAUDE.md | La unidad es el bloque `it`: cuenta si un `it` nuevo o tocado por el diff no tiene `// Arrange` / `// Act` / `// Assert`. Los `it` no tocados sin AAA van a 📎 Deuda previa (el pre-scan ya no los lista). | Añadir los tres marcadores en cada `it`. |
 | `FEATURE-SLICE` | 🟡 | CLAUDE.md, documentation.md §11 | Feature **nuevo** al que le falta alguna de las 5 carpetas (`domain/feature/<f>`, `application/features/<f>`, `infrastructure/features/<f>`, `core/providers/features/<f>`, `presentation/features/<f>`). Legítimo si es solo-presentación y reutiliza use cases de otro feature: en ese caso no reportar. | Completar el slice. |
@@ -45,7 +45,13 @@ verificando a mano).
 ### `MAGIC-VALUES` 🔴 — CLAUDE.md global, bac y csj
 
 Literales con significado inline en templates o lógica: tamaños, límites, estados, claves, breakpoints,
-nombres de ruta, formatos de fecha, códigos, `rowsPerPage`, timeouts.
+formatos de fecha, códigos, timeouts.
+
+**Decisión del usuario (bac, 2026-10-13), no son hallazgo aunque se repitan:** los nombres de ruta van
+literales en `router/index.ts` y en los `goToURL` (no se crean `ROUTE_NAMES`); las opciones del paginador y
+los estados de tabla (`no-data-state` 0/1) de un solo uso van inline o se deja el default de `TableList`; el
+`MODULE_KEY` de persistencia es un `const` local del composable expuesto a la vista. Un PR que **cree**
+`<FEATURE>_ROUTE_NAMES`, `*_TABLE_STATES` o `*_ROWS_PER_PAGE_OPTIONS` nuevos sí se reporta (🟡, sobreingeniería).
 
 - Se reporta si se cumple **cualquiera** de dos condiciones:
   1. ya existe una constante/enum con ese valor y no se usó — basta **un solo uso**;
@@ -63,11 +69,17 @@ nombres de ruta, formatos de fecha, códigos, `rowsPerPage`, timeouts.
   (comparar con `baseRef`); solo las realmente nuevas deciden entre 🔴 y 🟡.
 - La exclusión de "textos de UI" no cubre el mismo literal usado como valor de comparación: en
   `x === 'Activo' ? 'Activo' : 'Inactivo'`, el `=== 'Activo'` sí es hallazgo y el label no.
-- No cuentan: textos de UI (labels, placeholders, títulos, mensajes), clases de Quasar, `0`, `1`, `-1`, `''`, `true/false`.
-- Antes de sugerir "crear constante", buscar la existente en `core/constants/` (`status.ts`, `regexs.ts`),
-  `presentation/shared/constants/` (`files.ts`, `options.ts`), `infrastructure/api/endpoints.ts` y los enums del feature.
-  Si la constante existe en **otro feature**: sugerir reutilizarla si es un enum de dominio compartido
-  (`domain/feature/<otro>/enums`), o moverla a `shared`/`core/constants` si es transversal. Nunca duplicarla.
+- No cuentan: textos de UI (labels, placeholders, títulos, mensajes), clases de Quasar, `0`, `1`, `-1`, `''`, `true/false`,
+  nombres de ruta, opciones del paginador y estados de tabla (ver la decisión de arriba).
+- Antes de sugerir "crear constante", buscar la existente en `core/constants/` (`status.ts`, `regexs.ts`, `httpHeaders.ts`),
+  `presentation/shared/constants/` (`files.ts`, `options.ts`), `infrastructure/api/endpoints.ts` y
+  `domain/feature/<f>/constants/<f>Constants.ts`.
+  Si la constante existe en **otro feature**: sugerir reutilizarla si es un enum de dominio compartido,
+  o moverla a `shared`/`core/constants` si es transversal. Nunca duplicarla.
+- **Dónde va la constante nueva (bac):** si el backend la define o la valida el use case (estados, tipos,
+  longitudes, `searchColumns`) → `domain/feature/<f>/constants/`; si solo la conoce la pantalla (config
+  compartida entre vistas, texto repetido) → `presentation/features/<f>/constants/`, que es opcional.
+  Una constante de dominio importada desde presentation **no** es `LAYER-DEPS`: la dependencia apunta hacia adentro.
 - Sugerencia: nombre de la constante existente o ruta donde crearla.
 
 ### `ERROR-HANDLING` 🔴 — patrón real del repo
@@ -110,6 +122,14 @@ async execute(payload: XPayload): Promise<XResponse | void> {
   }
 }
 ```
+
+**Excepción acordada en bac (2026-10-13, `APPLICATION_LAYER.md` patrón 3):** si el método del repositorio que
+llama el use case usa `suppressErrorNotification: true`, el interceptor no avisa y el `catch` canónico se traga el
+error. En ese caso el use case relanza también `ApplicationError` (`if (error instanceof ValidationError || error
+instanceof ApplicationError) throw error`) y lleva un test que compruebe que rechaza con `ApplicationError`.
+Precedente: `PaymentOrderCancellationRegisterUseCase.ts`. Un use case con supresión que solo relanza
+`ValidationError` → 🔴. Composable que, tras un `execute` que devolvió `undefined`, navega, abre modal de éxito
+o emite como si hubiera funcionado → 🔴 (`if (!res) return` antes de continuar).
 
 Reportar en use cases:
 - 🔴 Use case nuevo, o cuyo `execute` toca el diff, **sin `try/catch`**: el error HTTP llega al composable y cambia su
@@ -169,7 +189,7 @@ Sugerencia: mover al composable `use<Feature><Accion>.ts`.
 ### `DI-WIRING` 🔴 — CLAUDE.md, documentation.md §8
 
 Para cada `XUseCase` nuevo, verificar en el árbol (grep):
-1. Existe `XUseCaseKey` (`core/providers/injectionKeys.ts` o `core/providers/features/<f>/<f>InjectionKeys.ts`).
+1. Existe `XUseCaseKey` en `core/providers/features/<f>/<f>InjectionKeys.ts` y ese archivo está re-exportado en `core/providers/injectionKeys.ts` (de ahí importan los composables).
 2. Existe `app.provide(XUseCaseKey, new XUseCase(...))` en el provider del feature y ese `setup<F>Providers` se llama en `appProvider.ts`.
 3. El composable hace `inject(XUseCaseKey)` y contempla `undefined` (`?.execute` o guard).
 
@@ -185,6 +205,29 @@ Toda tabla/listado nuevo debe permitir ordenar en sus columnas de datos:
 3. En la vista, `<TableList>` enlaza `@update-sort="updateSort"` además de `@update-page` y `@update-rows-per-page`.
 
 Falta cualquiera de los tres → hallazgo.
+
+### `ENUM-STRING` 🟡 — bac (decisión del usuario, 2026-10-13)
+
+Valores cerrados que define el backend (estados, tipos de operación) en código **nuevo** se modelan como
+`enum` de string con los literales exactos del backend (`export enum Status { ENABLE = 'ENABLE' }`), en
+`domain/feature/<f>/constants/<f>Constants.ts`. Reportar:
+
+- Objeto `as const` nuevo + tipo derivado `(typeof X)[keyof typeof X]` para un valor del backend → 🟡, sugerir `enum`.
+  Los 83 `as const` que ya existen son legado: no se reportan si vienen de `baseRef`.
+- `const enum` → 🔴 (`verbatimModuleSyntax` está activo; no se puede inlinear entre archivos).
+- Literal del enum escrito a mano en tests, mocks o filtros (`status: 'ENABLE'`) → `MAGIC-VALUES` (🔴, ya existe la constante).
+- `.enum(Object.values(X))` en el use case es correcto cuando el valor puede venir de fuera (formulario, URL,
+  filtro persistido); si lo asigna el propio código desde algo tipado con el enum, su ausencia **no** es hallazgo.
+
+### `MOCK-TEMPORAL` 🟡 — bac (INFRASTRUCTURE_LAYER, decisión del usuario, 2026-10-13)
+
+Los mocks viven solo en infraestructura como `<Feature>MockRepositoryImpl` (misma interfaz del dominio) y los
+elige el provider con `import.meta.env.VITE_APP_<FEATURE>_MOCKS === 'true'`. Reportar:
+
+- `RepositoryImpl` real que importa de `fake-api/` o devuelve un mock en vez de llamar al backend → 🔴.
+- Mock con éxito vacío para una acción no integrada (`detail: 'pendiente de integración'`) → 🔴 (cae también en `ERROR-HANDLING`).
+- Mock sin conmutación en el provider, o conmutación en otra capa → 🟡.
+- Los 7 repos antiguos que leen `fake-api/` (`offices`, `office-type`, `office-class`, …) van a 📎 Deuda previa si no los toca el PR.
 
 ### `NO-MAPPER` 🟡 — global (CLAUDE.md global, bac y csj)
 
