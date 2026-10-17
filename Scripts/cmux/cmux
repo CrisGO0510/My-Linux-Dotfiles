@@ -19,10 +19,12 @@ sessions() {
 
 # Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail).
 # hooks.json marca en @state si el Claude trabaja, espera respuesta o terminó.
+claude_cmd=(zsh -ic 'claude --settings "$0" "$@"' "$dir/hooks.json")
+
 new_session() {
     local d=$1
     shift
-    core new-session -dP -F '#{session_id}' -c "$d" -e CMUX=1 -- zsh -ic 'claude --settings "$0" "$@"' "$dir/hooks.json" "$@"
+    core new-session -dP -F '#{session_id}' -c "$d" -e CMUX=1 -- "${claude_cmd[@]}" "$@"
 }
 
 open_ui() {
@@ -142,10 +144,10 @@ key() {
                 -p 'nombre:' -I "$(core display -p -t "$d" '#{?@name,#{@name},#{b:session_path}}')" \
                 "run-shell \"'$self' _key rename '$CMUX_UI' '%%'\""
             ;;
-        # Relanza el comando original (zsh -ic 'claude …'): recoge el .zshrc y el entorno actuales
+        # Relanza el comando de hoy y no el guardado en el panel: recoge el .zshrc, el entorno y hooks.json actuales
         R)
             if ((menu)); then d=$(cursor); else d=$(chat '#{session_id}'); fi
-            core respawn-pane -k -t "$d"
+            core respawn-pane -k -t "$d" -- "${claude_cmd[@]}"
             ;;
         # Un nombre vacío devuelve la sesión al nombre de su carpeta
         rename) core set -t "$(ui show -qv -t "$CMUX_UI" @target)" @name "$2" ;;
