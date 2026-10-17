@@ -141,6 +141,11 @@ key() {
                 -p 'nombre:' -I "$(core display -p -t "$d" '#{?@name,#{@name},#{b:session_path}}')" \
                 "run-shell \"'$self' _key rename '$CMUX_UI' '%%'\""
             ;;
+        # Relanza el comando original (zsh -ic 'claude …'): recoge el .zshrc y el entorno actuales
+        R)
+            if ((menu)); then d=$(cursor); else d=$(chat '#{session_id}'); fi
+            core respawn-pane -k -t "$d"
+            ;;
         # Un nombre vacío devuelve la sesión al nombre de su carpeta
         rename) core set -t "$(ui show -qv -t "$CMUX_UI" @target)" @name "$2" ;;
         d) core kill-session -t "$(cursor)" ;;
