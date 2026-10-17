@@ -157,12 +157,12 @@ key() {
     refresh
 }
 
-# Lista la carpeta de la sesión marcada y los repos bajo ~; una ruta escrita que no coincide con nada se usa tal cual
+# Lista la carpeta de la sesión marcada y los repos y vaults de Obsidian bajo ~; una ruta escrita que no coincide con nada se usa tal cual
 pick() {
     local d
     d=$({
         core display -p -t "$(cursor)" '#{session_path}'
-        fd -H -t d -d 4 '^\.git$' "$HOME" -E .cache -E .local --format '{//}'
+        fd -H -t d -d 4 '^\.(git|obsidian)$' "$HOME" -E .cache -E .local --format '{//}'
     } | awk '!seen[$0]++' | sed "s|^$HOME|~|" |
         fzf --print-query --reverse --tiebreak=index --prompt 'carpeta: ')
     d=${d##*$'\n'}
