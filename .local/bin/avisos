@@ -183,11 +183,24 @@ campo_json() {
     printf '%s' "${v//\\\\/\\}"
 }
 
+# Un subagente sigue en curso si su transcript se tocó hace poco y no cierra en end_turn.
+# shortcut: un subagente parado a la fuerza hace menos de 30 min cuenta como en curso.
+agentes_en_curso() {
+    local dir=$1 f
+    [[ -d $dir ]] || return 1
+    while IFS= read -r f; do
+        [[ $(tail -n1 -- "$f") == *'"stop_reason":"end_turn"'* ]] || return 0
+    done < <(fd -t f -e jsonl --changed-within 30m . "$dir")
+    return 1
+}
+
 cmd_claude_hook() {
-    local evento=${1:-} json id cwd mensaje
+    local evento=${1:-} json id cwd mensaje transcript
     json=$(cat)
     id=$(campo_json "$json" session_id)
     [[ $id =~ ^[A-Za-z0-9-]+$ && -e $(dir_sesiones)/$id ]] || return 0
+    transcript=$(campo_json "$json" transcript_path)
+    [[ -n $transcript ]] && agentes_en_curso "${transcript%.jsonl}/subagents" && return 0
     cwd=$(campo_json "$json" cwd)
     cwd=${cwd%/}
     case $evento in
