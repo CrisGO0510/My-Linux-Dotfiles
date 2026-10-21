@@ -165,7 +165,7 @@ pick() {
     local d
     d=$({
         core display -p -t "$(cursor)" '#{session_path}'
-        fd -H -t d -d 4 '^\.(git|obsidian)$' "$HOME" -E .cache -E .local --format '{//}'
+        fd -H -t d -t f -d 4 '^\.(git|obsidian)$' "$HOME" -E .cache -E .local --format '{//}'
     } | awk '!seen[$0]++' | sed "s|^$HOME|~|" |
         fzf --print-query --reverse --tiebreak=index --prompt 'carpeta: ')
     d=${d##*$'\n'}
