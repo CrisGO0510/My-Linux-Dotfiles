@@ -14,6 +14,7 @@ falladas=0
 setup() {
     rm -rf "${TMP:?}"/*
     export AVISOS_VAULT=$TMP/vault XDG_STATE_HOME=$TMP/state
+    unset AVISOS_DEPENDE_DE
     mkdir -p "$AVISOS_VAULT"
     BUGS=""
     RUN=""
@@ -50,7 +51,7 @@ test_crear_pausar_reanudar_mover_borrar() {
     cmd_borrar tarea
     estado3=$([[ -e $(aviso tarea) ]] && echo existe || echo borrado)
     # Assert
-    verificar crear-maquina pc "$creado"
+    verificar crear-maquina cualquiera "$creado"
     verificar pausar pausado "$estado1"
     verificar reanudar activo "$estado2"
     verificar mover laptop "$maq"
@@ -209,27 +210,113 @@ test_pid() {
     verificar pid-se-borra borrado "$existe"
 }
 
-test_obsidian() {
+AHORA='2026-10-20 10:00'
+REC() { printf '%s/Recordatorios.md' "$AVISOS_VAULT"; }
+
+obsidian_revisar() {
+    cmd_crear recordatorios obsidian intervalo=0
+    AVISOS_AHORA=$AHORA cmd_revisar
+}
+
+test_obsidian_hora_sola_se_normaliza() {
     # Arrange
     setup
-    cat > "$AVISOS_VAULT/notas.md" <<'MD'
-- [ ] Pagar recibo ⏰ 2020-01-01 08:00
-- [ ] Futuro ⏰ 2999-01-01 08:00
-- [x] Hecho ⏰ 2020-01-01 08:00
-- [ ] Sin hora
-MD
-    mkdir -p "$AVISOS_VAULT/.obsidian"
-    echo '- [ ] Oculto ⏰ 2020-01-01 08:00' > "$AVISOS_VAULT/.obsidian/x.md"
-    cmd_crear recordatorios obsidian intervalo=0
+    printf '%s\n' '- 11:30 futuro' '- 9:05 pasada' > "$(REC)"
     # Act
-    local primera segunda archivo
-    primera=$(cmd_revisar)
-    segunda=$(cmd_revisar)
-    archivo=$(<"$AVISOS_VAULT/notas.md")
+    local salida
+    salida=$(obsidian_revisar)
     # Assert
-    verificar obsidian-una-vez "ENVIADO|⏰ Recordatorio|Pagar recibo|" "$primera"
-    verificar obsidian-no-repite "" "$segunda"
-    verificar obsidian-marca $'- [ ] Pagar recibo 🔔 2020-01-01 08:00\n- [ ] Futuro ⏰ 2999-01-01 08:00\n- [x] Hecho ⏰ 2020-01-01 08:00\n- [ ] Sin hora' "$archivo"
+    verificar obsidian-hora-futura-no-avisa "" "$salida"
+    verificar obsidian-hora-normalizada $'- 20/10 11:30 futuro\n- 21/10 09:05 pasada' "$(<"$(REC)")"
+}
+
+test_obsidian_hora_actual_avisa_y_borra() {
+    # Arrange
+    setup
+    printf '%s\n' '- 10:00 ahora' > "$(REC)"
+    # Act
+    local salida
+    salida=$(obsidian_revisar)
+    # Assert
+    verificar obsidian-hora-actual-avisa "ENVIADO|⏰ Recordatorio|ahora|" "$salida"
+    verificar obsidian-hora-actual-borra "" "$(<"$(REC)")"
+}
+
+test_obsidian_dia_y_hora() {
+    # Arrange
+    setup
+    printf '%s\n' '- 5/10 9:05 vencido' '- 25/12 08:00 futuro' > "$(REC)"
+    # Act
+    local salida
+    salida=$(obsidian_revisar)
+    # Assert
+    verificar obsidian-dia-vencido-avisa "ENVIADO|⏰ Recordatorio|vencido|" "$salida"
+    verificar obsidian-dia-futuro-intacto "- 25/12 08:00 futuro" "$(<"$(REC)")"
+}
+
+test_obsidian_lineas_ajenas_e_invalidas() {
+    # Arrange
+    setup
+    local contenido=$'# Título\n\n- 25:00 invalida\n- 30/02 10:00 sin dia\ntexto suelto\n- [ ] tarea'
+    printf '%s\n' "$contenido" > "$(REC)"
+    local antes
+    antes=$(stat -c %i "$(REC)")
+    # Act
+    local salida
+    salida=$(obsidian_revisar)
+    # Assert
+    verificar obsidian-invalidas-no-avisa "" "$salida"
+    verificar obsidian-invalidas-intactas "$contenido" "$(<"$(REC)")"
+    verificar obsidian-invalidas-no-reescribe "$antes" "$(stat -c %i "$(REC)")"
+}
+
+test_obsidian_mezcla_conserva_orden() {
+    # Arrange
+    setup
+    printf '%s\n' '# Hoy' '- 1/10 08:00 viejo' 'nota' '- 23:00 noche' '- 10:00 ahora' '' '- 31/12 09:00 fin' > "$(REC)"
+    # Act
+    local salida
+    salida=$(obsidian_revisar)
+    # Assert
+    verificar obsidian-mezcla-avisos $'ENVIADO|⏰ Recordatorio|viejo|\nENVIADO|⏰ Recordatorio|ahora|' "$salida"
+    verificar obsidian-mezcla-resto $'# Hoy\nnota\n- 20/10 23:00 noche\n\n- 31/12 09:00 fin' "$(<"$(REC)")"
+}
+
+test_obsidian_sin_cambios_no_reescribe() {
+    # Arrange
+    setup
+    printf '%s\n' '- 20/10 23:00 futuro' 'texto' > "$(REC)"
+    local antes
+    antes=$(stat -c %i "$(REC)")
+    # Act
+    obsidian_revisar > /dev/null
+    # Assert
+    verificar obsidian-sin-cambios-mismo-inodo "$antes" "$(stat -c %i "$(REC)")"
+}
+
+test_obsidian_envio_fallido_conserva() {
+    # Arrange
+    setup
+    printf '%s\n' '- 1/10 08:00 reintentar' '- 9:00 mañana' > "$(REC)"
+    # Act
+    local salida
+    # shellcheck disable=SC2329  # la usa obsidian_revisar
+    salida=$(cmd_enviar() { return 1; }; obsidian_revisar 2>&1)
+    # Assert
+    verificar obsidian-fallo-conserva $'- 1/10 08:00 reintentar\n- 21/10 09:00 mañana' "$(<"$(REC)")"
+    verificar obsidian-fallo-stderr "avisos: falló el envío (recordatorios): reintentar" "$salida"
+}
+
+test_obsidian_sin_archivo() {
+    # Arrange
+    setup
+    # Act
+    local salida
+    salida=$(obsidian_revisar)
+    local estado=$?
+    # Assert
+    verificar obsidian-sin-archivo-sale-0 0 "$estado"
+    verificar obsidian-sin-archivo-no-crea no "$([[ -e $(REC) ]] && echo si || echo no)"
 }
 
 test_sesion_vigilar_soltar_lista() {
@@ -311,6 +398,98 @@ test_limpia_marcas_viejas() {
     # Assert
     verificar limpieza-borra-vieja no "$([[ -e $(dir_sesiones)/vieja ]] && echo si || echo no)"
     verificar limpieza-conserva-reciente si "$([[ -e $(dir_sesiones)/reciente ]] && echo si || echo no)"
+}
+
+test_defaults_de_maquina_en_crear() {
+    # Arrange
+    setup
+    # Act
+    cmd_crear bugs azure-bugs proyecto=P
+    cmd_crear build pipeline proyecto=P run=1
+    cmd_crear notas obsidian
+    cmd_crear espera pid pid=$$
+    # Assert
+    verificar default-azure-bugs cualquiera "$(leer "$(aviso bugs)" maquina)"
+    verificar default-pipeline cualquiera "$(leer "$(aviso build)" maquina)"
+    verificar default-obsidian cualquiera "$(leer "$(aviso notas)" maquina)"
+    verificar default-pid pc "$(leer "$(aviso espera)" maquina)"
+}
+
+cualquiera_y_propio() {
+    BUGS=$'1\tuno\n'
+    cmd_crear remoto azure-bugs proyecto=C intervalo=0
+    cmd_crear local azure-bugs proyecto=L maquina=pc intervalo=0
+    BUGS=$'1\tuno\n2\tdos\n'
+}
+
+test_cualquiera_principal_revisa_todo() {
+    # Arrange
+    setup
+    cualquiera_y_propio
+    # Act
+    local salida
+    salida=$(principal_conectada() { return 0; }; cmd_revisar)
+    # Assert
+    verificar principal-revisa-cualquiera "$(printf 'ENVIADO|🐞 Bug #2|dos|https://dev.azure.com/Org/%s/_workitems/edit/2\n' L C)" "$salida"
+}
+
+test_cualquiera_secundaria_con_principal_conectada() {
+    # Arrange
+    setup
+    cualquiera_y_propio
+    # Act
+    local salida
+    salida=$(AVISOS_DEPENDE_DE=ID; principal_conectada() { return 0; }; cmd_revisar)
+    # Assert
+    verificar secundaria-conectada-solo-propios "ENVIADO|🐞 Bug #2|dos|https://dev.azure.com/Org/L/_workitems/edit/2" "$salida"
+}
+
+test_cualquiera_secundaria_con_principal_desconectada() {
+    # Arrange
+    setup
+    cualquiera_y_propio
+    # Act
+    local salida
+    salida=$(AVISOS_DEPENDE_DE=ID; principal_conectada() { return 1; }; cmd_revisar)
+    # Assert
+    verificar secundaria-desconectada-revisa-todo "$(printf 'ENVIADO|🐞 Bug #2|dos|https://dev.azure.com/Org/%s/_workitems/edit/2\n' L C)" "$salida"
+}
+
+CONEXIONES='{"connections":{"AAAAAAA-BBBBBBB":{"at":"x","connected":true,"paused":false,"address":"192.168.1.7:22000","type":"tcp-server"},"CCCCCCC-DDDDDDD":{"at":"x","connected":false,"paused":false}},"total":{"connected":true}}'
+
+# shellcheck disable=SC2329  # la usa principal_conectada en el subshell
+curl_simulado() {
+    [[ $* == *"X-API-Key: abc"* ]] || return 22
+    printf '%s' "$CONEXIONES"
+}
+
+consultar_principal() {
+    (
+        AVISOS_SYNCTHING_CONFIG=$TMP/config.xml AVISOS_DEPENDE_DE=$1
+        curl() { curl_simulado "$@"; }
+        principal_conectada && echo si || echo no
+    )
+}
+
+test_principal_conectada_parser() {
+    # Arrange
+    setup
+    printf '<configuration><gui><apikey>abc</apikey></gui></configuration>\n' > "$TMP/config.xml"
+    # Act
+    local conectado desconectado ausente multilinea caido sinconfig
+    conectado=$(consultar_principal AAAAAAA-BBBBBBB)
+    desconectado=$(consultar_principal CCCCCCC-DDDDDDD)
+    ausente=$(consultar_principal EEEEEEE-FFFFFFF)
+    multilinea=$(CONEXIONES=$(printf '%s' "$CONEXIONES" | sed 's/,/,\n  /g'); consultar_principal AAAAAAA-BBBBBBB)
+    caido=$(CONEXIONES=; curl_simulado() { return 7; }; consultar_principal AAAAAAA-BBBBBBB)
+    sinconfig=$(rm "$TMP/config.xml"; consultar_principal AAAAAAA-BBBBBBB)
+    # Assert
+    verificar parser-conectado si "$conectado"
+    verificar parser-desconectado no "$desconectado"
+    verificar parser-device-ausente no "$ausente"
+    verificar parser-multilinea si "$multilinea"
+    verificar parser-curl-falla no "$caido"
+    verificar parser-sin-config no "$sinconfig"
 }
 
 for t in $(declare -F | cut -d' ' -f3 | rg '^test_'); do
