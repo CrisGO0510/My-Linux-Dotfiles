@@ -1,0 +1,8 @@
+[Unit]
+Description=Revisar avisos cada minuto
+
+[Timer]
+OnCalendar=minutely
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Revisar avisos y notificar al teléfono
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/avisos revisar
+EnvironmentFile=%h/.config/avisos/env

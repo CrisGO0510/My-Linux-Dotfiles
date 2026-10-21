@@ -83,12 +83,17 @@ Singleton {
 
     // Entra por el servidor de notificaciones propio (Notifs.qml), así que el
     // modo No molestar lo silencia solo: ahí queda el parpadeo de la isla.
+    // El aviso al teléfono no pasa por ahí, así que No molestar no lo silencia.
     Process { id: notifyProc }
+    Process { id: phoneProc }
     function notifyPhase() {
         var toBreak = root.phase === "work";
-        notifyProc.command = ["notify-send", "-a", "Pomodoro",
-            toBreak ? "Fin del bloque"          : "Fin del descanso",
-            toBreak ? "10 minutos de descanso"  : "50 minutos de trabajo"];
+        var title = toBreak ? "Fin del bloque"          : "Fin del descanso";
+        var body  = toBreak ? "10 minutos de descanso"  : "50 minutos de trabajo";
+        notifyProc.command = ["notify-send", "-a", "Pomodoro", title, body];
         notifyProc.running = true;
+        phoneProc.command = [Quickshell.env("HOME") + "/.local/bin/avisos", "enviar", "pomodoro",
+            title, body];
+        phoneProc.running = true;
     }
 }

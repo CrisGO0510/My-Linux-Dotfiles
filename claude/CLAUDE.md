@@ -41,3 +41,8 @@ Reglas:
 - **Revisa el diff de `implementador` y `ejecutor`**, no te fíes del resumen.
 - Lo que necesite ida y vuelta conmigo lo haces tú; ningún agente puede preguntarme nada.
 - No pases `model` al invocar un agente salvo que yo lo pida.
+
+## Avisos al teléfono
+- Si el usuario pide que le avises de esta sesión ("avísame cuando termines", "vigila esta sesión"), ejecuta `avisos sesion vigilar`.
+- Para dejar de avisar de esta sesión, `avisos sesion soltar`.
+- Para otros avisos, `avisos lista`, `avisos crear …`, etc.

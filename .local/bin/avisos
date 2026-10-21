@@ -1,0 +1,307 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC2154  # los avisos se sourcean y declaran sus propias claves
+# Avisos al teléfono vía ntfy. Cada aviso es un archivo clave=valor en el vault.
+
+readonly TIPOS="evento azure-bugs pipeline pid obsidian"
+
+die() { printf 'avisos: %s\n' "$*" >&2; exit 1; }
+
+host() { printf '%s' "${AVISOS_HOST:-$(</etc/hostname)}"; }
+dir_avisos() { printf '%s/.avisos' "$AVISOS_VAULT"; }
+dir_ultima() { printf '%s/avisos' "${XDG_STATE_HOME:-$HOME/.local/state}"; }
+dir_sesiones() { printf '%s/sesiones' "$(dir_ultima)"; }
+
+ruta_aviso() {
+    [[ $1 =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "nombre inválido: $1"
+    printf '%s/%s.aviso' "$(dir_avisos)" "$1"
+}
+ruta_estado() { printf '%s/estado/%s' "$(dir_avisos)" "$1"; }
+ruta_ultima() { printf '%s/%s.ultima' "$(dir_ultima)" "$1"; }
+
+existente() {
+    local f
+    f=$(ruta_aviso "$1")
+    [[ -f $f ]] || die "no existe el aviso: $1"
+    printf '%s' "$f"
+}
+
+# Se sourcea en subshell para no ensuciar el entorno con las claves del aviso.
+leer() ( source "$1"; printf '%s' "${!2:-}" )
+
+urlenc() {
+    local LC_ALL=C s=$1 i c
+    for ((i = 0; i < ${#s}; i++)); do
+        c=${s:i:1}
+        if [[ $c =~ [A-Za-z0-9._~-] ]]; then printf '%s' "$c"; else printf '%%%02X' "'$c"; fi
+    done
+}
+
+az_bugs() {
+    # @project no se resuelve desde la CLI y devuelve vacío: hay que poner el nombre literal.
+    local proyecto_wiql=${1//"'"/"''"}
+    az boards query --org "$AZURE_ORG" --project "$1" -o tsv \
+        --wiql "SELECT [System.Id],[System.Title] FROM WorkItems WHERE [System.TeamProject] = '$proyecto_wiql' AND [System.AssignedTo] = @Me AND [System.WorkItemType] = 'Bug'" \
+        --query '[].[id, fields."System.Title"]'
+}
+
+az_run() {
+    az pipelines runs show --id "$2" --org "$AZURE_ORG" --project "$1" -o tsv \
+        --query '[status, result, definition.name]'
+}
+
+cmd_enviar() {
+    [[ $# -ge 3 ]] || die "uso: avisos enviar <nombre> <título> <mensaje> [url]"
+    local nombre=$1 titulo=$2 mensaje=$3 url=${4:-} f
+    f=$(ruta_aviso "$nombre")
+    [[ -f $f && $(leer "$f" estado) == activo ]] || return 0
+
+    if [[ ${AVISOS_SECO:-} == 1 ]]; then
+        printf 'ENVIADO|%s|%s|%s\n' "$titulo" "$mensaje" "$url"
+        return 0
+    fi
+    local -a cabeceras=(-H "Title: $titulo")
+    [[ -n $url ]] && cabeceras+=(-H "Click: $url")
+    curl -fsS "${cabeceras[@]}" -d "$mensaje" "$NTFY_URL" > /dev/null
+}
+
+cmd_crear() {
+    [[ $# -ge 2 ]] || die "uso: avisos crear <nombre> <tipo> [clave=valor...]"
+    local nombre=$1 tipo=$2 f par k r ids
+    shift 2
+    f=$(ruta_aviso "$nombre")
+    [[ ! -e $f ]] || die "ya existe el aviso: $nombre"
+
+    local -A kv=()
+    for par in "$@"; do
+        [[ $par =~ ^([a-z]+)=(.*)$ ]] || die "parámetro inválido: $par"
+        k=${BASH_REMATCH[1]}
+        [[ $k != tipo && $k != estado ]] || die "no se puede fijar $k"
+        kv[$k]=${BASH_REMATCH[2]}
+    done
+
+    local requeridos intervalo=60 maquina_def
+    maquina_def=$(host)
+    case $tipo in
+        evento) requeridos="" intervalo=0 maquina_def=todas ;;
+        azure-bugs) requeridos="proyecto" intervalo=300 ;;
+        pipeline) requeridos="proyecto run" ;;
+        pid) requeridos="pid" ;;
+        obsidian) requeridos="" ;;
+        *) die "tipo desconocido: $tipo (${TIPOS// /, })" ;;
+    esac
+    [[ -v kv[maquina] ]] || kv[maquina]=$maquina_def
+    [[ -v kv[intervalo] ]] || kv[intervalo]=$intervalo
+    for r in $requeridos; do
+        [[ -n ${kv[$r]:-} ]] || die "falta el parámetro $r para el tipo $tipo"
+    done
+    [[ ${kv[intervalo]} =~ ^[0-9]+$ ]] || die "intervalo inválido: ${kv[intervalo]}"
+    [[ ${kv[maquina]} =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "maquina inválida: ${kv[maquina]}"
+
+    if [[ $tipo == pid ]]; then
+        [[ ${kv[pid]} =~ ^[0-9]+$ ]] || die "pid inválido: ${kv[pid]}"
+        kv[comando]=$(ps -o comm= -p "${kv[pid]}" 2> /dev/null) || die "no existe el proceso ${kv[pid]}"
+    fi
+    if [[ $tipo == azure-bugs ]]; then
+        ids=$(az_bugs "${kv[proyecto]}") || die "falló la consulta a Azure"
+    fi
+
+    mkdir -p "$(dir_avisos)/estado"
+    {
+        printf '%s=%q\n' tipo "$tipo" maquina "${kv[maquina]}" estado activo intervalo "${kv[intervalo]}"
+        for k in "${!kv[@]}"; do
+            [[ $k == maquina || $k == intervalo ]] || printf '%s=%q\n' "$k" "${kv[$k]}"
+        done
+    } > "$f"
+    if [[ $tipo == azure-bugs ]]; then
+        cut -f1 <<< "$ids" > "$(ruta_estado "$nombre")"
+    fi
+}
+
+cmd_lista() {
+    local f nombre
+    printf '%-20s %-11s %-12s %-8s %-9s %s\n' NOMBRE TIPO MAQUINA ESTADO INTERVALO PARAMETROS
+    for f in "$(dir_avisos)"/*.aviso; do
+        [[ -e $f ]] || continue
+        nombre=${f##*/}
+        (
+            source "$f"
+            extra=""
+            for k in proyecto run pid comando; do
+                [[ -z ${!k:-} ]] || extra+="$k=${!k} "
+            done
+            printf '%-20s %-11s %-12s %-8s %-9s %s\n' "${nombre%.aviso}" "$tipo" "$maquina" "$estado" "$intervalo" "$extra"
+        )
+    done
+}
+
+fijar() { sed -i "s/^$2=.*/$2=$3/" "$1"; }
+
+cmd_pausar() { fijar "$(existente "${1:?uso: avisos pausar <nombre>}")" estado pausado; }
+cmd_reanudar() { fijar "$(existente "${1:?uso: avisos reanudar <nombre>}")" estado activo; }
+
+cmd_mover() {
+    [[ $# -eq 2 ]] || die "uso: avisos mover <nombre> <maquina>"
+    [[ $2 =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "maquina inválida: $2"
+    fijar "$(existente "$1")" maquina "$2"
+}
+
+cmd_borrar() {
+    local f
+    f=$(existente "${1:?uso: avisos borrar <nombre>}")
+    rm -f -- "$f" "$(ruta_estado "$1")" "$(ruta_ultima "$1")"
+}
+
+cmd_sesion() {
+    local accion=${1:-} id=${2:-${CLAUDE_CODE_SESSION_ID:-}} f
+    case $accion in
+        vigilar | soltar)
+            [[ -n $id ]] || die "falta el id de la sesión (no hay \$CLAUDE_CODE_SESSION_ID)"
+            [[ $id =~ ^[A-Za-z0-9-]+$ ]] || die "id inválido: $id"
+            if [[ $accion == vigilar ]]; then
+                mkdir -p "$(dir_sesiones)"
+                touch "$(dir_sesiones)/$id"
+            else
+                rm -f -- "$(dir_sesiones)/$id"
+            fi
+            ;;
+        lista)
+            for f in "$(dir_sesiones)"/*; do
+                [[ -e $f ]] || continue
+                printf '%s  %s\n' "${f##*/}" "$(date -r "$f" '+%F %H:%M')"
+            done
+            ;;
+        *) die "uso: avisos sesion {vigilar|soltar|lista} [id]" ;;
+    esac
+}
+
+# Extrae un string JSON sin jq: toma el valor entre comillas respetando \" y desescapa \" y \\.
+campo_json() {
+    local re="\"$2\"[[:space:]]*:[[:space:]]*\"(([^\"\\\\]|\\\\.)*)\"" v
+    [[ $1 =~ $re ]] || return 0
+    v=${BASH_REMATCH[1]}
+    v=${v//\\\"/\"}
+    printf '%s' "${v//\\\\/\\}"
+}
+
+cmd_claude_hook() {
+    local evento=${1:-} json id cwd mensaje
+    json=$(cat)
+    id=$(campo_json "$json" session_id)
+    [[ $id =~ ^[A-Za-z0-9-]+$ && -e $(dir_sesiones)/$id ]] || return 0
+    cwd=$(campo_json "$json" cwd)
+    cwd=${cwd%/}
+    case $evento in
+        Stop) mensaje=Terminó ;;
+        Notification)
+            mensaje=$(campo_json "$json" message)
+            mensaje=${mensaje:-Necesita tu atención}
+            ;;
+        *) return 0 ;;
+    esac
+    cmd_enviar claude "Claude · ${cwd##*/}" "$mensaje"
+}
+
+# Las revisiones corren en el subshell de revisar_uno con las claves del aviso ya cargadas.
+revisar_azure_bugs() {
+    local salida id titulo estado_f
+    estado_f=$(ruta_estado "$1")
+    mkdir -p "${estado_f%/*}"
+    touch "$estado_f"
+    salida=$(az_bugs "$proyecto") || die "falló la consulta a Azure ($1)"
+    while IFS=$'\t' read -r id titulo; do
+        [[ -n $id ]] || continue
+        rg -qxF -e "$id" "$estado_f" && continue
+        cmd_enviar "$1" "🐞 Bug #$id" "$titulo" "$AZURE_ORG/$(urlenc "$proyecto")/_workitems/edit/$id" || die "falló el envío ($1)"
+        printf '%s\n' "$id" >> "$estado_f"
+    done <<< "$salida"
+}
+
+revisar_pipeline() {
+    local salida estado_run resultado nombre_def
+    salida=$(az_run "$proyecto" "$run") || die "falló la consulta a Azure ($1)"
+    IFS=$'\t' read -r estado_run resultado nombre_def <<< "$salida"
+    [[ $estado_run == completed ]] || return 0
+    local titulo="✅ Pipeline $nombre_def" url
+    url="$AZURE_ORG/$(urlenc "$proyecto")/_build/results?buildId=$run"
+    [[ $resultado == succeeded ]] || titulo="❌ Pipeline $nombre_def ($resultado)"
+    cmd_enviar "$1" "$titulo" "Run #$run: $resultado" "$url" || die "falló el envío ($1)"
+    cmd_borrar "$1"
+}
+
+revisar_pid() {
+    local actual
+    actual=$(ps -o comm= -p "$pid" 2> /dev/null) || actual=""
+    [[ $actual != "$comando" ]] || return 0
+    cmd_enviar "$1" "✔ Terminó $comando" "El proceso $pid terminó" || die "falló el envío ($1)"
+    cmd_borrar "$1"
+}
+
+revisar_obsidian() {
+    local lineas l ruta resto n texto fecha ahora
+    ahora=$(date '+%F %H:%M')
+    lineas=$(rg --null -n -g '*.md' -g '!.avisos' -g '!.obsidian' -g '!.trash' \
+        -e '^\s*- \[ \] .*⏰ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}' "$AVISOS_VAULT" | tr '\0' '\t') || return 0
+    while IFS= read -r l; do
+        [[ -n $l ]] || continue
+        ruta=${l%%$'\t'*}
+        resto=${l#*$'\t'}
+        n=${resto%%:*}
+        texto=${resto#*:}
+        [[ $texto =~ ⏰\ ([0-9]{4}-[0-9]{2}-[0-9]{2}\ [0-9]{2}:[0-9]{2}) ]] || continue
+        fecha=${BASH_REMATCH[1]}
+        texto=${texto/"${BASH_REMATCH[0]}"/}
+        [[ $fecha < $ahora || $fecha == "$ahora" ]] || continue
+        texto=${texto#*'- [ ] '}
+        texto=${texto%"${texto##*[![:space:]]}"}
+        cmd_enviar "$1" "⏰ Recordatorio" "$texto" || die "falló el envío ($1)"
+        sed -i "${n}s/⏰/🔔/" "$ruta"
+    done <<< "$lineas"
+}
+
+revisar_uno() {
+    source "$1"
+    [[ $estado == activo && $maquina == "$(host)" && $tipo != evento ]] || return 0
+    local ahora ultima_f ultima=0
+    ahora=$(date +%s)
+    ultima_f=$(ruta_ultima "$2")
+    [[ ! -f $ultima_f ]] || ultima=$(<"$ultima_f")
+    (( ahora - ultima >= ${intervalo:-60} )) || return 0
+    mkdir -p "${ultima_f%/*}"
+    printf '%s\n' "$ahora" > "$ultima_f"
+    "revisar_${tipo//-/_}" "$2"
+}
+
+cmd_revisar() {
+    local f nombre
+    if [[ -d $(dir_sesiones) ]]; then
+        fd -HIu -t f --changed-before 7d . "$(dir_sesiones)" -X rm -f --
+    fi
+    for f in "$(dir_avisos)"/*.aviso; do
+        [[ -e $f ]] || continue
+        nombre=${f##*/}
+        nombre=${nombre%.aviso}
+        (revisar_uno "$f" "$nombre") || printf 'avisos: falló la revisión de %s\n' "$nombre" >&2
+    done
+}
+
+cargar_env() {
+    local env=${AVISOS_ENV:-$HOME/.config/avisos/env}
+    [[ -f $env ]] || return 0
+    set -a
+    source "$env"
+    set +a
+}
+
+main() {
+    set -euo pipefail
+    cargar_env
+    local cmd=${1:-}
+    [[ $# -eq 0 ]] || shift
+    case $cmd in
+        lista | crear | pausar | reanudar | borrar | mover | enviar | sesion | revisar) "cmd_$cmd" "$@" ;;
+        claude-hook) (cmd_claude_hook "$@") 2> /dev/null || true ;;
+        *) die "uso: avisos {lista|crear|pausar|reanudar|borrar|mover|enviar|sesion|claude-hook|revisar}" ;;
+    esac
+}
+
+[[ "${BASH_SOURCE[0]}" == "$0" ]] && main "$@"
