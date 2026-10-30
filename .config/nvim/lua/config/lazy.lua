@@ -30,6 +30,7 @@ require("lazy").setup({
 		{ import = "plugins.stacks.vue" },
 		-- { import = "plugins.stacks.typescript" },
 		-- { import = "plugins.stacks.rust" },
+		{ import = "plugins.stacks.python" },
 	},
 	-- Por defecto TODO es lazy: cada spec declara su propio trigger
 	-- (event/cmd/ft) o un lazy=false explícito si hace falta al arrancar.

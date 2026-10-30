@@ -218,7 +218,7 @@ hl.bind(MOD .. " + ALT + S", hl.dsp.window.move({ workspace = SPECIAL_WORKSPACE,
 local LID_SWITCH     = "Lid Switch"
 local INTERNAL_PANEL = "eDP-1"
 
-hl.bind("switch:on:" .. LID_SWITCH, hl.dsp.dpms("off", INTERNAL_PANEL),
+hl.bind("switch:on:" .. LID_SWITCH, hl.dsp.dpms({ action = "off", monitor = INTERNAL_PANEL }),
     { locked = true, description = "Apagar panel interno al cerrar la tapa" })
-hl.bind("switch:off:" .. LID_SWITCH, hl.dsp.dpms("on", INTERNAL_PANEL),
+hl.bind("switch:off:" .. LID_SWITCH, hl.dsp.dpms({ action = "on", monitor = INTERNAL_PANEL }),
     { locked = true, description = "Encender panel interno al abrir la tapa" })
