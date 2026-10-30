@@ -162,3 +162,5 @@ function claude {
   fi
 }
 export ANTHROPIC_MODEL=opus
+
+source /usr/share/nvm/init-nvm.sh
