@@ -14,7 +14,7 @@ core() { tmux -L cmux -f "$dir/core.conf" "$@"; }
 ui() { tmux -L cmux-ui -f "$dir/ui.conf" "$@"; }
 
 sessions() {
-    core list-sessions -F '#{session_id}|#{session_path}|#{@name}|#{@state}' 2>/dev/null | sort -t'$' -k2n
+    core list-sessions -F '#{session_id}|#{session_path}|#{@name}|#{@state}|#{@vim}' 2>/dev/null | sort -t'$' -k2n
 }
 
 # Pasa por zsh interactivo para heredar la función `claude` del .zshrc (flags y modo de ponytail).
@@ -31,19 +31,30 @@ open_ui() {
     local name=ui$$
     exec tmux -L cmux-ui -f "$dir/ui.conf" new-session -s "$name" -e "CMUX_UI=$name" \
         "exec env -u TMUX tmux -L cmux attach -t '$1'" \; \
-        split-window -hbd -l 26 "exec '$self' _sidebar" \; \
-        set @cursor "$1"
+        split-window -hbd -l 26 "exec '$self' _sidebar"
 }
 
 chat_tty() { ui display -p -t "$CMUX_UI:.{right}" '#{pane_tty}'; }
 chat() { core display -p -c "$(chat_tty)" "$1"; }
 cursor() { ui show -qv -t "$CMUX_UI" @cursor; }
-mode() { ui set -t "$CMUX_UI" @mode "$1" \; set -t "$CMUX_UI" key-table "$2"; }
-focus() { ui select-pane -t "$CMUX_UI:.{$1}"; }
 show() { core switch-client -c "$(chat_tty)" -t "$1"; }
+
+# El borde del chat toma el color del modo vim de la sesión de Claude que muestra. @vim vive en el core y
+# el estilo en el ui, así que se copia a @claude_vim (ui.conf lo lee) solo cuando cambia.
+sync_border() {
+    local -A vim=()
+    local tty v s
+    while IFS='|' read -r tty v; do
+        vim[$tty]=$v
+    done < <(core list-clients -F '#{client_tty}|#{@vim}' 2>/dev/null)
+    while IFS='|' read -r s tty v; do
+        [[ ${vim[$tty]-} != "$v" ]] && ui set -t "$s" @claude_vim "${vim[$tty]-}"
+    done < <(ui list-panes -a -f '#{pane_at_right}' -F '#{session_name}|#{pane_tty}|#{@claude_vim}' 2>/dev/null)
+}
 
 refresh() {
     local pid
+    sync_border
     for pid in $(ui list-sessions -F '#{@sidebar_pid}' 2>/dev/null); do
         kill -USR1 "$pid" 2>/dev/null
     done
@@ -80,44 +91,23 @@ move() {
     ui set -t "$CMUX_UI" @cursor "${ids[i]}"
 }
 
-# En el menú j/k solo mueven el cursor; en el chat cambian de sesión directamente
 step() {
-    if ((menu)); then
-        move "$1"
-    else
-        ui set -t "$CMUX_UI" @cursor "$(chat '#{session_id}')"
-        move "$1"
-        show "$(cursor)"
-    fi
+    ui set -t "$CMUX_UI" @cursor "$(chat '#{session_id}')"
+    move "$1"
+    show "$(cursor)"
 }
 
+# El ui no ve el copy-mode del chat (es un cliente anidado): @copy lo marca y modesync lo borra al salir
 visual() {
-    local pane
-    pane=$(chat '#{pane_id}')
-    focus right
-    mode VISUAL root
-    core copy-mode -t "$pane"
+    ui set -t "$CMUX_UI" @copy 1
+    core copy-mode -t "$(chat '#{pane_id}')"
 }
 
 key() {
-    local menu d
-    menu=$(ui display -p -t "$CMUX_UI" '#{pane_at_left}')
+    local d
     case $1 in
-        esc)
-            [[ $(chat '#{pane_in_mode}') == 1 ]] && core send-keys -t "$(chat '#{pane_id}')" -X cancel
-            mode NORMAL normal
-            ;;
-        i)
-            focus right
-            mode INSERTAR root
-            ;;
-        h) focus left ;;
-        l)
-            ((menu)) && show "$(cursor)"
-            focus right
-            ;;
-        j) step 1 ;;
-        k) step -1 ;;
+        next) step 1 ;;
+        prev) step -1 ;;
         narrow) widen -4 ;;
         widen) widen 4 ;;
         v) visual ;;
@@ -129,16 +119,13 @@ key() {
             d=${2/#\~/$HOME}
             if [[ -d $d ]]; then
                 d=$(new_session "$d")
-                ui set -t "$CMUX_UI" @cursor "$d"
                 show "$d"
-                focus right
-                mode INSERTAR root
             else
                 ui display-message -t "$CMUX_UI" "cmux: no existe la carpeta $d"
             fi
             ;;
         r)
-            if ((menu)); then d=$(cursor); else d=$(chat '#{session_id}'); fi
+            d=$(chat '#{session_id}')
             ui set -t "$CMUX_UI" @target "$d"
             ui command-prompt -t "$(ui list-clients -t "$CMUX_UI" -F '#{client_name}')" \
                 -p 'nombre:' -I "$(core display -p -t "$d" '#{?@name,#{@name},#{b:session_path}}')" \
@@ -146,12 +133,12 @@ key() {
             ;;
         # Relanza el comando de hoy y no el guardado en el panel: recoge el .zshrc, el entorno y hooks.json actuales
         R)
-            if ((menu)); then d=$(cursor); else d=$(chat '#{session_id}'); fi
+            d=$(chat '#{session_id}')
             core respawn-pane -k -t "$d" -- "${claude_cmd[@]}"
             ;;
         # Un nombre vacío devuelve la sesión al nombre de su carpeta
         rename) core set -t "$(ui show -qv -t "$CMUX_UI" @target)" @name "$2" ;;
-        d) core kill-session -t "$(cursor)" ;;
+        d) core kill-session -t "$(chat '#{session_id}')" ;;
         Q)
             core kill-server
             ui kill-server
@@ -164,7 +151,7 @@ key() {
 pick() {
     local d
     d=$({
-        core display -p -t "$(cursor)" '#{session_path}'
+        chat '#{session_path}'
         fd -H -t d -t f -d 6 '^\.(git|obsidian)$' "$HOME" -E .cache -E .local -E .claude --format '{//}'
     } | awk '!seen[$0]++' | sed "s|^$HOME|~|" |
         fzf --print-query --reverse --tiebreak=index --prompt 'carpeta: ')
@@ -172,20 +159,18 @@ pick() {
     [[ -n $d ]] && key new "$d"
 }
 
-# Al salir del modo de copia (y, Esc) la ventana que estaba en VISUAL vuelve a NORMAL
+# Al salir del modo de copia (y, Esc) la ventana deja de marcarse en copia
 modesync() {
     for CMUX_UI in $(ui list-sessions -F '#{session_name}' 2>/dev/null); do
-        [[ $(ui show -qv -t "$CMUX_UI" @mode) == VISUAL && $(chat '#{pane_in_mode}') != 1 ]] && mode NORMAL normal
+        [[ $(ui show -qv -t "$CMUX_UI" @copy) == 1 && $(chat '#{pane_in_mode}') != 1 ]] && ui set -u -t "$CMUX_UI" @copy
     done
     refresh
 }
 
 draw() {
-    local shown cur menu id path custom state name branch mark icon sgr line out w rows top pad found=
+    local shown id path custom state vim tag name branch mark icon line out w rows top pad
     local -A seen=()
     shown=$(chat '#{session_id}')
-    cur=$(cursor)
-    menu=$(ui display -p -t "$CMUX_UI" '#{&&:#{pane_at_left},#{==:#{@mode},NORMAL}}')
     w=$(ui display -p -t "$CMUX_UI:.{left}" '#{pane_width}')
     # Las letras de bloque miden 22 columnas; en una barra más estrecha el título cae a una línea
     if ((w >= 24)); then
@@ -212,29 +197,32 @@ draw() {
         fi
         out+=$'\e['$((rows + top + 3))'H'
     fi
-    while IFS='|' read -r id path custom state; do
+    while IFS='|' read -r id path custom state vim; do
         name=${custom:-${path##*/}}
         ((++seen[$name] > 1)) && name+=" (${seen[$name]})"
         branch=$(git -C "$path" branch --show-current 2>/dev/null)
         mark=' '
         [[ $id == "$shown" ]] && mark='▸'
-        sgr=
-        [[ $id == "$cur" ]] && found=1 && ((menu)) && sgr=$'\e[7m'
         case $state in
             working) icon=$'\e[33m●' ;;
             waiting) icon=$'\e[31m?' ;;
             done) icon=$'\e[32m✓' ;;
             *) icon=' ' ;;
         esac
-        printf -v line ' %s %-*.*s ' "$mark" $((w - 6)) $((w - 6)) "$name"
-        out+="$sgr$line$icon"$'\e[0m\e[K\n'
+        case $vim in
+            INSERT) tag=$'\e[38;5;114mI' ;;
+            NORMAL) tag=$'\e[38;5;39mN' ;;
+            VISUAL*) tag=$'\e[38;5;176mV' ;;
+            *) tag=' ' ;;
+        esac
+        printf -v line ' %s %-*.*s ' "$mark" $((w - 8)) $((w - 8)) "$name"
+        out+="$line$tag $icon"$'\e[0m\e[K\n'
         if [[ -n $branch ]]; then
             printf -v line '     %-*.*s' $((w - 6)) $((w - 6)) "$branch"
-            out+=$'\e[2m'"$sgr$line"$'\e[0m\e[K\n'
+            out+=$'\e[2m'"$line"$'\e[0m\e[K\n'
         fi
     done < <(sessions)
     printf '%s\e[J' "$out"
-    [[ -n $found ]] || ui set -t "$CMUX_UI" @cursor "$shown"
 }
 
 sidebar() {
@@ -244,6 +232,7 @@ sidebar() {
     while :; do
         # Sin panel de chat (se cerró el último Claude) la ventana ya no tiene nada que mostrar
         (($(ui list-panes -t "$CMUX_UI" | wc -l) > 1)) || exec tmux -L cmux-ui kill-session -t "$CMUX_UI"
+        sync_border
         draw
         sleep 2 &
         wait $!

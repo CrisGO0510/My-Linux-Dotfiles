@@ -5,15 +5,25 @@
 cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 input=$(cat)
 
-IFS=$'\t' read -r model effort pct cost project_dir < <(
+IFS=$'\t' read -r model effort pct cost vim project_dir < <(
     jq -r '[
         (.model.display_name // .model.id // "?"),
         (.effort.level // "-"),
         ((.context_window.used_percentage // 0) | floor),
         (.cost.total_cost_usd // 0),
+        (.vim.mode // "-"),
         (.workspace.project_dir // .cwd // "")
     ] | @tsv' <<<"$input"
 )
+
+[ "$vim" = "-" ] && vim=""
+if [ -n "${CMUX:-}" ] && [ -n "${TMUX_PANE:-}" ]; then
+    (
+        [ "$(tmux display -p -t "$TMUX_PANE" '#{@vim}')" = "$vim" ] && exit
+        if [ -n "$vim" ]; then tmux set -t "$TMUX_PANE" @vim "$vim"; else tmux set -u -t "$TMUX_PANE" @vim; fi
+        "$CMUX_BIN" _refresh
+    ) >/dev/null 2>&1 </dev/null &
+fi
 
 dim=$'\033[2m'
 reset=$'\033[0m'
