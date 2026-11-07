@@ -24,7 +24,6 @@ map D trash-confirm
 map gt cd ~/.local/share/Trash/files
 map gn cd ~/Documents/obsidian
 map ? ${{ glow -p ~/.config/lf/maps.md }}
-map gp dev_project
 
 
 # --- Funciones ---
@@ -239,14 +238,4 @@ cmd jump ${{
     if [ -n "$res" ]; then
         lf -remote "send $id cd \"$res\""
     fi
-}}
-
-cmd dev_project ${{
-    # Terminal 1
-    setsid -f kitty sh -c "cd \"$PWD\" && claude" >/dev/null 2>&1
-
-    # Terminal 2
-    setsid -f kitty sh -c "cd \"$PWD\" && zsh"
-    # Reemplazar lf con nvim
-    exec nvim .
 }}

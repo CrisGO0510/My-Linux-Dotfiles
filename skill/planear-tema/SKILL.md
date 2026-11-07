@@ -12,9 +12,9 @@ Son dos fases porque ninguna técnica sirve para todos los temas. Aplicarlas tod
 bloque de pasos que no mejoran lo que el tema exige. Decidir con el tema delante, y con cada
 técnica ya aplicada en una línea, deja la elección en manos de quien va a estudiar.
 
-Vault: `~/Documents/obsidian`. Cada materia vive en `Estudio/<Materia>/`: una nota índice con el
+Vault: `~/Documents/obsidian`. Cada materia vive en `Trabajo/Crecimiento/Estudio/<Materia>/`: una nota índice con el
 nombre de la materia, un tema por nota (`NN - Nombre.md`), a veces notas de entregas (`P1 - …`) y
-una carpeta `Material/`. `Estudio/Plan del semestre.md` trae el nivel y el presupuesto de cada tema.
+una carpeta `Material/`. `Trabajo/Crecimiento/Estudio/Plan del semestre.md` trae el nivel y el presupuesto de cada tema.
 
 ## Lo que condiciona el plan
 
@@ -38,7 +38,7 @@ una carpeta `Material/`. `Estudio/Plan del semestre.md` trae el nivel y el presu
 
 1. **Ubicar el tema.** El argumento puede ser un número con la materia abreviada, un nombre o un
    rango (`01 a 05`).
-   - Resolver la materia contra las carpetas de `Estudio/`. Preguntar solo si número y nombre
+   - Resolver la materia contra las carpetas de `Trabajo/Crecimiento/Estudio/`. Preguntar solo si número y nombre
      juntos no señalan una única nota.
    - Buscar el tema dentro de `Plan del semestre` (no hace falta leerlo entero). La fila de la
      tabla de su materia da nivel, presupuesto y el porqué. La sección «entregable de dominio» de
@@ -145,7 +145,7 @@ Los veredictos:
 
 ## Formato del plan
 
-Nota nueva en `Estudio/<Materia>/Plan · <NN - Tema>.md` (o `Plan · NN a NN.md` para un rango):
+Nota nueva en `Trabajo/Crecimiento/Estudio/<Materia>/Plan · <NN - Tema>.md` (o `Plan · NN a NN.md` para un rango):
 
 ```
 Plan de aprendizaje temporal de [[<Materia>]]. Se borra cuando se cierre el tema.

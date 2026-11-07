@@ -53,7 +53,7 @@ list_streams() {
         | [ $serial,
             ($direct.address // "" | ltrimstr("0x")),
             .id,
-            ($w.workspace.id // ""),
+            ($w.workspace.id // $w.workspace.name // ""),
             # channelVolumes es lineal; wpctl y pavucontrol muestran la raíz cúbica
             (($pr.channelVolumes // [1]) | max | pow(.; 1/3) * 100 | round / 100),
             (if $pr.mute then 1 else 0 end),
@@ -72,13 +72,14 @@ list_streams() {
 }
 
 # Workspace visible en el monitor enfocado (el especial gana si está abierto)
+# Desde Hyprland 0.57 los especiales no traen id en el JSON: se identifican por nombre.
 active_ws() {
     hyprctl monitors -j | jq -r '.[] | select(.focused)
-        | if .specialWorkspace.id != 0 then .specialWorkspace.id else .activeWorkspace.id end'
+        | if .specialWorkspace.name != "" then .specialWorkspace.name else .activeWorkspace.id end'
 }
 
 # Aviso a la barra: osd <ws> <pct> <estado: on|mute|none>. Si la barra no corre, se ignora.
-# Los workspaces especiales (id negativo) van como "esp": un "-98" lo leería qs como opción.
+# Los workspaces especiales van como "esp": la barra solo muestra números o esa etiqueta.
 osd() {
     local ws=$1
     [[ $ws =~ ^[0-9]+$ ]] || ws=esp
@@ -94,7 +95,7 @@ summary() {
 ws_label() {
     case "$1" in
         "") echo " ?" ;;
-        -*) echo "Hidden" ;;
+        special:*) echo "Hidden" ;;
         *) echo "WS $1" ;;
     esac
 }

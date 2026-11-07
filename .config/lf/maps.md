@@ -35,6 +35,20 @@
 | `/` | Buscar (Nativo) |
 | `n` / `N` | Siguiente / Anterior |
 
+### Orden y vista
+
+| Tecla | Acción |
+| :--- | :--- |
+| `sn` | Por nombre (natural) |
+| `ss` | Por tamaño |
+| `st` | Por fecha de modificación |
+| `sb` | Por fecha de creación |
+| `sa` | Por fecha de último acceso |
+| `sc` | Por fecha de cambio (ctime) |
+| `se` | Por extensión |
+| `zr` | Invertir el orden |
+| `zh` | Mostrar / ocultar archivos ocultos |
+
 ### Sistema
 
 | Tecla | Acción |
@@ -72,7 +86,6 @@
 | :--- | :--- |
 | `t` | Terminal Externa (Kitty) |
 | `T` | Terminal Interna |
-| `gp` | Desplegar terminal + opencode |
 
 ### Ayuda
 
