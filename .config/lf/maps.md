@@ -79,6 +79,7 @@
 | `x` | Comprimir archivos (Menú) |
 | `D` | Borrar archivos |
 | `w` | Drag & Drop inteligente |
+| `W` | Drag & Drop de la selección (o del archivo bajo el cursor) |
 
 ### Terminales
 

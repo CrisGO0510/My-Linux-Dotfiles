@@ -19,6 +19,7 @@ map a push :create<space>
 map e $nvim .
 map x zip_menu
 map w drag_files
+map W drag_selected
 map D trash-confirm
 
 map gt cd ~/.local/share/Trash/files
@@ -30,6 +31,12 @@ map ? ${{ glow -p ~/.config/lf/maps.md }}
 cmd drag_files ${{
     OPTIONS="-x -n -a -b -H 400 -W 400"
     setsid -f ripdrag $OPTIONS ./* >/dev/null 2>&1
+}}
+
+cmd drag_selected ${{
+    set -f
+    IFS=$'\n'
+    setsid -f ripdrag -x -n -a -b -H 400 -W 400 $fx >/dev/null 2>&1
 }}
 
 cmd zip_menu ${{
